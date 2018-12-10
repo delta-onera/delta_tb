@@ -15,7 +15,7 @@ Please contact the ONERA [www.onera.fr/en/contact-us](www.onera.fr/en/contact-us
 
 #### Code license
 
-For research and non commercial purposes, all the code and documentation of github.com/aboulch/snapnet is released under the GPLv3 license:
+For research and non commercial purposes, all the code and documentation of github.com/delta-onera/delta_tb is released under the GPLv3 license:
 
 DeLTA Toolbox, a toolbox for ONERA DeLTA project
 Copyright (C) 2017 ONERA, Alexandre Boulch
