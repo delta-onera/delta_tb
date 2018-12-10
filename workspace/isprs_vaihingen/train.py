@@ -158,7 +158,7 @@ def main():
         print("loading data in memory...", end="", flush=True)
         globfile.segmentation_global_data = {}
         globfile.segmentation_global_data["training"] = []
-        for im_fname in train_filenames:
+        for im_fname in tqdm(train_filenames):
             globfile.segmentation_global_data["training"].append([image_loader(im_fname[0]), target_loader(im_fname[1])])
         print("Done")
         
@@ -176,7 +176,7 @@ def main():
 
 
     print("Creating the model...", end="", flush=True)
-    net = networks.segnet(in_channels, out_channels, pretrained=True)
+    net = networks.unet(in_channels, out_channels, pretrained=True)
     if use_cuda:
         net.cuda()
     print("done")
