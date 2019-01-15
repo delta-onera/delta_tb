@@ -83,9 +83,6 @@ def label_image_saver(image_path, label_image):
 
 def main():
 
-    "/data02/ISPRS_semantic_labeling_Vaihingen"
-
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--bs", type=int, default=8)
     parser.add_argument("--savedir", type=str, default="results")
