@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import torch.utils.model_zoo as model_zoo
-__all__ = ["segnet"]
+__all__ = ["segnet_bn_relu"]
 
-class SegNet(nn.Module):
+class SegNet_BN_ReLU(nn.Module):
     # Unet network
     @staticmethod
     def weight_init(m):
@@ -89,64 +89,65 @@ class SegNet(nn.Module):
         
     def forward(self, x):
         # Encoder block 1
-        x = F.relu(self.conv1_1_bn(self.conv1_1(x)))
-        x1 = F.relu(self.conv1_2_bn(self.conv1_2(x)))
+        x = self.conv1_1_bn(F.relu(self.conv1_1(x)))
+        x1 = self.conv1_2_bn(F.relu(self.conv1_2(x)))
         size1 = x.size()
         x, mask1 = self.pool(x1)
         
         # Encoder block 2
-        x = F.relu(self.conv2_1_bn(self.conv2_1(x)))
-        x2 = F.relu(self.conv2_2_bn(self.conv2_2(x)))
+        x = self.conv2_1_bn(F.relu(self.conv2_1(x)))
+        #x = self.drop2_1(x)
+        x2 = self.conv2_2_bn(F.relu(self.conv2_2(x)))
         size2 = x.size()
         x, mask2 = self.pool(x2)
         
         # Encoder block 3
-        x = F.relu(self.conv3_1_bn(self.conv3_1(x)))
-        x = F.relu(self.conv3_2_bn(self.conv3_2(x)))
-        x3 = F.relu(self.conv3_3_bn(self.conv3_3(x)))
+        x = self.conv3_1_bn(F.relu(self.conv3_1(x)))
+        x = self.conv3_2_bn(F.relu(self.conv3_2(x)))
+        x3 = self.conv3_3_bn(F.relu(self.conv3_3(x)))
         size3 = x.size()
         x, mask3 = self.pool(x3)
         
         # Encoder block 4
-        x = F.relu(self.conv4_1_bn(self.conv4_1(x)))
-        x = F.relu(self.conv4_2_bn(self.conv4_2(x)))
-        x4 = F.relu(self.conv4_3_bn(self.conv4_3(x)))
+        x = self.conv4_1_bn(F.relu(self.conv4_1(x)))
+        x = self.conv4_2_bn(F.relu(self.conv4_2(x)))
+        x4 = self.conv4_3_bn(F.relu(self.conv4_3(x)))
         size4 = x.size()
         x, mask4 = self.pool(x4)
         
         # Encoder block 5
-        x = F.relu(self.conv5_1_bn(self.conv5_1(x)))
-        x = F.relu(self.conv5_2_bn(self.conv5_2(x)))
-        x = F.relu(self.conv5_3_bn(self.conv5_3(x)))
+        x = self.conv5_1_bn(F.relu(self.conv5_1(x)))
+        x = self.conv5_2_bn(F.relu(self.conv5_2(x)))
+        x = self.conv5_3_bn(F.relu(self.conv5_3(x)))
         size5 = x.size()
         x, mask5 = self.pool(x)
         
         # Decoder block 5
         x = self.unpool(x, mask5, output_size = size5)
-        x = F.relu(self.conv5_3_D_bn(self.conv5_3_D(x)))
-        x = F.relu(self.conv5_2_D_bn(self.conv5_2_D(x)))
-        x = F.relu(self.conv5_1_D_bn(self.conv5_1_D(x)))
+        x = self.conv5_3_D_bn(F.relu(self.conv5_3_D(x)))
+        x = self.conv5_2_D_bn(F.relu(self.conv5_2_D(x)))
+        x = self.conv5_1_D_bn(F.relu(self.conv5_1_D(x)))
         
         # Decoder block 4
         x = self.unpool(x, mask4, output_size = size4)
-        x = F.relu(self.conv4_3_D_bn(self.conv4_3_D(x)))
-        x = F.relu(self.conv4_2_D_bn(self.conv4_2_D(x)))
-        x = F.relu(self.conv4_1_D_bn(self.conv4_1_D(x)))
+        x = self.conv4_3_D_bn(F.relu(self.conv4_3_D(x)))
+        x = self.conv4_2_D_bn(F.relu(self.conv4_2_D(x)))
+        x = self.conv4_1_D_bn(F.relu(self.conv4_1_D(x)))
         
         # Decoder block 3
         x = self.unpool(x, mask3, output_size = size3)
-        x = F.relu(self.conv3_3_D_bn(self.conv3_3_D(x)))
-        x = F.relu(self.conv3_2_D_bn(self.conv3_2_D(x)))
-        x = F.relu(self.conv3_1_D_bn(self.conv3_1_D(x)))
+        x = self.conv3_3_D_bn(F.relu(self.conv3_3_D(x)))
+        x = self.conv3_2_D_bn(F.relu(self.conv3_2_D(x)))
+        x = self.conv3_1_D_bn(F.relu(self.conv3_1_D(x)))
         
         # Decoder block 2
         x = self.unpool(x, mask2, output_size = size2)
-        x = F.relu(self.conv2_2_D_bn(self.conv2_2_D(x)))
-        x = F.relu(self.conv2_1_D_bn(self.conv2_1_D(x)))
+        x = self.conv2_2_D_bn(F.relu(self.conv2_2_D(x)))
+        x = self.conv2_1_D_bn(F.relu(self.conv2_1_D(x)))
         
         # Decoder block 1
         x = self.unpool(x, mask1, output_size = size1)
-        x = F.relu(self.conv1_2_D_bn(self.conv1_2_D(x)))
+        x = self.conv1_2_D_bn(F.relu(self.conv1_2_D(x)))
         x = self.conv1_1_D(x)
         return x
 
@@ -198,12 +199,12 @@ class SegNet(nn.Module):
         self.load_state_dict(th)
 
 
-def segnet(in_channels, out_channels, pretrained=False, **kwargs):
+def segnet_bn_relu(in_channels, out_channels, pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SegNet(in_channels, out_channels)
+    model = SegNet_BN_ReLU(in_channels, out_channels)
     if pretrained:
         model.load_pretrained_weights()
     return model

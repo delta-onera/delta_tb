@@ -7,7 +7,6 @@ import numpy as np
 from tqdm import tqdm
 from PIL import Image
 import os
-import random
 import scipy.misc
 
 ## TORCH
@@ -17,7 +16,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import transforms
 
-import matplotlib.pyplot as plt
 
 # SEMANTIC SEGMENTATION TOOLBOX
 from semSeg.dataset import SegmentationDataset_BigImages
