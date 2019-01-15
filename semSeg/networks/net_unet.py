@@ -188,7 +188,7 @@ class Unet(nn.Module):
 
         mapped_weights = self.state_dict()
         for k_vgg, k_segnet in corresp_map:
-            if (self.in_channels != 3) and "features" in k_vgg and "conv1_1." not in k_segnet:
+            if (self.in_channels != 3) and "features" in k_vgg and "conv11." not in k_segnet:
                 mapped_weights[k_segnet] = vgg16_weights[k_vgg]
             elif (self.in_channels == 3) and "features" in k_vgg:
                 mapped_weights[k_segnet] = vgg16_weights[k_vgg]
