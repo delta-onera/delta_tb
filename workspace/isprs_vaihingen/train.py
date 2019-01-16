@@ -1,4 +1,5 @@
 ## insert parent directory in path
+## practical use would be to include the deltatb folder in the python path
 import sys
 sys.path.insert(0, "../..")
 
@@ -18,11 +19,11 @@ from torchvision import transforms
 
 
 # SEMANTIC SEGMENTATION TOOLBOX
-from semSeg.dataset import SegmentationDataset_BigImages
-from semSeg.dataset import globfile
-from semSeg.dataset import co_transforms
-import semSeg.networks as networks
-import semSeg.metrics.raster as metrics
+from deltatb.dataset import SegmentationDataset_BigImages
+from deltatb.dataset import globfile
+from deltatb.dataset import co_transforms
+import deltatb.networks as networks
+import deltatb.metrics.raster as metrics
 
 from sklearn.metrics import confusion_matrix
 
