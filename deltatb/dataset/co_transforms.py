@@ -116,8 +116,8 @@ class RandomCrop(object):
             if w == tw and h == th:
                 return inputs, targets
 
-            x1 = random.randint(0, w - tw)
-            y1 = random.randint(0, h - th)
+            x1 = random.randint(0, w - tw-1)
+            y1 = random.randint(0, h - th-1)
 
             for input_id, input_ in enumerate(inputs):
                 inputs[input_id] = self.__randomCrop__(input_, x1, y1, tw, th)
