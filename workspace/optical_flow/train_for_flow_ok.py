@@ -20,7 +20,6 @@ from deltatb.dataset import flow_co_transforms
 from deltatb.tools.visdom_display import VisuVisdom
 from backend import flow_to_color_tensor, upsample_output_and_evaluate
 from backend import image_loader_gray, flow_loader
-from backend import RandomTranslate, RandomRotate
 
 import argparse
 
@@ -29,6 +28,7 @@ parser.add_argument("--bs", type=int, default=8) #taille du batch
 parser.add_argument("--nw", type=int, default=2) #nombre de coeurs cpu à utiliser pour chargement des données
 parser.add_argument("--lr", type=float, default=0.0001) # learning rate
 parser.add_argument("--nb-epochs", type=int, default=300) #nombre d'epochs
+parser.add_argument("--nb-iter-per-epoch", type=int, default=10000) 
 parser.add_argument("--savedir", type=str, default="flow_results")
 parser.add_argument("--expname", type=str, default="delta_flow_net_flying_chairs")
 parser.add_argument("--nocuda", action="store_true")
@@ -52,7 +52,7 @@ num_workers = args.nw
 batch_size = args.bs
 adam_lr = args.lr
 nbr_epochs = args.nb_epochs # training epoch
-nbr_iter_per_epochs = 10000 # number of iterations for one epoch
+nbr_iter_per_epochs = args.nb_iter_per_epoch # number of iterations for one epoch
 imsize = 320, 448 # input image size
 scheduler_step_indices = [100, 150, 200]
 scheduler_factor = 0.5
@@ -75,7 +75,7 @@ print("Creating data training loader...", end="", flush=True)
 train_co_transforms = co_transforms.Compose([
                             flow_co_transforms.RandomTranslate(10),
                             flow_co_transforms.RandomRotate(10,5),
-                            flow_co_transforms.RandomCrop(imsize),
+                            co_transforms.RandomCrop(imsize),
                             flow_co_transforms.RandomVerticalFlip(),
                             flow_co_transforms.RandomHorizontalFlip(),
                                 ])
@@ -181,6 +181,7 @@ def train(epoch, nbr_batches):
         if i >= nbr_batches:
                 break
 
+    t.close()
     return loss.item()
 
 def test(epoch):
@@ -223,6 +224,7 @@ def test(epoch):
                     color_output_flow = flow_to_color_tensor(out.data, display_max_flo)
                     visu.imshow(color_output_flow, 'Flots (test)[{}]'.format(k))
 
+        t.close()
         return err_moy.item() / len(test_loader)
 
 # generate filename for saving model
