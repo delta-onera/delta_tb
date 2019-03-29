@@ -20,7 +20,7 @@ class Join(object):
 
         # test if is inputs is list / numpy
         if isinstance(inputs,list):
-            
+
             h, w, _ = np.array(inputs[0]).shape
             c = 0
             for inp in inputs:
@@ -32,10 +32,10 @@ class Join(object):
                 inp_tmp = np.array(inp)
                 res[:,:,c+inp_tmp.shape[2]]  = inp_tmp
                 c+=inp_tmp.shape[2]
-            
+
         else: # else it is numpy
             raise Exception("Join transform ERROR")
-            
+
         return res
 
 
@@ -74,7 +74,7 @@ class NormalizeDynamic(object):
 
     def __init__(self, sigma_threshold=None):
         self.threshold = sigma_threshold
-    
+
     def __call__(self, inputs):
         if not( len(inputs.shape)>=3 and inputs.shape[2]!=1):
             inputs -= inputs.reshape(-1, inputs.shape[2]).mean(axis=0)[None,None,:]
@@ -87,10 +87,10 @@ class NormalizeDynamic(object):
         return inputs
 
 class RandomColorTranslation(object):
-    
+
     def __init__(self, value=None):
         self.value=value
-    
+
     def __call__(self, inputs):
         if self.value is not None:
             r = (random.random()*2-1) * self.value
@@ -98,12 +98,12 @@ class RandomColorTranslation(object):
             b = (random.random()*2-1) * self.value
             inputs = inputs + np.array([r,g,b])[None,None,:]
         return inputs.astype(np.float32)
-            
+
 class RandomNormalNoise(object):
-    
+
     def __init__(self, value=None):
         self.value=value
-    
+
     def __call__(self, inputs):
         if self.value is not None:
             s = random.random() * self.value

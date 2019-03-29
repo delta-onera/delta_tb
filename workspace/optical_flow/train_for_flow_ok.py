@@ -28,13 +28,15 @@ parser.add_argument("--bs", type=int, default=8) #taille du batch
 parser.add_argument("--nw", type=int, default=2) #nombre de coeurs cpu à utiliser pour chargement des données
 parser.add_argument("--lr", type=float, default=0.0001) # learning rate
 parser.add_argument("--nb-epochs", type=int, default=300) #nombre d'epochs
-parser.add_argument("--nb-iter-per-epoch", type=int, default=10000) 
+parser.add_argument("--nb-iter-per-epoch", type=int, default=1200)
 parser.add_argument("--savedir", type=str, default="flow_results")
 parser.add_argument("--expname", type=str, default="delta_flow_net_flying_chairs")
+parser.add_argument('--device', type=int, default=0)
 parser.add_argument("--nocuda", action="store_true")
 #parser.add_argument("--saveimages", action="store_true")
 parser.add_argument("--testinterval", type=int, default=5)
 parser.add_argument("--visuvisdom", action="store_true")
+parser.add_argument("--save-visu", action="store_true")
 parser.add_argument("--visdomport", type=int, default=8097)
 #parser.add_argument('--scheduler-step-indices', nargs='*', default=[-1], type=int,
 #                    help='List of epoch indices for learning rate decay. Must be increasing. No decay if -1')
@@ -60,12 +62,13 @@ div_flow = 20
 weight_decay = 0.0004
 in_channels = 2
 out_channels = 2
-use_cuda = (not args.nocuda) # use cuda GPU
+use_cuda = (not args.nocuda) and torch.cuda.is_available() # use cuda GPU
 
 #########
 
 if use_cuda:
     torch.backends.cudnn.benchmark = True # accelerate convolution computation on GPU
+    torch.cuda.set_device(args.device)
 
 #########
 #Data
@@ -237,7 +240,7 @@ f.flush()
 
 for epoch in range(nbr_epochs):
     scheduler.step()
-    train_loss = train(epoch, nbr_iter_per_epochs / batch_size)
+    train_loss = train(epoch, nbr_iter_per_epochs)
 
     # save the model
     torch.save(net.state_dict(), os.path.join(save_dir, "state_dict.pth"))
@@ -259,4 +262,6 @@ for epoch in range(nbr_epochs):
         f.write("\n")
         f.flush()
 
+if args.visuvisdom and args.save_visu:
+    visu.save()
 f.close()

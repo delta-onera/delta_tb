@@ -3,6 +3,29 @@ import random
 import numbers
 import scipy.ndimage as ndimage
 
+
+class Compose(object):
+    """ Composes several co_transforms together.
+    For example:
+    >>> co_transforms.Compose([
+    >>>     co_transforms.CenterCrop(10),
+    >>>     co_transforms.ToTensor(),
+    >>>  ])
+    """
+
+    def __init__(self, co_transforms):
+        self.co_transforms = co_transforms
+
+    def __call__(self, input, target, mask=None):
+        if mask is None:
+            for t in self.co_transforms:
+                input,target = t(input,target)
+            return input,target
+        else:
+            for t in self.co_transforms:
+                input,target,mask = t(input,target,mask)
+            return input,target,mask
+
 class RandomHorizontalFlip(object):
     """Randomly horizontally flips the given PIL.Image with a probability of 0.5
     """

@@ -9,24 +9,24 @@ from  . import globfile
 
 import matplotlib.pyplot as plt
 
-def apply_function_list(x, fun, **kparams):
+def apply_function_list(x, fun, *params):
     """Apply a function or list over a list of object, or single object."""
     if isinstance(x, list):
         y = []
         if isinstance(fun,list):
             for x_id, x_elem in enumerate(x):
                 if (fun[x_id] is not None) and (x_elem is not None):
-                    y.append(fun[x_id](x_elem, **kparams))
+                    y.append(fun[x_id](x_elem, *params))
                 else:
                     y.append(None)
         else:
             for x_id, x_elem in enumerate(x):
                 if x_elem is not None:
-                    y.append(fun(x_elem, **kparams))
+                    y.append(fun(x_elem, *params))
                 else:
                     y.append(None)
     else:
-        y = fun(x)
+        y = fun(x, *params)
 
     return y
 
@@ -282,21 +282,33 @@ class SegmentationDataset_BigImages(data.Dataset):
 
 
 class RegistrationDataset_BigImages(data.Dataset):
-    """Main Class for Image Folder loader."""
+    """Main Class for Image Folder loader.
+    Filelist est une liste des exemples d'entrainement.
+    Chaque exemple d'entrainement doit contenir :
+      - [[path_img_1, path_img_2], path_flo, path_mask] si on fournit un mask_loader
+      - [[path_img_1, path_img_2], path_flo] si pas de mask ou si genération
+                                                avec un mask_generator
+    """
 
     def __init__(self, big_img_size, imsize=256,
                 filelist=None,
                 image_loader=None, target_loader=None,
                 warp_fct=None, mask_generator=None,
+                mask_loader=None,
                 training=True,
                 co_transforms=None,
                 input_transforms=None,
                 target_transforms=None,
+                mask_transforms=None,
                 one_image_per_file = True,
                 epoch_number_of_images=0,
                 test_stride=None
                 ):
         """Init function."""
+
+        if not (mask_loader is None or mask_generator is None):
+            raise ValueError("""Mask_loader et mask_generator ne peuvent pas être
+                                définis tous les deux """)
 
         if isinstance(imsize, numbers.Number):
             self.imsize = (int(imsize), int(imsize))
@@ -313,10 +325,12 @@ class RegistrationDataset_BigImages(data.Dataset):
         self.co_transforms = co_transforms
         self.input_transforms = input_transforms
         self.target_transforms = target_transforms
+        self.mask_transforms = mask_transforms
 
         # loaders
         self.image_loader = image_loader
         self.target_loader = target_loader
+        self.mask_loader = mask_loader
 
         self.mask_generator = mask_generator
         self.warp_fct = warp_fct
@@ -325,7 +339,7 @@ class RegistrationDataset_BigImages(data.Dataset):
         self.epoch_number_of_images = epoch_number_of_images
 
         if test_stride is None:
-            self.test_stride = self.imsize//2
+            self.test_stride = self.imsize[0]//2, self.imsize[1]//2
         else:
             self.test_stride = test_stride
 
@@ -334,18 +348,14 @@ class RegistrationDataset_BigImages(data.Dataset):
             self.coords = []
             for im_id in range(len(self.imgs)):
                 input_path = self.imgs[im_id][0]
-                if isinstance(input_path, list):
-                    shape = self.image_loader(input_path[0]).shape
-                else:
-                    shape = self.image_loader(input_path).shape
-                for x in range(0, shape[1]-self.imsize[1], self.test_stride):
-                    for y in range(0, shape[0]-self.imsize[0], self.test_stride):
+                for x in range(0, self.big_img_size[1]-self.imsize[1], self.test_stride[1]):
+                    for y in range(0, self.big_img_size[0]-self.imsize[0], self.test_stride[0]):
                         self.coords.append([im_id,x,y])
-                    self.coords.append([im_id,x,shape[0]-self.imsize[0]])
-                x = shape[1]-self.imsize[1]
-                for y in range(0, shape[0]-self.imsize[0], self.test_stride):
+                    self.coords.append([im_id,x,self.big_img_size[0]-self.imsize[0]])
+                x = self.big_img_size[1]-self.imsize[1]
+                for y in range(0, self.big_img_size[0]-self.imsize[0], self.test_stride[0]):
                    self.coords.append([im_id,x,y])
-                self.coords.append([im_id, x,shape[0]-self.imsize[0]])
+                self.coords.append([im_id, x,self.big_img_size[0]-self.imsize[0]])
 
     def __getitem__(self, index):
         """Get item."""
@@ -355,6 +365,8 @@ class RegistrationDataset_BigImages(data.Dataset):
             if self.one_image_per_file:
                 input_path = self.imgs[index][0]
                 target_path = self.imgs[index][1]
+                if not self.mask_loader is None:
+                    mask_path = self.imgs[index][2]
                 x = self.big_img_size[1] // 2 - self.imsize[1] // 2
                 y = self.big_img_size[0] // 2 - self.imsize[0] // 2
             else:
@@ -363,6 +375,8 @@ class RegistrationDataset_BigImages(data.Dataset):
                 y = random.randint(0, self.big_img_size[0] - self.imsize[0] - 1)
                 input_path = self.imgs[img_id][0]
                 target_path = self.imgs[img_id][1]
+                if not self.mask_loader is None:
+                    mask_path = self.imgs[img_id][2]
 
         else: # test mode
             # get coordinates
@@ -372,32 +386,34 @@ class RegistrationDataset_BigImages(data.Dataset):
             y = coord[2]
             input_path = self.imgs[img_id][0]
             target_path = self.imgs[img_id][1]
+            if not self.mask_loader is None:
+                mask_path = self.imgs[img_id][2]
 
-        img = apply_function_list(input_path, self.image_loader, x=x, y=y)
-        target = apply_function_list(target_path, self.target_loader, x=x, y=y)
+        img = apply_function_list(input_path, self.image_loader, x, y)
+        target = apply_function_list(target_path, self.target_loader, x, y)
+        if not self.mask_loader is None:
+            mask = apply_function_list(mask_path, self.mask_loader, x, y)
 
-        if isinstance(target, list):
-            flow = target[0]
-        else:
-            flow = target
         if isinstance(img, list):
             if not self.warp_fct is None:
-                img[1] = self.warp_fct(img[1], flow)
+                img[1] = self.warp_fct(img[1], target)
             else:
                 pass #On suppose que la deuxième image est déjà décalée donc on ne fait rien
         else:
-            img = [img, self.warp_fct(img, flow)]
-        if isinstance(target, list):
-            pass # on suppose que target[1] est un masque préchargé
-        elif not self.mask_generator is None:
-            mask = self.mask_generator(img, flow)
-            target = [target, mask]
+            img = [img, self.warp_fct(img, target)]
+
+        if not self.mask_generator is None:
+            mask = self.mask_generator(img, target)
 
         img = apply_function_list(img, np.ascontiguousarray)
         target = apply_function_list(target, np.ascontiguousarray)
+        mask = apply_function_list(mask, np.ascontiguousarray)
 
         if self.co_transforms is not None:
-            img,target = self.co_transforms(img, target)
+            if self.mask_generator is None and self.mask_loader is None:
+                img,target = self.co_transforms(img, target)
+            else:
+                img, target, mask = self.co_transforms(img, target, mask)
 
         if self.input_transforms is not None:
             img = apply_function_list(img, self.input_transforms)
@@ -405,7 +421,13 @@ class RegistrationDataset_BigImages(data.Dataset):
         if self.target_transforms is not None:
             target = apply_function_list(target, self.target_transforms)
 
-        return img, target
+        if self.mask_transforms is not None:
+            mask = apply_function_list(mask, self.mask_transforms)
+
+        if self.mask_generator is None and self.mask_loader is None:
+            return img, target
+        else:
+            return img, target, mask
 
 
     def __len__(self):

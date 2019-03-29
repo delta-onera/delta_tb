@@ -28,9 +28,6 @@ class MultiscaleLoss:
                 loss = self.loss_type(output, target_scaled, **self.loss_kwargs)
             else: #attention, mask et conv3D ? Et documenter le type/la forme du mask à donner
                 mask_scaled = F.adaptive_avg_pool2d(mask_vt, (h, w))
-                mask_scaled[mask_scaled > 127] = 255
-                #mask_scaled = torch.ByteTensor(mask_scaled.byte()) / 255
-                mask_scaled = mask_scaled.byte() / 255
                 loss = self.loss_type(output, target_scaled,
                                     mask_vt=mask_scaled, **self.loss_kwargs)
             return loss

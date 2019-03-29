@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import cv2
+import numbers
+import random
 
 from PIL import Image
 
@@ -9,6 +11,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+
+import rasterio
+from scipy import ndimage
+from skimage.morphology import binary_closing
 
 
 def upsample_output_and_evaluate(function, output, target, **kwargs):
@@ -26,6 +32,37 @@ def upsample_output_and_evaluate(function, output, target, **kwargs):
     else:
         raise NotImplementedError('Output and target tensors must have 4 or 5 dimensions')
     return function(upsampled_output, target, **kwargs)
+
+
+def flow_to_color(w, maxflow=None, dark=False):
+        u = w[0]
+        v = w[1]
+        def flow_map(N, D, mask, maxflow, n):
+            cols, rows = N.shape[1], N.shape[0]
+            I = np.ones([rows,cols,3])
+            I[:,:,0] = np.mod((-D + np.pi/2) / (2*np.pi),1)*360
+            I[:,:,1] = np.clip((N * n / maxflow),0,1)
+            I[:,:,2] = np.clip(n - I[:,:,1], 0 , 1)
+            return cv2.cvtColor(I.astype(np.float32),cv2.COLOR_HSV2RGB)
+        cols, rows = u.shape[1], u.shape[0]
+        N = np.sqrt(u**2+v**2)
+        if maxflow is None:
+            maxflow = np.max(N[:])
+        D = np.arctan2(u,v)
+        if dark:
+            ret = 1 - flow_map(N,D,np.ones([rows,cols]), maxflow, 8)
+        else:
+            ret = flow_map(N,D,np.ones([rows,cols]), maxflow, 8)
+        return ret
+
+def flow_to_color_tensor(flow_batch, max_flo=None):
+    flow_hsv = []
+    for w_ in flow_batch:
+        w = w_.clone()
+        w[np.isnan(w)] = 0
+        flow_hsv.append(torch.from_numpy(flow_to_color(w.cpu().numpy(), max_flo).transpose(2,0,1)))
+    return torch.stack(flow_hsv, 0)
+
 
 def image_loader_gray(image_path):
     """Load an image.
@@ -65,29 +102,107 @@ def flow_loader(path):
         flo_img[invalid, :] = 0
         return flo_img
 
-def flow_to_color(w, maxflow=None, dark=False):
-        u = w[0]
-        v = w[1]
-        def flow_map(N, D, mask, maxflow, n):
-            cols, rows = N.shape[1], N.shape[0]
-            I = np.ones([rows,cols,3])
-            I[:,:,0] = np.mod((-D + np.pi/2) / (2*np.pi),1)*360
-            I[:,:,1] = np.clip((N * n / maxflow),0,1)
-            I[:,:,2] = np.clip(n - I[:,:,1], 0 , 1)
-            return cv2.cvtColor(I.astype(np.float32),cv2.COLOR_HSV2RGB)
-        cols, rows = u.shape[1], u.shape[0]
-        N = np.sqrt(u**2+v**2)
-        if maxflow is None:
-            maxflow = np.max(N[:])
-        D = np.arctan2(u,v)
-        if dark:
-            ret = 1 - flow_map(N,D,np.ones([rows,cols]), maxflow, 8)
-        else:
-            ret = flow_map(N,D,np.ones([rows,cols]), maxflow, 8)
-        return ret
+# ---------------------------------------------------
 
-def flow_to_color_tensor(flow_batch, max_flo=None):
-    flow_hsv = []
-    for w in flow_batch:
-        flow_hsv.append(torch.from_numpy(flow_to_color(w.cpu().numpy(), max_flo).transpose(2,0,1)))
-    return torch.stack(flow_hsv, 0)
+def warp(img, flow):
+    """
+        warp(self, I, w):-> res
+        Simple fuction to wrap the image img with motion field flow
+        img : np.array [HxWx1]
+        flow : np.array [HxWx2]
+    """
+    col, row = img.shape[1], img.shape[0]
+    x, y = np.meshgrid(range(col), range(row))
+    out = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+    return out[:,:,np.newaxis]
+
+
+def rasterio_window_reader(path, imsize, x, y):
+    if isinstance(imsize, numbers.Number):
+        imsize = (int(imsize), int(imsize))
+    src = rasterio.open(path)
+    assert x >= 0 and x < src.width - imsize[1]
+    assert y >= 0 and y < src.height - imsize[0]
+    window = rasterio.windows.Window(x, y, imsize[1], imsize[0])
+    subset = src.read(window=window).astype(np.float32) #.transpose(1,2,0)
+    src.close()
+    return subset
+
+def pre_process_img(image):
+    out = image - np.nanmean(image)
+    image_std = np.nanstd(image)
+    if image_std != 0:
+        out /= image_std
+    #out[np.isnan(out)] = 0
+    out = np.clip(out, -3*image_std, 3*image_std)
+    return out
+
+def nan_to_zero(image):
+    out = image.copy()
+    out[np.isnan(out)] = 0
+    return out
+
+def generate_mask(list_img, flow):
+    """
+    IN:
+        list_img : list of 2 np.array [HxW]
+        flow : np.array [HxWx2]
+    OUT :
+        mask_vt : np.array [HxW] de np.uint8, 0 pour False et 255 pour True.
+            Eventuellement à seuiller si on applique des opérations dessus entre temps.
+    """
+    #normalement on avait mis le flow à NaN pour binary_closing(srtm != 0, selem=np.ones((7,7)))
+    mask_vt = np.logical_not(np.logical_or(np.isnan(flow[:,:,0]),
+                                            np.isnan(flow[:,:,1])))
+    mask_vt = mask_vt.astype(np.uint8)[:,:,np.newaxis] * 255
+    mask_vt[np.logical_or(np.isnan(list_img[0]), list_img[0] == 0)] = 0
+    mask_vt[np.logical_or(np.isnan(list_img[1]), list_img[1] == 0)] = 0
+    return mask_vt
+
+class RadarMonoLoader:
+    def __init__(self, imsize):
+        if isinstance(imsize, numbers.Number):
+            self.imsize = (int(imsize), int(imsize))
+        else:
+            self.imsize = imsize
+    def __call__(self, path, x, y):
+        image = rasterio_window_reader(path, self.imsize, x, y)
+        image = (image**2).sum(axis=0)
+        image = pre_process_img(image)
+        return image[:,:,np.newaxis]
+
+class OpticGrayLoader:
+    def __init__(self, imsize):
+        if isinstance(imsize, numbers.Number):
+            self.imsize = (int(imsize), int(imsize))
+        else:
+            self.imsize = imsize
+    def __call__(self, path, x, y):
+        image = rasterio_window_reader(path, self.imsize, x, y)
+        image = image.sum(axis=0)
+        image = pre_process_img(image)
+        return image[:,:,np.newaxis]
+
+class SrtmFlowGenerator:
+    def __init__(self, imsize, max_displacement=3):
+        if isinstance(imsize, numbers.Number):
+            self.imsize = (int(imsize), int(imsize))
+        else:
+            self.imsize = imsize
+        self.max_displacement = max_displacement
+
+    def __call__(self, path, x, y):
+        srtm = rasterio_window_reader(path, self.imsize, x, y)[0]
+        srtm -= srtm.min()
+        srtm_max = srtm.max()
+        if srtm_max != 0:
+            srtm /= srtm_max
+        srtm *= self.max_displacement # deplacement max de 3 pixels
+        theta = 2 * np.pi * random.random()
+        u = srtm * np.cos(theta)
+        v = srtm * np.sin(theta)
+        mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
+        u[np.logical_not(mask)] = np.nan
+        v[np.logical_not(mask)] = np.nan
+        flow = np.stack([u,v], axis=2)
+        return flow
