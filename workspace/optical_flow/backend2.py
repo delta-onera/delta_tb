@@ -63,9 +63,9 @@ def flow_to_color(w, maxflow=None, dark=False):
 def flow_to_color_tensor(flow_batch, max_flo=None):
     flow_hsv = []
     for w_ in flow_batch:
-        w = w_.clone()
+        w = w_.clone().cpu().numpy()
         w[np.isnan(w)] = 0
-        flow_hsv.append(torch.from_numpy(flow_to_color(w.cpu().numpy(), max_flo).transpose(2,0,1)))
+        flow_hsv.append(torch.from_numpy(flow_to_color(w, max_flo).transpose(2,0,1)))
     return torch.stack(flow_hsv, 0)
 
 
