@@ -15,7 +15,7 @@ class EPE:
             EPE_map = torch.masked_select(EPE_map, mask_vt)
         if self.mean:
             if EPE_map.size(0) == 0:
-                return 0
+                return torch.tensor(0.0)
             else:
                 return EPE_map.mean()
         else:

@@ -396,11 +396,11 @@ class RegistrationDataset_BigImages(data.Dataset):
 
         if isinstance(img, list):
             if not self.warp_fct is None:
-                img[1] = self.warp_fct(img[1], target)
+                img[0] = self.warp_fct(img[0], target)
             else:
-                pass #On suppose que la deuxième image est déjà décalée donc on ne fait rien
+                pass #On suppose que les images sont déjà décalées donc on ne fait rien
         else:
-            img = [img, self.warp_fct(img, target)]
+            img = [self.warp_fct(img, target), img]
 
         if not self.mask_generator is None:
             mask = self.mask_generator(img, target)

@@ -122,18 +122,7 @@ def warp(img, flow):
     return out[:,:,np.newaxis]
 
 
-def rasterio_window_reader(path, imsize, x, y):
-    if isinstance(imsize, numbers.Number):
-        imsize = (int(imsize), int(imsize))
-    src = rasterio.open(path)
-    assert x >= 0 and x < src.width - imsize[1]
-    assert y >= 0 and y < src.height - imsize[0]
-    window = rasterio.windows.Window(x, y, imsize[1], imsize[0])
-    subset = src.read(window=window).astype(np.float32) #.transpose(1,2,0)
-    src.close()
-    return subset
-
-def pre_process_img(image):
+def normalize_img(image):
     out = image - np.nanmean(image)
     image_std = np.nanstd(image)
     if image_std != 0:
@@ -146,6 +135,39 @@ def nan_to_zero(image):
     out = image.copy()
     out[np.isnan(out)] = 0
     return out
+
+
+def radar_mono_preprocess(image):
+    image = image.astype(np.float32)
+    image = (image**2).sum(axis=0)
+    image = normalize_img(image)
+    return image[:,:,np.newaxis]
+
+def optic_gray_preprocess(image):
+    image = image.astype(np.float32)
+    image = image.sum(axis=0)
+    image = normalize_img(image)
+    return image[:,:,np.newaxis]
+
+class SrtmFlowGenerator:
+    def __init__(self, max_displacement=3):
+        self.max_displacement = max_displacement
+
+    def __call__(self, srtm):
+        srtm = srtm[0].astype(np.float32)
+        mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
+        srtm -= srtm.min()
+        srtm_max = srtm.max()
+        if srtm_max != 0:
+            srtm /= srtm_max
+        srtm *= self.max_displacement # deplacement max de 3 pixels
+        theta = 2 * np.pi * random.random()
+        u = srtm * np.cos(theta)
+        v = srtm * np.sin(theta)
+        u[np.logical_not(mask)] = np.nan
+        v[np.logical_not(mask)] = np.nan
+        flow = np.stack([u,v], axis=2)
+        return flow
 
 def generate_mask(list_img, flow):
     """
@@ -163,51 +185,6 @@ def generate_mask(list_img, flow):
     mask_vt[np.logical_or(np.isnan(list_img[0]), list_img[0] == 0)] = 0
     mask_vt[np.logical_or(np.isnan(list_img[1]), list_img[1] == 0)] = 0
     return mask_vt
-
-class RadarMonoLoader:
-    def __init__(self, imsize):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
-        else:
-            self.imsize = imsize
-    def __call__(self, path, x, y):
-        image = rasterio_window_reader(path, self.imsize, x, y)
-        image = (image**2).sum(axis=0)
-        image = pre_process_img(image)
-        return image[:,:,np.newaxis]
-
-class OpticGrayLoader:
-    def __init__(self, imsize):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
-        else:
-            self.imsize = imsize
-    def __call__(self, path, x, y):
-        image = rasterio_window_reader(path, self.imsize, x, y)
-        image = image.sum(axis=0)
-        image = pre_process_img(image)
-        return image[:,:,np.newaxis]
-
-class SrtmFlowGenerator:
-    def __init__(self, imsize, max_displacement=3):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
-        else:
-            self.imsize = imsize
-        self.max_displacement = max_displacement
-
-    def __call__(self, path, x, y):
-        srtm = rasterio_window_reader(path, self.imsize, x, y)[0]
-        srtm -= srtm.min()
-        srtm_max = srtm.max()
-        if srtm_max != 0:
-            srtm /= srtm_max
-        srtm *= self.max_displacement # deplacement max de 3 pixels
-        theta = 2 * np.pi * random.random()
-        u = srtm * np.cos(theta)
-        v = srtm * np.sin(theta)
-        mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
-        u[np.logical_not(mask)] = np.nan
-        v[np.logical_not(mask)] = np.nan
-        flow = np.stack([u,v], axis=2)
-        return flow
+#mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
+#u[np.logical_not(mask)] = np.nan
+#v[np.logical_not(mask)] = np.nan
