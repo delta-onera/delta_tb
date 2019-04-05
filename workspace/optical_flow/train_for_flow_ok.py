@@ -36,7 +36,7 @@ parser.add_argument("--nocuda", action="store_true")
 #parser.add_argument("--saveimages", action="store_true")
 parser.add_argument("--testinterval", type=int, default=5)
 parser.add_argument("--visuvisdom", action="store_true")
-parser.add_argument("--save-visu", action="store_true")
+parser.add_argument("--do-not-save-visu", action="store_true")
 parser.add_argument("--visdomport", type=int, default=8097)
 #parser.add_argument('--scheduler-step-indices', nargs='*', default=[-1], type=int,
 #                    help='List of epoch indices for learning rate decay. Must be increasing. No decay if -1')
@@ -63,6 +63,15 @@ weight_decay = 0.0004
 in_channels = 2
 out_channels = 2
 use_cuda = (not args.nocuda) and torch.cuda.is_available() # use cuda GPU
+
+##########
+
+args_file = os.path.join(save_dir, 'args.txt')
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+with open(args_file, 'w') as f:
+    for k, v in sorted(vars(args).items()):
+        f.write('{}: {}\n'.format(k, v))
 
 #########
 
@@ -262,6 +271,6 @@ for epoch in range(nbr_epochs):
         f.write("\n")
         f.flush()
 
-if args.visuvisdom and args.save_visu:
+if args.visuvisdom and not args.do_not_save_visu:
     visu.save()
 f.close()
