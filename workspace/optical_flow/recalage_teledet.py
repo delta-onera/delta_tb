@@ -20,7 +20,7 @@ from deltatb.dataset import flow_co_transforms
 
 from deltatb.tools.visdom_display import VisuVisdom
 from backend2 import flow_to_color_tensor, upsample_output_and_evaluate
-from backend2 import warp, generate_mask, nan_to_zero
+from backend2 import warp, generate_mask, nan_to_zero, mask_preprocess
 from backend2 import radar_mono_preprocess, optic_gray_preprocess, SrtmFlowGenerator
 
 import argparse
@@ -42,6 +42,7 @@ parser.add_argument('--device', type=int, default=0)
 parser.add_argument("--nocuda", action="store_true")
 #parser.add_argument("--saveimages", action="store_true")
 parser.add_argument("--testinterval", type=int, default=5)
+parser.add_argument("--display-period", type=int, default=50)
 parser.add_argument("--visuvisdom", action="store_true")
 parser.add_argument("--do-not-save-visu", action="store_true")
 parser.add_argument("--visdomport", type=int, default=8097)
@@ -115,20 +116,21 @@ def get_filelist_S1S2(path, mode='opt'):
     if mode == 'multi' or mode == 'opt':
         list_S2 = sorted(glob(os.path.join(path, '*S2*.tif')))
     list_SRTM = sorted(glob(os.path.join(path, '*SRTM*.tif')))
+    list_mask = sorted(glob(os.path.join(path, '*mask1*.tif')))
     list_batches = []
     for k in range(len(list_SRTM)):
         if mode == 'multi':
-            list_batches.append(([list_S1[k], list_S2[k]], list_SRTM[k]))
+            list_batches.append(([list_S1[k], list_S2[k]], list_SRTM[k],list_mask[k]))
         elif mode == 'rad':
-            list_batches.append((list_S1[k], list_SRTM[k]))
+            list_batches.append((list_S1[k], list_SRTM[k],list_mask[k]))
         elif mode == 'opt':
-            list_batches.append((list_S2[k], list_SRTM[k]))
+            list_batches.append((list_S2[k], list_SRTM[k],list_mask[k]))
     return list_batches
 filelist_train = get_filelist_S1S2(path_train, mode=mode)
 filelist_test = get_filelist_S1S2(path_test, mode=mode)
 
 if mode == 'multi':
-    image_preprocess = [radar_mono_preprocess, optic_gray_preprocess]
+    image_preprocess = [optic_gray_preprocess, radar_mono_preprocess]
 elif mode == 'rad':
     image_preprocess = radar_mono_preprocess
 elif mode == 'opt':
@@ -137,7 +139,7 @@ elif mode == 'opt':
 train_dataset = RegistrationDataset_Rasterio(imsize=imsize,
                     filelist=filelist_train, image_preprocess=image_preprocess,
                     target_preprocess=SrtmFlowGenerator(),
-                    warp_fct=warp, mask_generator=generate_mask,
+                    warp_fct=warp, mask_preprocess=mask_preprocess,
                     training=True, one_image_per_file=False,
                     epoch_number_of_images=nbr_iter_per_epochs * batch_size,
                     co_transforms=None,
@@ -173,7 +175,7 @@ print("done")
 #########
 if args.visuvisdom:
     visu = VisuVisdom(exp_name, port=args.visdomport)
-    display_max_flo = 40
+    display_max_flo = 80
 
 #########
 #Training
@@ -205,7 +207,7 @@ def train(epoch, nbr_batches):
         t.set_postfix(Loss="%.3e"%float(loss))
 
         #display visdom
-        if i == 1 and args.visuvisdom:
+        if i%args.display_period == 0 and args.visuvisdom:
             visu.imshow(img_pair_th[0], 'Images (train)', unnormalize=True)
             color_target_flow = flow_to_color_tensor(target_th, display_max_flo / div_flow)
             visu.imshow(color_target_flow, 'Flots VT (train)')
@@ -230,7 +232,7 @@ def test(epoch):
         test_dataset = RegistrationDataset_Rasterio(imsize=imsize,
                             filelist=filelist_test, image_preprocess=image_preprocess,
                             target_preprocess=SrtmFlowGenerator(),
-                            warp_fct=warp, mask_generator=generate_mask,
+                            warp_fct=warp, mask_preprocess=mask_preprocess,
                             training=False, co_transforms=None,
                             input_transforms=data_transforms,
                             target_transforms=data_transforms,

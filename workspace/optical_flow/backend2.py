@@ -149,23 +149,29 @@ def optic_gray_preprocess(image):
     image = normalize_img(image)
     return image[:,:,np.newaxis]
 
+def mask_preprocess(image):
+    image = image.astype(np.uint8) # les valeurs sont comprisent entre 0 et 255
+    return image.transpose(1,2,0)
+
+
 class SrtmFlowGenerator:
-    def __init__(self, max_displacement=3):
+    def __init__(self, max_displacement=7, min_displacement=3):
+        
         self.max_displacement = max_displacement
+        self.min_displacement = min_displacement
 
     def __call__(self, srtm):
+        max_displacement = self.max_displacement * random.random() + self.min_displacement
+        min_displacement = self.min_displacement * random.random()
         srtm = srtm[0].astype(np.float32)
-        mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
         srtm -= srtm.min()
         srtm_max = srtm.max()
         if srtm_max != 0:
             srtm /= srtm_max
-        srtm *= self.max_displacement # deplacement max de 3 pixels
+        srtm = srtm * max_displacement + min_displacement # deplacement dans [3, 10]
         theta = 2 * np.pi * random.random()
         u = srtm * np.cos(theta)
         v = srtm * np.sin(theta)
-        u[np.logical_not(mask)] = np.nan
-        v[np.logical_not(mask)] = np.nan
         flow = np.stack([u,v], axis=2)
         return flow
 

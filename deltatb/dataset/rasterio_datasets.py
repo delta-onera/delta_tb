@@ -104,12 +104,18 @@ class RegistrationDataset_Rasterio(data.Dataset):
                 src.close()
         else:
             img = input_src.read(window=window)
+            # print(np.shape(img))
+            # print(img.dtype)
+            # print(img.min(),img.max())
             input_src.close()
         img = apply_function_list(img, self.image_preprocess)
         target = self.target_preprocess(target_src.read(window=window))
         target_src.close()
         if not self.mask_preprocess is None:
             mask = self.mask_preprocess(mask_src.read(window=window))
+            # print(np.shape(mask))
+            # print(mask.min(),mask.max())
+            # print(mask.dtype)
             mask_src.close()
 
         if isinstance(img, list):
