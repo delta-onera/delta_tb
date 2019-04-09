@@ -156,7 +156,7 @@ print("Done")
 #########
 print("Creating the model...", end="", flush=True)
 #net = networks.FlowNetS(in_channels, div_flow=div_flow)
-net = networks.__dict__[args.arch](in_channels, div_flow=div_flow)
+net = networks.__dict__[args.arch](input_channels=in_channels, div_flow=div_flow)
 if use_cuda:
     net.cuda()
 print("done")
@@ -207,7 +207,7 @@ def train(epoch, nbr_batches):
         t.set_postfix(Loss="%.3e"%float(loss))
 
         #display visdom
-        if i%args.display_period == 0 and args.visuvisdom:
+        if (i-1) % args.display_period == 0 and args.visuvisdom:
             visu.imshow(img_pair_th[0], 'Images (train)', unnormalize=True)
             color_target_flow = flow_to_color_tensor(target_th, display_max_flo / div_flow)
             visu.imshow(color_target_flow, 'Flots VT (train)')
