@@ -194,32 +194,3 @@ def generate_mask(list_img, flow):
 #mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
 #u[np.logical_not(mask)] = np.nan
 #v[np.logical_not(mask)] = np.nan
-
-# -----------------------------------------------------------
-
-def load_pretrained_model(arch_name, pretrained_path, device=0, **arch_args):
-    pretrained_data = torch.load(pretrained_path,
-                                map_location=lambda storage,
-                                loc: storage.cuda(device))
-
-    net = networks.__dict__[arch_name](**arch_args)
-
-    if 'model_state_dict' in pretrained_data.keys():
-        net.load_state_dict(pretrained_data['model_state_dict'])
-    elif 'state_dict' in pretrained_data.keys():
-        net.load_state_dict(pretrained_data['state_dict'])
-    else:
-        net.load_state_dict(pretrained_data)
-
-    return net
-
-# def freeze_parameters(net, keywords_list):
-#     for named_param in net.named_parameters():
-#         for keyword in keywords_list:
-#             if keyword in named_param[0]:
-#                 named_param[1].requires_grad = False
-#     #return net
-#if args.freeze_param_keywords != []:
-#    freeze_parameters(net, args.freeze_param_keywords)
-#parameters = filter(lambda p: p.requires_grad, net.parameters())
-#optimizer = torch.optim.Adam(parameters, adam_lr, weight_decay=args.weight_decay)
