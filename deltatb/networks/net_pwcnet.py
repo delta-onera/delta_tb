@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
 try:
-    from .correlation_package.correlation import Correlation
+    from correlation_package.modules.correlation import Correlation
 except:
     print("Le module de correlation n'a pas pu être importé, PWC-Net ne pourra pas être utilisé.")
 
