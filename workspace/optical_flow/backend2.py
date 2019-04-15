@@ -82,6 +82,12 @@ def image_loader_gray(image_path):
     im = np.expand_dims(im, 2)
     return im
 
+def image_loader_rgb(image_path):
+    im = np.array(Image.open(image_path), dtype=np.float32)
+    if im.max() > 1:
+        im = im / 255
+    return im
+
 def flow_loader(path):
     if path[-4:] == '.flo':
         with open(path, 'rb') as f:
@@ -109,17 +115,28 @@ def flow_loader(path):
 
 # ---------------------------------------------------
 
-def warp(img, flow):
+def warp(img, flow, nb_channels):
     """
         warp(self, I, w):-> res
-        Simple fuction to wrap the image img with motion field flow
+        Simple function to wrap the image img with motion field flow
         img : np.array [HxWx1]
         flow : np.array [HxWx2]
     """
     col, row = img.shape[1], img.shape[0]
     x, y = np.meshgrid(range(col), range(row))
-    out = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
-    return out[:,:,np.newaxis]
+    if nb_channels == 2:
+        out = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out = out[:,:,np.newaxis]
+    if nb_channels == 4:
+        out1 = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out2 = ndimage.map_coordinates(img[:,:,1], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out = np.stack((out1,out2),axis=2)
+    if nb_channels == 6:
+        out1 = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out2 = ndimage.map_coordinates(img[:,:,1], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out3 = ndimage.map_coordinates(img[:,:,2], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
+        out = np.stack((out1,out2,out3),axis=2)
+    return out
 
 
 def normalize_img(image):
@@ -148,6 +165,12 @@ def optic_gray_preprocess(image):
     image = image.sum(axis=0)
     image = normalize_img(image)
     return image[:,:,np.newaxis]
+
+def multi_channels_preprocess(image):
+    image = image.astype(np.float32)
+    image = normalize_img(image)
+    image = image.transpose(1,2,0)
+    return image
 
 def mask_preprocess(image):
     image = image.astype(np.uint8) # les valeurs sont comprisent entre 0 et 255

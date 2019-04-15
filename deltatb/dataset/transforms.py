@@ -76,7 +76,7 @@ class NormalizeDynamic(object):
         self.threshold = sigma_threshold
 
     def __call__(self, inputs):
-        if not( len(inputs.shape)>=3 and inputs.shape[2]!=1):
+        if len(inputs.shape)>=3 :
             inputs -= inputs.reshape(-1, inputs.shape[2]).mean(axis=0)[None,None,:]
             inputs /= inputs.reshape(-1, inputs.shape[2]).std(axis=0)[None,None,:]
             if self.threshold is not None:

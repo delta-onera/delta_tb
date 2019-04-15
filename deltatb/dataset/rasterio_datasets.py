@@ -16,7 +16,7 @@ class RegistrationDataset_Rasterio(data.Dataset):
       [[path_img_1, path_img_2], path_flo, path_mask]
     """
 
-    def __init__(self, imsize=256,
+    def __init__(self, imsize=256,in_channels=2,
                 filelist=None,
                 image_preprocess=None, target_preprocess=None,
                 mask_preprocess=None, mask_generator=None,
@@ -54,6 +54,7 @@ class RegistrationDataset_Rasterio(data.Dataset):
         self.mask_generator = mask_generator
 
         self.warp_fct = warp_fct
+        self.in_channels = in_channels
 
         self.one_image_per_file = one_image_per_file
         self.epoch_number_of_images = epoch_number_of_images
@@ -120,11 +121,11 @@ class RegistrationDataset_Rasterio(data.Dataset):
 
         if isinstance(img, list):
             if not self.warp_fct is None:
-                img[0] = self.warp_fct(img[0], target)
+                img[0] = self.warp_fct(img[0], target, self.in_channels)
             else:
                 pass #On suppose que les images sont déjà décalées donc on ne fait rien
         else:
-            img = [self.warp_fct(img, target), img]
+            img = [self.warp_fct(img, target, self.in_channels), img]
 
         if not self.mask_generator is None:
             mask = self.mask_generator(img, target)

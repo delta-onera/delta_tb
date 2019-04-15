@@ -22,6 +22,7 @@ from deltatb.tools.visdom_display import VisuVisdom
 from backend2 import flow_to_color_tensor, upsample_output_and_evaluate
 from backend2 import warp, generate_mask, nan_to_zero, mask_preprocess
 from backend2 import radar_mono_preprocess, optic_gray_preprocess, SrtmFlowGenerator
+from backend2 import multi_channels_preprocess
 
 import argparse
 #preprocess
@@ -32,12 +33,12 @@ parser.add_argument("--data-path", type=str, default='/data/S1S2_france/') # ou 
 parser.add_argument("--arch", type=str, default='FlowNetS',
                 choices=['FlowNetS', 'PWCDCNet_siamese', 'PWCDCNet_multimodal'])
 parser.add_argument("--bs", type=int, default=8) #taille du batch
-parser.add_argument("--nw", type=int, default=2) #nombre de coeurs cpu à utiliser pour chargement des données
+parser.add_argument("--nw", type=int, default=4) #nombre de coeurs cpu à utiliser pour chargement des données
 parser.add_argument("--lr", type=float, default=0.0001) # learning rate
 parser.add_argument("--nb-epochs", type=int, default=300) #nombre d'epochs
 parser.add_argument("--nb-iter-per-epoch", type=int, default=1200)
 parser.add_argument("--savedir", type=str, default="flow_results_beta")
-parser.add_argument("--expname", type=str, default="delta_flow_net_recalage_opt")
+parser.add_argument("--expname", type=str, default="delta_flow_net_recalage_optic_rgb")
 parser.add_argument('--device', type=int, default=0)
 parser.add_argument("--nocuda", action="store_true")
 #parser.add_argument("--saveimages", action="store_true")
@@ -71,7 +72,7 @@ scheduler_step_indices = [100, 150, 200]
 scheduler_factor = 0.5
 div_flow = 1
 weight_decay = 0.0004
-in_channels = 2
+in_channels = 6 # nombre de canaux en entrée (2 pour du gris, 4 pour les 2 polar de radar, 6 pour les canaux rgb)
 out_channels = 2
 use_cuda = (not args.nocuda) and torch.cuda.is_available() # use cuda GPU
 
@@ -132,11 +133,17 @@ filelist_test = get_filelist_S1S2(path_test, mode=mode)
 if mode == 'multi':
     image_preprocess = [optic_gray_preprocess, radar_mono_preprocess]
 elif mode == 'rad':
-    image_preprocess = radar_mono_preprocess
+    if in_channels == 2:
+        image_preprocess = radar_mono_preprocess
+    elif in_channels == 4:
+        image_preprocess = multi_channels_preprocess
 elif mode == 'opt':
-    image_preprocess = optic_gray_preprocess
+    if in_channels == 2:
+        image_preprocess = optic_gray_preprocess
+    elif in_channels == 6:
+        image_preprocess = multi_channels_preprocess
 
-train_dataset = RegistrationDataset_Rasterio(imsize=imsize,
+train_dataset = RegistrationDataset_Rasterio(imsize=imsize, in_channels=in_channels,
                     filelist=filelist_train, image_preprocess=image_preprocess,
                     target_preprocess=SrtmFlowGenerator(),
                     warp_fct=warp, mask_preprocess=mask_preprocess,
@@ -207,7 +214,7 @@ def train(epoch, nbr_batches):
         t.set_postfix(Loss="%.3e"%float(loss))
 
         #display visdom
-        if (i-1) % args.display_period == 0 and args.visuvisdom:
+        if i % args.display_period == 0 and args.visuvisdom:
             visu.imshow(img_pair_th[0], 'Images (train)', unnormalize=True)
             color_target_flow = flow_to_color_tensor(target_th, display_max_flo / div_flow)
             visu.imshow(color_target_flow, 'Flots VT (train)')
@@ -229,7 +236,7 @@ def test(epoch):
     net.eval()
 
     with torch.no_grad():
-        test_dataset = RegistrationDataset_Rasterio(imsize=imsize,
+        test_dataset = RegistrationDataset_Rasterio(imsize=imsize, in_channels=in_channels,
                             filelist=filelist_test, image_preprocess=image_preprocess,
                             target_preprocess=SrtmFlowGenerator(),
                             warp_fct=warp, mask_preprocess=mask_preprocess,
