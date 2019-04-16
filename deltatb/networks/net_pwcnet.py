@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
 try:
-    from correlation_package.modules.correlation import Correlation
+    from .correlation_package.correlation import Correlation
 except:
     print("Le module de correlation n'a pas pu être importé, PWC-Net ne pourra pas être utilisé.")
 
@@ -191,8 +191,8 @@ class PWCDCNet_siamese(nn.Module):
         vgrid = grid + flo
 
         # scale grid to [-1,1]
-        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:]/max(W-1,1)-1.0
-        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:]/max(H-1,1)-1.0
+        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:].clone() / max(W-1,1)-1.0
+        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:].clone() / max(H-1,1)-1.0
 
         vgrid = vgrid.permute(0,2,3,1)
         output = nn.functional.grid_sample(x, vgrid)
@@ -295,7 +295,7 @@ class PWCDCNet_siamese(nn.Module):
         flow2 = self.dec_predict_flow2(x)
 
         x = self.dec_dc_conv4(self.dec_dc_conv3(self.dec_dc_conv2(self.dec_dc_conv1(x))))
-        flow2 += self.dec_dc_conv7(self.dec_dc_conv6(self.dec_dc_conv5(x)))
+        flow2 = flow2 + self.dec_dc_conv7(self.dec_dc_conv6(self.dec_dc_conv5(x)))
 
         if self.training:
             return flow2,flow3,flow4,flow5,flow6
@@ -451,8 +451,8 @@ class PWCDCNet_multimodal(nn.Module):
         vgrid = grid + flo
 
         # scale grid to [-1,1]
-        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:]/max(W-1,1)-1.0
-        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:]/max(H-1,1)-1.0
+        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:].clone() / max(W-1,1)-1.0
+        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:].clone() / max(H-1,1)-1.0
 
         vgrid = vgrid.permute(0,2,3,1)
         output = nn.functional.grid_sample(x, vgrid)
@@ -555,7 +555,7 @@ class PWCDCNet_multimodal(nn.Module):
         flow2 = self.dec_predict_flow2(x)
 
         x = self.dec_dc_conv4(self.dec_dc_conv3(self.dec_dc_conv2(self.dec_dc_conv1(x))))
-        flow2 += self.dec_dc_conv7(self.dec_dc_conv6(self.dec_dc_conv5(x)))
+        flow2 = flow2 + self.dec_dc_conv7(self.dec_dc_conv6(self.dec_dc_conv5(x)))
 
         if self.training:
             return flow2,flow3,flow4,flow5,flow6
@@ -692,8 +692,8 @@ class PWCDCNet_archarticle(nn.Module):
         vgrid = grid + flo
 
         # scale grid to [-1,1]
-        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:]/max(W-1,1)-1.0
-        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:]/max(H-1,1)-1.0
+        vgrid[:,0,:,:] = 2.0*vgrid[:,0,:,:].clone() / max(W-1,1)-1.0
+        vgrid[:,1,:,:] = 2.0*vgrid[:,1,:,:].clone() / max(H-1,1)-1.0
 
         vgrid = vgrid.permute(0,2,3,1)
         output = nn.functional.grid_sample(x, vgrid)
@@ -796,7 +796,7 @@ class PWCDCNet_archarticle(nn.Module):
         flow2 = self.predict_flow2(x)
 
         x = self.dc_conv4(self.dc_conv3(self.dc_conv2(self.dc_conv1(x))))
-        flow2 += self.dc_conv7(self.dc_conv6(self.dc_conv5(x)))
+        flow2 = flow2 + self.dc_conv7(self.dc_conv6(self.dc_conv5(x)))
 
         if self.training:
             return flow2,flow3,flow4,flow5,flow6
