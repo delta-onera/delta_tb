@@ -15,6 +15,12 @@ The Delta toolbox provides utility scripts for dense image machine learning with
 * **Dataset** folder contains datasets classes in PyTorch format for loading multiple images and targets for dense prediction such as semantic segmentation.
 * **networks** folder contains scripts for several networks, including UNet, SegNet...
 
+## PWC-Net : install correlation custom layer (from github : NVIDIA/flownet2-pytorch)
+The optical flow estimation using PWC-Net needs a custom correlation layer to be installed :
+cd deltatb/networks/correlation_package
+python ./setup.py install
+Code from github : NVIDIA/flownet2-pytorch, modified to work on pytorch 1.0, cuda 10
+
 ## Examples
 
 ### Semantic Segmentation
