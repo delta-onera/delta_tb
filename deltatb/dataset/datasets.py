@@ -7,7 +7,7 @@ import numbers
 
 from  . import globfile
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def apply_function_list(x, fun, *params):
     """Apply a function or list over a list of object, or single object."""
