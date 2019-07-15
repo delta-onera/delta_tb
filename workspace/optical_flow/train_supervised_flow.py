@@ -54,6 +54,7 @@ parser.add_argument("--chairs", action="store_true")
 parser.add_argument("--things", action="store_true")
 parser.add_argument("--things-clean", action="store_true")
 parser.add_argument("--test-sintel", action="store_true")
+parser.add_argument("--ignore-nan", action="store_true")
 parser.add_argument("--chairs-path", type=str, default='/data/FlyingChairs_splitted')
 parser.add_argument("--things-path", type=str, default='/scratch/FLOW_DATASETS/flying_things_3D')
 parser.add_argument("--sintel-path", type=str, default='/data/eval_flow/sintel')
@@ -162,7 +163,7 @@ if use_cuda:
     net.cuda()
 print("done")
 
-loss_fct = MultiscaleLoss(EPE(mean=False))
+loss_fct = MultiscaleLoss(EPE(mean=False, ignore_nan=args.ignore_nan))
 err_fct = EPE(mean=True)
 
 print("Creating optimizer...", end="", flush=True)

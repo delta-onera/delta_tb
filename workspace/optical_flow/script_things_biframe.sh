@@ -18,8 +18,8 @@ sintelpath='/data/FLOW_DATASET/sintel'
 ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Sshort/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_pwcSshort \
- --things --things-lr 0.00001 --test-sintel \
- --sintel-path $sintelpath \
+ --things --things-lr 0.00001 --ignore-nan \
+ --test-sintel --sintel-path $sintelpath \
  --nb-iter-per-epoch 2000 --things-nb-epochs 250 \
  --things-scheduler-step-indices 100 150 200 \
  --things-scheduler-factors 0.5 \
@@ -29,8 +29,8 @@ ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
 ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Slong_bis/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_pwcSlong \
- --things --things-lr 0.00001 --test-sintel \
- --sintel-path $sintelpath \
+ --things --things-lr 0.00001 --ignore-nan \
+ --test-sintel --sintel-path $sintelpath \
  --nb-iter-per-epoch 2000 --things-nb-epochs 250 \
  --things-scheduler-step-indices 100 150 200 \
  --things-scheduler-factors 0.5 \
@@ -40,8 +40,8 @@ ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
 ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Sshort/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_kick1000_pwcSshort \
- --things --things-lr 0.00003 --test-sintel \
- --sintel-path $sintelpath \
+ --things --things-lr 0.00003 --ignore-nan \
+ --test-sintel --sintel-path $sintelpath \
  --nb-iter-per-epoch 1000 --things-nb-epochs 300 \
  --things-scheduler-step-indices 40 60 80 100 120 150 190 210 230 250 270 \
  --things-scheduler-factors 0.5 0.5 0.5 0.5 0.5 20 0.5 0.5 0.5 0.5 0.5\
