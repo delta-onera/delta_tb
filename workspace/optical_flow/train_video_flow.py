@@ -56,7 +56,7 @@ parser.add_argument("--chairs", action="store_true")
 parser.add_argument("--things", action="store_true")
 parser.add_argument("--test-sintel", action="store_true")
 parser.add_argument("--chairs-path", type=str, default='/data/pgodet/ChairsMultiframe')
-parser.add_argument("--things-path", type=str, default='/scratch/FlyingThings')
+parser.add_argument("--things-path", type=str, default='/scratch/FLOW_DATASETS/flying_things_3D')
 parser.add_argument("--sintel-path", type=str, default='/data/eval_flow/sintel')
 
 parser.add_argument("--nb-iter-per-epoch", type=int, default=1000)

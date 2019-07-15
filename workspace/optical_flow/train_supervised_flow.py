@@ -52,9 +52,10 @@ parser.add_argument("--test-only", action="store_true")
 parser.add_argument("--step-by-step", action="store_true")
 parser.add_argument("--chairs", action="store_true")
 parser.add_argument("--things", action="store_true")
+parser.add_argument("--things-clean", action="store_true")
 parser.add_argument("--test-sintel", action="store_true")
 parser.add_argument("--chairs-path", type=str, default='/data/FlyingChairs_splitted')
-parser.add_argument("--things-path", type=str, default='/scratch/FlyingThings')
+parser.add_argument("--things-path", type=str, default='/scratch/FLOW_DATASETS/flying_things_3D')
 parser.add_argument("--sintel-path", type=str, default='/data/eval_flow/sintel')
 
 parser.add_argument("--nb-iter-per-epoch", type=int, default=1000)
@@ -73,9 +74,13 @@ parser.add_argument("--display-interval", type=int, default=100)
 parser.add_argument("--visu-visdom", action="store_true")
 parser.add_argument("--do-not-save-visu", action="store_true")
 parser.add_argument("--visdom-port", type=int, default=8094)
-parser.add_argument('--scheduler-step-indices', nargs='*', default=[-1], type=int,
+parser.add_argument('--chairs-scheduler-step-indices', nargs='*', default=[-1], type=int,
                     help='List of epoch indices for learning rate decay. Must be increasing. No decay if -1')
-parser.add_argument('--scheduler-factors', nargs='*', default=[0.1], type=float,
+parser.add_argument('--chairs-scheduler-factors', nargs='*', default=[0.1], type=float,
+                    help='multiplicative factor applied on lr each step-size')
+parser.add_argument('--things-scheduler-step-indices', nargs='*', default=[-1], type=int,
+                    help='List of epoch indices for learning rate decay. Must be increasing. No decay if -1')
+parser.add_argument('--things-scheduler-factors', nargs='*', default=[0.1], type=float,
                     help='multiplicative factor applied on lr each step-size')
 #parser.add_argument('--scheduler-factor', default=0.1, type=float,
 #                    help='multiplicative factor applied on lr each step-size')
@@ -94,13 +99,16 @@ things_lr = args.things_lr
 chairs_nbr_epochs = args.chairs_nb_epochs # training epoch
 things_nbr_epochs = args.things_nb_epochs # training epoch
 nbr_iter_per_epochs = args.nb_iter_per_epoch # number of iterations for one epoch
-imsize = 320, 448 # input image size
+chairs_imsize = 320, 448 # input image size
+things_imsize = 448, 768
 #scheduler_step_indices = [100, 150, 200]
 #scheduler_factor = 0.5
 #scheduler_step_indices = [100, 150, 200, 250, 300, 350]
 #scheduler_factors =      [0.5, 0.5, 0.5, 4.0, 0.5, 0.5]
-scheduler_step_indices = args.scheduler_step_indices
-scheduler_factors = args.scheduler_factors
+chairs_scheduler_step_indices = args.chairs_scheduler_step_indices
+chairs_scheduler_factors = args.chairs_scheduler_factors
+things_scheduler_step_indices = args.things_scheduler_step_indices
+things_scheduler_factors = args.things_scheduler_factors
 div_flow = 20
 weight_decay = 0.0004
 in_channels = 2
@@ -159,11 +167,14 @@ err_fct = EPE(mean=True)
 
 print("Creating optimizer...", end="", flush=True)
 #parameters = filter(lambda p: p.requires_grad, net.parameters())
-optimizer = torch.optim.Adam(net.parameters(), chairs_lr, weight_decay=weight_decay)
+chairs_optimizer = torch.optim.Adam(net.parameters(), chairs_lr, weight_decay=weight_decay)
+things_optimizer = torch.optim.Adam(net.parameters(), things_lr, weight_decay=weight_decay)
 #chairs_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
 #                                    scheduler_step_indices, scheduler_factor)
-chairs_scheduler = MultiFactorMultiStepLR(optimizer,
-                                    scheduler_step_indices, scheduler_factors)
+chairs_scheduler = MultiFactorMultiStepLR(chairs_optimizer,
+                                    chairs_scheduler_step_indices, chairs_scheduler_factors)
+things_scheduler = MultiFactorMultiStepLR(things_optimizer,
+                                    things_scheduler_step_indices, things_scheduler_factors)
 print("done")
 
 #########
@@ -283,17 +294,17 @@ def iterate_all_epochs(nbr_epochs, scheduler, train_loader, filelist_test, filel
             visu.plot('Training Loss', epoch+1, train_loss)
 
         # test
-        if (epoch > 0 and (epoch+1)%args.test_interval==0) or (epoch == nbr_epochs-1):
+        if ((epoch+1)%args.test_interval==0) or (epoch == nbr_epochs-1):
             print("Testing {}".format(exp_name), flush=True)
             test_err = test(epoch, filelist_test)
-            if args.test_sintel:
+            if filelist_sintel:
                 print("Testing {} on sintel".format(exp_name), flush=True)
                 sintel_err = test(epoch, filelist_sintel, 'sintel')
 
             #display visdom
             if args.visu_visdom:
                 visu.plot('Validation Error', epoch+1, test_err)
-                if args.test_sintel:
+                if filelist_sintel:
                     visu.plot('Sintel Error', epoch+1, sintel_err)
 
             # write the logs
@@ -382,7 +393,7 @@ if args.chairs:
         train_co_transforms = co_transforms.Compose([
                                     flow_co_transforms.RandomTranslate(10),
                                     flow_co_transforms.RandomRotate(10,5),
-                                    co_transforms.RandomCrop(imsize),
+                                    co_transforms.RandomCrop(chairs_imsize),
                                     flow_co_transforms.RandomVerticalFlip(),
                                     flow_co_transforms.RandomHorizontalFlip(),
                                         ])
@@ -412,6 +423,95 @@ if args.chairs:
             # save the model pretrained on chairs
             torch.save(net.state_dict(), os.path.join(save_dir, "state_dict_chairs.pth"))
             print('Model pretrained on chairs saved')
+
+#########
+#Train on Things
+#########
+def get_filelist_things(path, train=True, clean=False):
+    """
+    1 paire d'images par séquence.
+    time_step commence à 1 (choix de l'instant pour chaque séquence)
+    """
+    if clean:
+        dstype = 'frames_cleanpass'
+    else:
+        dstype = 'frames_finalpass'
+    
+    image_dirs = sorted(glob(os.path.join(path, dstype, '{}/*/*'.format('TRAIN' if train else 'TEST'))))
+    image_dirs = sorted([os.path.join(f, 'left') for f in image_dirs] + [os.path.join(f, 'right') for f in image_dirs])
+
+    flow_dirs = sorted(glob(os.path.join(path, 'optical_flow/{}/*/*'.format('TRAIN' if train else 'TEST'))))
+    flow_dirs = sorted([os.path.join(f, 'into_future/left') for f in flow_dirs] + [os.path.join(f, 'into_future/right') for f in flow_dirs])
+
+    assert (len(image_dirs) == len(flow_dirs))
+
+    list_samples = []
+
+    for idir, fdir in zip(image_dirs, flow_dirs):
+        images = sorted( glob(os.path.join(idir, '*.png')) )
+        flows = sorted( glob(os.path.join(fdir, '*.pfm')) )
+        for i in range(len(flows)-1):
+            list_samples.append((
+                                [ images[i], images[i+1] ],
+                                flows[i]
+                                    ))
+    return list_samples
+
+
+if args.things:
+    if args.test_only:
+        print("Testing {}".format(exp_name), flush=True)
+        if args.test_sintel:
+            sintel_err = test(0, filelist_sintel)
+
+        #display visdom
+        if args.visu_visdom:
+            if args.test_sintel:
+                visu.plot('Sintel Error', 1, sintel_err)
+
+        # write the logs
+        f.write(str(0)+" ")
+        f.write("  -  ") #train_loss does not exist
+        if args.test_sintel:
+            f.write("%.4f "%sintel_err)
+        f.write("\n")
+        f.flush()
+    else:
+        print("Creating things training loader...", end="", flush=True)
+
+        train_co_transforms = co_transforms.Compose([
+                                    flow_co_transforms.RandomTranslate(10),
+                                    flow_co_transforms.RandomRotate(10,5),
+                                    co_transforms.RandomCrop(things_imsize),
+                                    flow_co_transforms.RandomVerticalFlip(),
+                                    flow_co_transforms.RandomHorizontalFlip(),
+                                        ])
+
+        train_target_transforms = transforms.Compose([
+                                        lambda target: target / div_flow,
+                                        transforms.ToTensor()])
+
+        path_train = args.things_path
+        filelist_train = get_filelist_things(path_train, clean=args.things_clean)        
+
+        train_dataset = SegmentationDataset(filelist=filelist_train,
+                            image_loader=image_loader_gray,
+                            target_loader=flow_loader,
+                            training=True, co_transforms=train_co_transforms,
+                            input_transforms=input_transforms,
+                            target_transforms=train_target_transforms)
+
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
+                                                    shuffle=True, num_workers=num_workers)
+        print("Done")
+
+        if not args.step_by_step:
+            #iterate_all_epochs(things_nbr_epochs, things_scheduler, train_loader, filelist_test, filelist_sintel)
+            iterate_all_epochs(things_nbr_epochs, things_scheduler, train_loader, filelist_sintel)
+            print('Training on things done')
+            # save the model pretrained on things
+            torch.save(net.state_dict(), os.path.join(save_dir, "state_dict_things.pth"))
+            print('Model trained on things saved')
 
 if args.visu_visdom and not args.do_not_save_visu:
     visu.save()
