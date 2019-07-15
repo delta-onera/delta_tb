@@ -15,7 +15,7 @@ sintelpath='/data/FLOW_DATASET/sintel'
 #  --display-interval 1 \
 #  --test-interval 1 --visu-visdom --nw 4
 
-ipython -- train_video_flow.py --arch PWCDCNet_siamese \
+ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Sshort/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_pwcSshort \
  --things --things-lr 0.00001 --test-sintel \
@@ -26,7 +26,7 @@ ipython -- train_video_flow.py --arch PWCDCNet_siamese \
  --display-interval 80 --test-interval 5 \
  --visu-visdom --nw 4 --device $device
 
-ipython -- train_video_flow.py --arch PWCDCNet_siamese \
+ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Slong_bis/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_pwcSlong \
  --things --things-lr 0.00001 --test-sintel \
@@ -37,7 +37,7 @@ ipython -- train_video_flow.py --arch PWCDCNet_siamese \
  --display-interval 80 --test-interval 5 \
  --visu-visdom --nw 4 --device $device
 
-ipython -- train_video_flow.py --arch PWCDCNet_siamese \
+ipython -- train_supervised_flow.py --arch PWCDCNet_siamese \
  --pretrained /data/pgodet/resultats/pg_dcnn/chairsonly/train_pwcnet_gray_chairs_Sshort/checkpoint.pth.tar \
  --savedir PWCThings --expname things_final_kick1000_pwcSshort \
  --things --things-lr 0.00003 --test-sintel \
