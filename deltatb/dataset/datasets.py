@@ -77,15 +77,15 @@ class SegmentationDataset(data.Dataset):
                 target_path = self.imgs[index][1]
                 img = apply_function_list(input_path, self.image_loader)
                 target = apply_function_list(target_path, self.target_loader)
-
+            #print('[index:{}] Avt co: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
             # apply co transforms
             if self.co_transforms is not None:
                 img,target = self.co_transforms(img, target)
-
+            #print('[index:{}] Ap co: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
             # apply transforms for inputs
             if self.input_transforms is not None:
                 img = apply_function_list(img, self.input_transforms)
-
+            #print('[index:{}] fin: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
             # apply transform for targets
             if self.target_transforms is not None:
                 target = apply_function_list(target, self.target_transforms)
@@ -134,6 +134,113 @@ class SegmentationDataset(data.Dataset):
         """Length."""
         return len(self.imgs)
 
+
+class VideoFlowDataset(data.Dataset):
+    """Main Class for Image Folder loader."""
+
+    def __init__(self, filelist=None, nframes=None,
+                image_loader=None, target_loader=None,
+                training=True,
+                co_transforms=None,
+                input_transforms=None,
+                target_transforms=None,
+                return_filenames = False
+                ):
+        """Init function.
+        nframes: can be
+                an integer: same nb of frames for all samples
+                a list of integers: random choice of seq length from these values
+        """
+
+        self.files = filelist
+        self.nframes = nframes
+        self.training = training
+
+        # data augmentation
+        self.co_transforms = co_transforms
+        self.input_transforms = input_transforms
+        self.target_transforms = target_transforms
+
+        # loaders
+        self.image_loader = image_loader
+        self.target_loader = target_loader
+
+        # return filenames or not
+        self.return_filenames = return_filenames
+
+
+    def __getitem__(self, index):
+        """Get item."""
+        # expect a global variable called
+
+        if self.training:
+            if type(self.nframes) in [list, tuple]:
+                nframes = random.choice(self.nframes)
+            else:
+                nframes = self.nframes
+            idx_first_frame = random.randint(0, len(self.files[index][0]) - nframes)
+            delta_len = len(self.files[index][0]) - len(self.files[index][1])
+            input_path = self.files[index][0][idx_first_frame:idx_first_frame+nframes]
+            target_path = self.files[index][1][idx_first_frame:idx_first_frame+nframes-delta_len]
+            img = apply_function_list(input_path, self.image_loader)
+            target = apply_function_list(target_path, self.target_loader)
+            #print('[index:{}] Avt co: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
+            # apply co transforms
+            if self.co_transforms is not None:
+                img,target = self.co_transforms(img, target)
+            #print('[index:{}] Ap co: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
+            # apply transforms for inputs
+            if self.input_transforms is not None:
+                img = apply_function_list(img, self.input_transforms)
+            #print('[index:{}] fin: shape={}, type={}, max={}'.format(index, img[0].shape, img[0].dtype, img[0].max()))
+            # apply transform for targets
+            if self.target_transforms is not None:
+                target = apply_function_list(target, self.target_transforms)
+
+            if self.return_filenames:
+                return img, target, self.files[index][0]
+            else:
+                return img, target
+
+
+        else: # test mode
+
+            target = -1 # must not be none
+            
+            if type(self.nframes) in [list, tuple]:
+                nframes = random.choice(self.nframes)
+            else:
+                nframes = self.nframes
+            idx_first_frame = (len(self.files[index][0]) - nframes) // 2
+            # images
+            input_path = self.files[index][0][idx_first_frame:idx_first_frame+nframes]
+            img = apply_function_list(input_path, self.image_loader)
+            # target
+            if self.files[index][1] is not None:
+                delta_len = len(self.files[index][0]) - len(self.files[index][1])
+                target_path = self.files[index][1][idx_first_frame:idx_first_frame+nframes-delta_len]
+                target = apply_function_list(target_path, self.target_loader)
+
+            img = apply_function_list(img, np.ascontiguousarray)
+
+            # apply transform on inputs
+            if self.input_transforms is not None:
+                img = apply_function_list(img, self.input_transforms)
+
+            # apply transform for targets
+            if self.target_transforms is not None and self.files[index][1] is not None:
+                target = apply_function_list(target, self.target_transforms)
+
+            if self.return_filenames:
+                return img, target, self.files[index][0]
+            else:
+                return img, target
+
+
+
+    def __len__(self):
+        """Length."""
+        return len(self.files)
 
 
 ###### NOT TESTED

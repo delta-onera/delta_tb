@@ -11,15 +11,56 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
-import warnings
-try:
-    import rasterio
-except:
-    warnings.warn("rasterio cannot be imported", Warning)
     
 from scipy import ndimage
-from skimage.morphology import binary_closing
+
+import numpy as np
+import re
+import sys
+
+from deltatb import networks
+
+
+def readPFM(file):
+    '''
+    Load a PFM file into a Numpy array. Note that it will have
+    a shape of H x W, not W x H. Returns a tuple containing the
+    loaded image and the scale factor from the file.
+    '''
+    color = None
+    width = None
+    height = None
+    scale = None
+    endian = None
+
+    with open(file, 'rb') as file:
+        header = file.readline().rstrip()
+        if header.decode() == 'PF':
+            color = True
+        elif header.decode() == 'Pf':
+            color = False
+        else:
+            raise Exception('Not a PFM file.')
+
+        dim_match = re.match(r'^(\d+)\s(\d+)\s$', file.readline().decode())
+        if dim_match:
+            width, height = map(int, dim_match.groups())
+        else:
+            raise Exception('Malformed PFM header.')
+
+        scale = float(file.readline().rstrip())
+        if scale < 0: # little-endian
+            endian = '<'
+            scale = -1 * scale
+        else:
+            endian = '>' # big-endian
+
+        data = np.fromfile(file, endian + 'f')
+        shape = (height, width, 3) if color else (height, width)
+
+        data = np.reshape(data, shape)
+        data = np.flipud(data)
+    return data, scale
 
 
 def upsample_output_and_evaluate(function, output, target, **kwargs):
@@ -30,13 +71,22 @@ def upsample_output_and_evaluate(function, output, target, **kwargs):
     if output.ndimension() == 4:
         upsampled_output = F.upsample(output, size=(h,w),
                                         mode='bilinear', align_corners=True)
-    elif output.ndimension() == 5:
-        upsampled_output = F.upsample(output,
-                                        size=(output.size(-3), h, w),
-                                        mode='trilinear', align_corners=True)
+    #elif output.ndimension() == 5:
+    #    upsampled_output = F.upsample(output,
+    #                                    size=(output.size(-3), h, w),
+    #                                    mode='trilinear', align_corners=True)
     else:
-        raise NotImplementedError('Output and target tensors must have 4 or 5 dimensions')
+        raise NotImplementedError('Output and target tensors must have 4 dimensions')
     return function(upsampled_output, target, **kwargs)
+
+def upsample_output_and_evaluate_video(function, output, target, **kwargs):
+    if type(output) in [list, tuple]:
+        output = output[0]
+    nframes = output.size(0)
+    out = 0
+    for n in range(nframes):
+        out += upsample_output_and_evaluate(function, output[n], target[n], **kwargs)
+    return out / nframes 
 
 
 def flow_to_color(w, maxflow=None, dark=False):
@@ -60,12 +110,20 @@ def flow_to_color(w, maxflow=None, dark=False):
             ret = flow_map(N,D,np.ones([rows,cols]), maxflow, 8)
         return ret
 
+# def flow_to_color_tensor(flow_batch, max_flo=None):
+#     flow_hsv = []
+#     for w_ in flow_batch:
+#         w = w_.clone()
+#         w[np.isnan(w)] = 0
+#         flow_hsv.append(torch.from_numpy(flow_to_color(w.cpu().numpy(), max_flo).transpose(2,0,1)))
+#     return torch.stack(flow_hsv, 0)
+
 def flow_to_color_tensor(flow_batch, max_flo=None):
     flow_hsv = []
     for w_ in flow_batch:
-        w = w_.clone()
+        w = w_.clone().cpu().numpy()
         w[np.isnan(w)] = 0
-        flow_hsv.append(torch.from_numpy(flow_to_color(w.cpu().numpy(), max_flo).transpose(2,0,1)))
+        flow_hsv.append(torch.from_numpy(flow_to_color(w, max_flo).transpose(2,0,1)))
     return torch.stack(flow_hsv, 0)
 
 
@@ -77,8 +135,8 @@ def image_loader_gray(image_path):
             A numpy float32 array shape (w,h, n_channel)
     """
     im = np.array(Image.open(image_path).convert('L'), dtype=np.float32)
-    if im.max() > 1:
-        im = im / 255
+    #if im.max() > 1:
+    #    im = im / 255
     im = np.expand_dims(im, 2)
     return im
 
@@ -109,105 +167,84 @@ def flow_loader(path):
 
 # ---------------------------------------------------
 
-def warp(img, flow):
+class CenterZeroPadMultiple(object):
+    """Pads around the given input array to have a region of
+    the given size. size can be a tuple (target_height, target_width)
+    or an integer, in which case the target will be of a square shape (size, size)
     """
-        warp(self, I, w):-> res
-        Simple fuction to wrap the image img with motion field flow
-        img : np.array [HxWx1]
-        flow : np.array [HxWx2]
+
+    def __init__(self, multiple):
+        self.multiple = multiple #64
+
+    def __call__(self, im):
+        """
+        im : numpy.array, une image
+        """
+        h, w, c = im.shape
+        th, tw = (h+self.multiple-h%self.multiple,w+self.multiple-w%self.multiple)
+        x = int(round((tw - w) / 2.))
+        y = int(round((th - h) / 2.))
+
+        padded_im = np.zeros((th,tw,c), dtype=im.dtype)
+        padded_im[y: y + h, x: x + w] = im
+
+        return padded_im
+
+def load_pretrained_model(arch_name, pretrained_path, device=0, **arch_args):
+    pretrained_data = torch.load(pretrained_path,
+                                map_location=lambda storage,
+                                loc: storage.cuda(device))
+
+    net = networks.__dict__[arch_name](**arch_args)
+
+    if 'model_state_dict' in pretrained_data.keys():
+        net.load_state_dict(pretrained_data['model_state_dict'])
+    elif 'state_dict' in pretrained_data.keys():
+        net.load_state_dict(pretrained_data['state_dict'])
+    else:
+        net.load_state_dict(pretrained_data)
+
+    return net
+
+class MultiFactorMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
+    """Decays the learning rate of each parameter group by gamma once the
+    number of epoch reaches one of the milestones. Notice that such decay can
+    happen simultaneously with other changes to the learning rate from outside
+    this scheduler. When last_epoch=-1, sets initial lr as lr.
+
+    Args:
+        optimizer (Optimizer): Wrapped optimizer.
+        milestones (list): List of epoch indices. Must be increasing.
+        gamma (float or list, len == len(milestone), of floats): Multiplicative factors of learning rate decay.
+        last_epoch (int): The index of last epoch. Default: -1.
+
+    Example:
+        >>> # Assuming optimizer uses lr = 0.05 for all groups
+        >>> # lr = 0.05     if epoch < 30
+        >>> # lr = 0.005    if 30 <= epoch < 80
+        >>> # lr = 0.0005   if epoch >= 80
+        >>> scheduler = MultiStepLR(optimizer, milestones=[30,80], gamma=0.1)
+        >>> for epoch in range(100):
+        >>>     train(...)
+        >>>     validate(...)
+        >>>     scheduler.step()
     """
-    col, row = img.shape[1], img.shape[0]
-    x, y = np.meshgrid(range(col), range(row))
-    out = ndimage.map_coordinates(img[:,:,0], [y+flow[:,:,1], x+flow[:,:,0]], order=1, mode='nearest')
-    return out[:,:,np.newaxis]
 
-
-def rasterio_window_reader(path, imsize, x, y):
-    if isinstance(imsize, numbers.Number):
-        imsize = (int(imsize), int(imsize))
-    src = rasterio.open(path)
-    assert x >= 0 and x < src.width - imsize[1]
-    assert y >= 0 and y < src.height - imsize[0]
-    window = rasterio.windows.Window(x, y, imsize[1], imsize[0])
-    subset = src.read(window=window).astype(np.float32) #.transpose(1,2,0)
-    src.close()
-    return subset
-
-def pre_process_img(image):
-    out = image - np.nanmean(image)
-    image_std = np.nanstd(image)
-    if image_std != 0:
-        out /= image_std
-    #out[np.isnan(out)] = 0
-    out = np.clip(out, -3*image_std, 3*image_std)
-    return out
-
-def nan_to_zero(image):
-    out = image.copy()
-    out[np.isnan(out)] = 0
-    return out
-
-def generate_mask(list_img, flow):
-    """
-    IN:
-        list_img : list of 2 np.array [HxW]
-        flow : np.array [HxWx2]
-    OUT :
-        mask_vt : np.array [HxW] de np.uint8, 0 pour False et 255 pour True.
-            Eventuellement à seuiller si on applique des opérations dessus entre temps.
-    """
-    #normalement on avait mis le flow à NaN pour binary_closing(srtm != 0, selem=np.ones((7,7)))
-    mask_vt = np.logical_not(np.logical_or(np.isnan(flow[:,:,0]),
-                                            np.isnan(flow[:,:,1])))
-    mask_vt = mask_vt.astype(np.uint8)[:,:,np.newaxis] * 255
-    mask_vt[np.logical_or(np.isnan(list_img[0]), list_img[0] == 0)] = 0
-    mask_vt[np.logical_or(np.isnan(list_img[1]), list_img[1] == 0)] = 0
-    return mask_vt
-
-class RadarMonoLoader:
-    def __init__(self, imsize):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
+    def __init__(self, optimizer, milestones, gammas, last_epoch=-1):
+        self.milestones = milestones
+        if type(gammas) in [list, tuple]:
+            if len(gammas) == 1:
+                self.gammas = gammas * len(milestones)
+            else:
+                assert len(milestones) == len(gammas)
+                self.gammas = gammas
         else:
-            self.imsize = imsize
-    def __call__(self, path, x, y):
-        image = rasterio_window_reader(path, self.imsize, x, y)
-        image = (image**2).sum(axis=0)
-        image = pre_process_img(image)
-        return image[:,:,np.newaxis]
+            self.gammas = [gammas] * len(milestones)
+        super(MultiFactorMultiStepLR, self).__init__(optimizer, last_epoch)
 
-class OpticGrayLoader:
-    def __init__(self, imsize):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
+    def get_lr(self):
+        if self.last_epoch not in self.milestones:
+            return [group['lr'] for group in self.optimizer.param_groups]
         else:
-            self.imsize = imsize
-    def __call__(self, path, x, y):
-        image = rasterio_window_reader(path, self.imsize, x, y)
-        image = image.sum(axis=0)
-        image = pre_process_img(image)
-        return image[:,:,np.newaxis]
-
-class SrtmFlowGenerator:
-    def __init__(self, imsize, max_displacement=3):
-        if isinstance(imsize, numbers.Number):
-            self.imsize = (int(imsize), int(imsize))
-        else:
-            self.imsize = imsize
-        self.max_displacement = max_displacement
-
-    def __call__(self, path, x, y):
-        srtm = rasterio_window_reader(path, self.imsize, x, y)[0]
-        srtm -= srtm.min()
-        srtm_max = srtm.max()
-        if srtm_max != 0:
-            srtm /= srtm_max
-        srtm *= self.max_displacement # deplacement max de 3 pixels
-        theta = 2 * np.pi * random.random()
-        u = srtm * np.cos(theta)
-        v = srtm * np.sin(theta)
-        mask = binary_closing(srtm != 0, selem=np.ones((7,7)))
-        u[np.logical_not(mask)] = np.nan
-        v[np.logical_not(mask)] = np.nan
-        flow = np.stack([u,v], axis=2)
-        return flow
+            return [group['lr'] * self.gammas[self.milestones.index(self.last_epoch)]
+                for group in self.optimizer.param_groups]
