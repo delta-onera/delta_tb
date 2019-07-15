@@ -187,7 +187,7 @@ if args.visu_visdom:
 #########
 #Training
 #########
-def train(epoch, nbr_batches, train_loader):
+def train(epoch, nbr_batches, optimizer, train_loader):
     nbr_batches = len(train_loader) if nbr_batches <= 0 else min(len(train_loader), nbr_batches)
     net.train()
     error = 0
@@ -280,10 +280,10 @@ def test(epoch, filelist_test, title='test'):
         t.close()
         return err_moy.item() / len(test_loader)
 
-def iterate_all_epochs(nbr_epochs, scheduler, train_loader, filelist_test, filelist_sintel=None):
+def iterate_all_epochs(nbr_epochs, optimizer, scheduler, train_loader, filelist_test, filelist_sintel=None):
     for epoch in range(nbr_epochs):
         scheduler.step()
-        train_loss = train(epoch, nbr_iter_per_epochs, train_loader)
+        train_loss = train(epoch, nbr_iter_per_epochs, optimizer, train_loader)
 
         # save the model (checkpoint)
         torch.save(net.state_dict(), os.path.join(save_dir, "state_dict_checkpoint.pth"))
@@ -418,7 +418,7 @@ if args.chairs:
 
         if not args.step_by_step:
             #iterate_all_epochs(chairs_nbr_epochs, chairs_scheduler, train_loader, filelist_test)
-            iterate_all_epochs(chairs_nbr_epochs, chairs_scheduler, train_loader, filelist_test, filelist_sintel)
+            iterate_all_epochs(chairs_nbr_epochs, chairs_optimizer, chairs_scheduler, train_loader, filelist_test, filelist_sintel)
             print('Pretraining on chairs done')
             # save the model pretrained on chairs
             torch.save(net.state_dict(), os.path.join(save_dir, "state_dict_chairs.pth"))
@@ -507,7 +507,7 @@ if args.things:
 
         if not args.step_by_step:
             #iterate_all_epochs(things_nbr_epochs, things_scheduler, train_loader, filelist_test, filelist_sintel)
-            iterate_all_epochs(things_nbr_epochs, things_scheduler, train_loader, filelist_sintel)
+            iterate_all_epochs(things_nbr_epochs, things_optimizer, things_scheduler, train_loader, filelist_sintel)
             print('Training on things done')
             # save the model pretrained on things
             torch.save(net.state_dict(), os.path.join(save_dir, "state_dict_things.pth"))
