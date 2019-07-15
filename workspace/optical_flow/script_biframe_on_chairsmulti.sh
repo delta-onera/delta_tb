@@ -1,6 +1,8 @@
 #!/bin/bash
 
 device=0
+chairspath='/scratch/pgodet/ChairsMultiframe'
+sintelpath='/data/FLOW_DATASET/sintel'
 
 #ipython -- train_video_flow.py --nframes 7 \
 #  --arch PWCDCNetStack_2by2 --bs 4 \
@@ -14,8 +16,9 @@ device=0
 
 ipython -- train_video_flow.py --nframes 2 \
  --arch PWCDCNetStack_2by2 --len-seq-fixed \
- --savedir videoflow --expname PWCNet_2by2_biframe_on_chairsmulti \
+ --savedir videoflow --expname deltamulti_PWC2by2_biframe_on_chairs \
  --chairs --chairs-lr 0.0001 --test-sintel \
+ --chairs-path $chairspath --sintel-path $sintelpath \
  --nb-iter-per-epoch 1000 --chairs-nb-epochs 300 \
  --scheduler-step-indices 150 200 250 \
  --scheduler-factors 0.5 \
