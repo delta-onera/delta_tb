@@ -312,7 +312,7 @@ def iterate_all_epochs(nbr_epochs, optimizer, scheduler, train_loader, filelist_
             f.write(str(epoch)+" ")
             f.write("%.4e "%train_loss)
             f.write("%.4f "%test_err)
-            if args.test_sintel:
+            if filelist_sintel:
                 f.write("%.4f "%sintel_err)
             f.write("\n")
             f.flush()
