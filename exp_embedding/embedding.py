@@ -60,7 +60,7 @@ class UnetBackbone(nn.Module):
         self.conv21d = nn.Conv2d(128, 64, kernel_size=3, padding=1)
 
     def forward(self, x1):
-        globalresize = nn.AdaptiveAvgPool2d((x.shape[2],x.shape[3]))
+        globalresize = nn.AdaptiveAvgPool2d((x1.shape[2],x1.shape[3]))
         
         tmp = F.max_pool2d(x1, kernel_size=2, stride=2)
         

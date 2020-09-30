@@ -18,32 +18,39 @@ def symetrie(x,y,i,j,k):
     return x.copy(),y.copy()
         
 def normalizehistogram(im):
-    allvalues = list(im.flatten())
-    allvalues = sorted(allvalues)
-    n = len(allvalues)
-    allvalues = allvalues[0:int(98*n/100)]
-    allvalues = allvalues[int(2*n/100):]
-    
-    n = len(allvalues)
-    k = n//255
-    pivot = [0]+[allvalues[i] for i in range(0,n,k)]
-    assert(len(pivot)>=255)
-    
-    out = np.zeros(im.shape,dtype = int)
-    for i in range(1,255):
-        out=np.maximum(out,np.uint8(im>pivot[i])*i)
+    if len(im.shape)==2:
+        allvalues = list(im.flatten())
+        allvalues = sorted(allvalues)
+        n = len(allvalues)
+        allvalues = allvalues[0:int(98*n/100)]
+        allvalues = allvalues[int(2*n/100):]
         
-    return np.uint8(out)
+        n = len(allvalues)
+        k = n//255
+        pivot = [0]+[allvalues[i] for i in range(0,n,k)]
+        assert(len(pivot)>=255)
+        
+        out = np.zeros(im.shape,dtype = int)
+        for i in range(1,255):
+            out=np.maximum(out,np.uint8(im>pivot[i])*i)
+            
+        return np.uint8(out)
 
+    else:
+        output = im.copy()
+        for i in range(im.shape[2]):
+            output[:,:,i] = normalizehistogram(im[:,:,i])
+        return output
 
 import PIL
 from PIL import Image
 
 class datasetdescription:
-	def __init__(self):
-		self.datasetname = ""
+    def __init__(self):
+        self.datasetname = ""
         self.nbclass = -1
         self.nbchannel = -1
+        self.resolution
 
 class SegSemDataset:
     def __init__(self):
@@ -54,48 +61,43 @@ class SegSemDataset:
         
         #path to data
         self.root = ""
-        self.names = []
-        self.images = {}
-        self.masks = {}
+        self.pathTOdata = {}
     
     def getdatasetdescription(self):
-		return self.datasetdescription.copy()
-		
+        return self.datasetdescription.copy()
+        
     def getcolors(self):
         return self.setofcolors.copy()
     
     def getnames(self):
-		return self.names.copy()
+        return [name for name in pathTOdata]
     
-    def getImageMask(self,name):
-		if self.nbchannel==3:
-			image = PIL.Image.open(self.root+"/"+self.images[name]).convert("RGB").copy()
-		if self.nbchannel==1:
-			image = PIL.Image.open(self.root+"/"+self.images[name]).convert("L").copy()
-		
-		if self.nbchannel not in [1,3]:
-			print("unacceptable channel size")
-			quit()
+    def getImageAndLabel(self,name):
+        x,y = self.images[name]
+        
+        if self.datasetdescription.nbchannel==3:
+            image = PIL.Image.open(self.root+"/"+x).convert("RGB").copy()
+        else:
+            image = PIL.Image.open(self.root+"/"+x).convert("L").copy()
         image = np.asarray(image,dtype=np.uint8) #warning wh swapping
         
-        label = PIL.Image.open(self.root+"/"+self.masks[name]).convert("RGB").copy()
+        label = PIL.Image.open(self.root+"/"+y).convert("RGB").copy()
         label = colorvtTOvt(np.asarray(label,dtype=np.uint8)) #warning wh swapping
         
         return image, label
         
     
-    def getrawrandomtiles(self,nbtilesperimage,h,w,batchsize):
-        #crop
+    def getrawrandomtiles(self,nbtiles,h,w):
         XY = []
+        nbtilesperimage = nbtiles//self.names+1
+        
+        #crop
         for name in self.names:
-            col = np.random.randint(0,self.sizes[name][0]-w-2,size = nbtilesperimage)
-            row = np.random.randint(0,self.sizes[name][1]-h-2,size = nbtilesperimage)
-                   
-            image = PIL.Image.open(self.root+"/"+self.images[name]).convert("RGB").copy()
-            image = np.asarray(image,dtype=np.uint8) #warning wh swapping
-
-            label = PIL.Image.open(self.root+"/"+self.masks[name]).convert("RGB").copy()
-            label = np.asarray(label,dtype=np.uint8) #warning wh swapping
+            image,label = self.getImageAndLabel(name)
+            
+            col = np.random.randint(0,image.shape[0]-w-2,size = nbtilesperimage)
+            row = np.random.randint(0,image.shape[1]-h-2,size = nbtilesperimage)
+            
             for i in range(nbtilesperimage):
                 im = image[row[i]:row[i]+h,col[i]:col[i]+w,:].copy()
                 mask = label[row[i]:row[i]+h,col[i]:col[i]+w,:].copy()
@@ -106,13 +108,12 @@ class SegSemDataset:
         XY = [(symetrie(x,y,symetrieflag[i][0],symetrieflag[i][1],symetrieflag[i][2])) for i,(x,y) in enumerate(XY)]
         return XY
         
-    def getrandomtiles(self,nbtilesperimage,h,w,batchsize):
-        XY = self.getrawrandomtiles(nbtilesperimage,h,w,batchsize)
+    def getrandomtiles(self,nbtiles,h,w,batchsize):
+        XY = self.getrawrandomtiles(nbtiles,h,w)
 
         #pytorch
         X = torch.stack([torch.Tensor(np.transpose(x,axes=(2, 0, 1))).cpu() for x,y in XY])
-        tmp = [torch.from_numpy(self.colorvtTOvt(y)).long().cpu() for x,y in XY]
-        Y = torch.stack(tmp)
+        Y = torch.stack([torch.from_numpy(y).long().cpu() for x,y in XY])
         dataset = torch.utils.data.TensorDataset(X,Y)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batchsize, shuffle=True, num_workers=2)
         
@@ -129,190 +130,172 @@ class SegSemDataset:
     def colorvtTOvt(self,maskcolor):
         mask = np.zeros((maskcolor.shape[0],maskcolor.shape[1]),dtype=int)
         for i in range(len(self.setofcolors)):
-            mask+=i*(maskcolor[:,:,0]==self.setofcolors[i][0]).astype(int)*(maskcolor[:,:,1]==self.setofcolors[i][1]).astype(int)*(maskcolor[:,:,2]==self.setofcolors[i][2]).astype(int)
+            mask1 = (maskcolor[:,:,0]==self.setofcolors[i][0]).astype(int)
+            mask2 = (maskcolor[:,:,1]==self.setofcolors[i][1]).astype(int)
+            mask3 = (maskcolor[:,:,2]==self.setofcolors[i][2]).astype(int)
+            mask+=i*mask1*mask2*mask3
+            
         return mask
-
-
-def resizeDataset(XY,path,setofcolors,nativeresolution,resolution,color,normalize,pathTMP="build"):
-    XYout = {}
-    for name,(x,y) in XY.items():
-        image = PIL.Image.open(path+"/"+x).convert("RGB").copy()
-        image = image.resize((int(image.size[0]*nativeresolution/resolution),int(image.size[1]*nativeresolution/resolution)), PIL.Image.BILINEAR)
-        if not color:
-            image = torchvision.transforms.functional.to_grayscale(image,num_output_channels=1)
-        if normalize:
-            image = np.asarray(image,dtype=np.uint8)
-            image = normalizehistogram(image)
-            image = PIL.Image.fromarray(np.stack([image,image,image],axis=-1))
-        image.save(pathTMP+"/"+name+"_x.png")
         
-        maskc = PIL.Image.open(path+"/"+y).convert("RGB").copy()
-        maskc = maskc.resize((int(maskc.size[0]*nativeresolution/resolution),int(maskc.size[1]*nativeresolution/resolution)), PIL.Image.NEAREST)
-        maskc.save(pathTMP+"/"+name+"_y.png")
         
-        XYout[name] = (name+"_x.png",name+"_y.png")
-    
-    out = SegSemDataset()
-    out.root = pathTMP
-    out.setofcolors = setofcolors
-    for name,(x,y) in XYout.items():
-        out.names.append(name)
-        out.sizes[name] = getsize(pathTMP+"/"+x)
-
-        out.images[name] = x
-        out.masks[name] = y
+    def copyTOcache(self,pathTOcache,resolution, color,normalize):
+        nativeresolution = self.datasetdescription.resolution
+        out = SegSemDataset()
+        out.datasetdescription = self.datasetdescription.copy()
+        if color:
+            out.datasetdescription.nbchannel = 3
+        else:
+            out.datasetdescription.nbchannel = 1
+        out.setofcolors = self.setofcolors.copy()
+        out.datasetdescription.resolution = resolution
         
-    return out
+        out.root = pathTOcache
+        out.names = self.names.copy()
+        
+        for name in self.names:
+            x,y = self.images[name]
+            
+            if color:
+                image = PIL.Image.open(self.root+"/"+x).convert("RGB").copy()
+            else:
+                image = PIL.Image.open(self.root+"/"+x).convert("L").copy()
+                
+            label = PIL.Image.open(self.root+"/"+y).convert("RGB").copy()
+            
+            if nativeresolution!=resolution:
+                image = image.resize((int(image.size[0]*nativeresolution/resolution),int(image.size[1]*nativeresolution/resolution)), PIL.Image.BILINEAR)
+                label = label.resize((image.size[0],image.size[1]), PIL.Image.NEAREST)
+            
+            label = out.vtTOcolorvt(out.colorvtTOvt(label)) #very slow but avoid frustrating bug due to label color coding
+            
+            if normalize:
+                image = np.asarray(image,dtype=np.uint8)
+                image = normalizehistogram(image)
+                image = PIL.Image.fromarray(np.stack(image,axis=-1))
+            
+            image.save(out.root+"/"+name+"_x.png")
+            label.save(out.root+"/"+name+"_y.png")
+            out.pathTOdata[name] = (name+"_x.png",name+"_y.png")
+        
+        return out
     
 
 
-def DFC2015color(mode):
-    if mode=="normal":
-        return [[255,255,255]
-        ,[0,0,128]
-        ,[255,0,0]
-        ,[0,255,255]
-        ,[0,0,255]
-        ,[0,255,0]
-        ,[255,0,255]
-        ,[255,255,0]]
-    else:#lod0
-        return [[255,255,255],[0,0,255]]
-
-
-def makeDFC2015(resolution=50,datasetpath="/data/DFC2015",mode="lod0",color = False,normalize = True):
-    XY = {}
-    XY["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
-    XY["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
-    XY["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
-    XY["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-    XY["5"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-    XY["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
+def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, alldata=False,trainData=True):
+    dfc = SegSemDataset()
+    dfc.datasetdescription.datasetname = "dfc2015"
+    dfc.datasetdescription.nbchannel = 3
+    dfc.datasetdescription.resolution = 5
     
-    return resizeDataset(XY,datasetpath,DFC2015color(mode),5,resolution,color,normalize)    
+    if lod0:
+        dfc.setofcolors = [[255,255,255],[0,0,255]]
+    else:
+        dfc.setofcolors = [[255,255,255]
+            ,[0,0,128]
+            ,[255,0,0]
+            ,[0,255,255]
+            ,[0,0,255]
+            ,[0,255,0]
+            ,[255,0,255]
+            ,[255,255,0]]
+    dfc.datasetdescription.nbclass = len(dfc.setofcolors)
 
-def maketrainDFC2015(resolution=50,datasetpath="/data/DFC2015",mode="normal",color = True,normalize = False):
-    XY = {}
-    XY["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
-    XY["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
-    XY["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
-    XY["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+    if alldata or trainData:
+        dfc.pathTOdata["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
+        dfc.pathTOdata["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
+        dfc.pathTOdata["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
+        dfc.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+    if alldata or (not trainData):
+        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+        dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
     
-    return resizeDataset(XY,datasetpath,DFC2015color(mode),5,resolution,color,normalize)
+    return dfc
     
-def maketestDFC2015(resolution=50,datasetpath="/data/DFC2015",mode="normal",color = True,normalize = False):
-    XY = {}
-    XY["5"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-    XY["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
+def makeISPRS(datasetpath="", lod0=True, alldata=False,trainData=True, POTSDAM=True):
+    isprs = SegSemDataset()
+    if POTSDAM:
+        isprs.datasetdescription.datasetname = "POTSDAM"
+        isprs.datasetdescription.resolution = 5
+        if datasetpath=="":
+            datasetpath = "/data/POSTDAM"
+    else:
+        isprs.datasetdescription.datasetname = "VAIHINGEN"
+        isprs.datasetdescription.resolution = 10
+        if datasetpath=="":
+            datasetpath = "/data/VAIHINGEN"
+        
+    isprs.datasetdescription.nbchannel = 3
     
-    return resizeDataset(XY,datasetpath,DFC2015color(mode),5,resolution,color,normalize)
+    if lod0:
+        isprs.setofcolors = [[255,255,255],[0,0,255]]
+    else:
+        isprs.setofcolors = [[255, 255, 255]
+            ,[0, 0, 255]
+            ,[0, 255, 255]
+            ,[ 0, 255, 0]
+            ,[255, 255, 0]
+            ,[255, 0, 0]]
+    isprs.datasetdescription.nbclass = len(isprs.setofcolors)
 
-def ISPRScolor(mode):
-    if mode=="normal":
-        return [[255, 255, 255]
-        ,[0, 0, 255]
-        ,[0, 255, 255]
-        ,[ 0, 255, 0]
-        ,[255, 255, 0]
-        ,[255, 0, 0]]
-    else:#lod0
-        return [[255,255,255],[0,0,255]]
+    if POTSDAM:
+        names = ["top_potsdam_2_10_",
+            "top_potsdam_2_11_",
+            "top_potsdam_2_12_",
+            "top_potsdam_3_10_",
+            "top_potsdam_3_11_",
+            "top_potsdam_3_12_",
+            "top_potsdam_4_10_",
+            "top_potsdam_4_11_",
+            "top_potsdam_4_12_",
+            "top_potsdam_5_10_",
+            "top_potsdam_5_11_",
+            "top_potsdam_5_12_",
+            "top_potsdam_6_7_",
+            "top_potsdam_6_8_",
+            "top_potsdam_6_9_",
+            "top_potsdam_6_10_",
+            "top_potsdam_6_11_",
+            "top_potsdam_6_12_",
+            "top_potsdam_7_7_",
+            "top_potsdam_7_8_",
+            "top_potsdam_7_9_",
+            "top_potsdam_7_10_",
+            "top_potsdam_7_11_",
+            "top_potsdam_7_12_"]
+        for name in names:
+            isprs.pathTOdata[name] = ("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
+            
+    else:
+        train = ["top_mosaic_09cm_area5.tif",
+            "top_mosaic_09cm_area17.tif",
+            "top_mosaic_09cm_area21.tif",
+            "top_mosaic_09cm_area23.tif",
+            "top_mosaic_09cm_area26.tif",
+            "top_mosaic_09cm_area28.tif",
+            "top_mosaic_09cm_area30.tif",
+            "top_mosaic_09cm_area32.tif",
+            "top_mosaic_09cm_area34.tif",
+            "top_mosaic_09cm_area37.tif"]
+        test = ["top_mosaic_09cm_area1.tif",
+            "top_mosaic_09cm_area3.tif",
+            "top_mosaic_09cm_area7.tif",
+            "top_mosaic_09cm_area11.tif",
+            "top_mosaic_09cm_area13.tif",
+            "top_mosaic_09cm_area15.tif"]
+        
+        names = []
+        if alldata or trainData:
+            names = names+train
+        if alldata or (not trainData):
+            names = names+test
+
+        for name in names:
+            isprs.pathTOdata[name] = ("top/"+name,"gts_for_participants/"+name)
+    
+    return isprs    
        
-def makeISPRS_VAIHINGEN(resolution=50,datasetpath="/data/ISPRS_VAIHINGEN",mode="lod0",color = False,normalize = True):
-    names = ["top_mosaic_09cm_area1.tif",
-    "top_mosaic_09cm_area3.tif",
-    "top_mosaic_09cm_area5.tif",
-    "top_mosaic_09cm_area7.tif",
-    "top_mosaic_09cm_area11.tif",
-    "top_mosaic_09cm_area13.tif",
-    "top_mosaic_09cm_area15.tif",
-    "top_mosaic_09cm_area17.tif",
-    "top_mosaic_09cm_area21.tif",
-    "top_mosaic_09cm_area23.tif",
-    "top_mosaic_09cm_area26.tif",
-    "top_mosaic_09cm_area28.tif",
-    "top_mosaic_09cm_area30.tif",
-    "top_mosaic_09cm_area32.tif",
-    "top_mosaic_09cm_area34.tif",
-    "top_mosaic_09cm_area37.tif"]
-    
-    XY = {}
-    for name in names:
-        XY[name]=("top/"+name,"gts_for_participants/"+name)
-    
-    return resizeDataset(XY,datasetpath,ISPRScolor(mode),9,resolution,color,normalize)
 
-def makeISPRStrainVAIHINGEN(resolution=50,datasetpath="/data/ISPRS_VAIHINGEN",mode="lod0",color = False,normalize = True):
-    names = ["top_mosaic_09cm_area5.tif",
-    "top_mosaic_09cm_area17.tif",
-    "top_mosaic_09cm_area21.tif",
-    "top_mosaic_09cm_area23.tif",
-    "top_mosaic_09cm_area26.tif",
-    "top_mosaic_09cm_area28.tif",
-    "top_mosaic_09cm_area30.tif",
-    "top_mosaic_09cm_area32.tif",
-    "top_mosaic_09cm_area34.tif",
-    "top_mosaic_09cm_area37.tif"]
-    
-    XY = {}
-    for name in names:
-        XY[name]=("top/"+name,"gts_for_participants/"+name)
-    
-    return resizeDataset(XY,datasetpath,ISPRScolor(mode),9,resolution,color,normalize)
-    
-def makeISPRStestVAIHINGEN(resolution=50,datasetpath="/data/ISPRS_VAIHINGEN",mode="lod0",color = False,normalize = True):
-    names = ["top_mosaic_09cm_area1.tif",
-    "top_mosaic_09cm_area3.tif",
-    "top_mosaic_09cm_area7.tif",
-    "top_mosaic_09cm_area11.tif",
-    "top_mosaic_09cm_area13.tif",
-    "top_mosaic_09cm_area15.tif"]
-    
-    XY = {}
-    for name in names:
-        XY[name]=("top/"+name,"gts_for_participants/"+name)
-    
-    return resizeDataset(XY,datasetpath,ISPRScolor(mode),9,resolution,color,normalize)
-        
-
-def makeISPRS_POSTDAM(resolution=50,datasetpath="/data/POSTDAM",mode="lod0",color = False,normalize = True):
-    names = ["top_potsdam_2_10_",
-    "top_potsdam_2_11_",
-    "top_potsdam_2_12_",
-    "top_potsdam_3_10_",
-    "top_potsdam_3_11_",
-    "top_potsdam_3_12_",
-    "top_potsdam_4_10_",
-    "top_potsdam_4_11_",
-    "top_potsdam_4_12_",
-    "top_potsdam_5_10_",
-    "top_potsdam_5_11_",
-    "top_potsdam_5_12_",
-    "top_potsdam_6_7_",
-    "top_potsdam_6_8_",
-    "top_potsdam_6_9_",
-    "top_potsdam_6_10_",
-    "top_potsdam_6_11_",
-    "top_potsdam_6_12_",
-    "top_potsdam_7_7_",
-    "top_potsdam_7_8_",
-    "top_potsdam_7_9_",
-    "top_potsdam_7_10_",
-    "top_potsdam_7_11_",
-    "top_potsdam_7_12_"]
-    
-    XY = {}
-    for name in names:
-        XY[name]=("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
-    
-    return resizeDataset(XY,datasetpath,ISPRScolor(mode),5,resolution,color,normalize)
-
-
-
-
-    
 import os   
-import random
 
 def makeAIRSdataset(datasetpath,resolution=50,color = False,normalize = True,size=0):
     allfile = os.listdir(datasetpath+"/image")
@@ -324,26 +307,3 @@ def makeAIRSdataset(datasetpath,resolution=50,color = False,normalize = True,siz
     for name in allfile:
         XY[name] = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
     return resizeDataset(XY,datasetpath, [[0,0,0],[255,255,255]],7.5,resolution,color,normalize)
-    
-def makeTrainAIRSdataset(datasetpath="/data/AIRS/train",resolution=50,color = False,normalize = True,size=33):
-    allfile = os.listdir(datasetpath+"/image")
-    if size>0:
-        random.shuffle(allfile)
-        allfile = allfile[0:size]
-    
-    XY = {}
-    for name in allfile:
-        XY[name] = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
-    return resizeDataset(XY,datasetpath, [[0,0,0],[255,255,255]],7.5,resolution,color,normalize)    
-
-def makeTestAIRSdataset(datasetpath="/data/AIRS/val",resolution=50,color = False,normalize = True,size=33):
-    allfile = os.listdir(datasetpath+"/image")
-    if size>0:
-        random.shuffle(allfile)
-        allfile = allfile[0:size]
-    
-    XY = {}
-    for name in allfile:
-        XY[name] = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
-    return resizeDataset(XY,datasetpath, [[0,0,0],[255,255,255]],7.5,resolution,color,normalize)    
-
