@@ -20,6 +20,7 @@ def loadpretrained(model,correspondance,path):
                 fb=True
         if (not fw) or (not fb):
             print(name2+" not found")
+            quit()
     model.load_state_dict(model_dict)
 
 class Encoding(nn.Module):
@@ -162,6 +163,16 @@ class Embedding(nn.Module):
         self.datahash = set()
         self.dictionnary = nn.ParameterDict()
 
+    def adddataset(datasetdescription):
+        datahash,nbchannel,nbclasses = datasetdescription
+        if datahash not in self.datahash:
+            tmp = nn.ParameterDict({
+                datahash+"_encoder": Encoder(nbchannel,self.pretrained),
+                datahash+"_head": Head(nbclasses)
+            })
+            self.dictionnary.update(tmp)
+            self.datahash.insert(datahash)
+
     def simpleforward(self, data, datahash):
         return self.dictionnary[datahash+"_head"](self.backbone(self.dictionnary[datahash+"_encoder"](data)))
 
@@ -175,15 +186,11 @@ class Embedding(nn.Module):
         print("unknown flag in getoptimizer")
         quit()
 
-
     def forward(self, data, datasetdescription):
-        if datasetdescription.hash not in self.datahash:
-            tmp = nn.ParameterDict({
-                datasetdescription.hash+"_encoder": Encoder(datasetdescription.nbchannel,self.pretrained),
-                datasetdescription.hash+"_head": Head(datasetdescription.nbclasses)
-            })
-            self.dictionnary.update(tmp)
-            self.datahash.insert(datasetdescription.hash)
+        datahash,_,_ = datasetdescription
+        if datahash not in self.datahash:
+            print("unknown datasets")
+            quit()
 
         if 128 <= data.shape[2] <= 512 and data.shape[2]%32==0 and 128 <= data.shape[3] <= 512 and data.shape[3]%32==0:
             return self.simpleforward(x,datasetdescription.hash)

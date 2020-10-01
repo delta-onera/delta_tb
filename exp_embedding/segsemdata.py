@@ -62,7 +62,7 @@ class SegSemDataset:
         self.root = ""
         self.pathTOdata = {}
 
-    def getdatasetdescription(self):
+    def metadata(self):
         return (self.datasetname,self.nbchannel,len(self.setofcolors))
 
     def getnames(self):
