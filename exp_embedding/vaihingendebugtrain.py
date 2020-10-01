@@ -1,7 +1,7 @@
 
 
 import sys
-print sys.argv[0]
+print(sys.argv[0])
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -19,10 +19,10 @@ net = embedding.Embedding(pretrained="/data/vgg16-00b39a1b.pth")
 net = net.to(device)
 
 print("load data")
-datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POSTDAM=False)
-datatrain = datatrain.copyTOcache("build",70)
+datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POTSDAM=False)
+datatrain = datatrain.copyTOcache(outputresolution=70)
 net.adddataset(datatrain.metadata())
-nbclasses = len(datatest.getcolors())
+nbclasses = len(datatest.setofcolors)
 earlystopping = datatrain.getrandomtiles(1000,128,128,16)
 
 print("train setting")
@@ -58,7 +58,7 @@ for epoch in range(nbepoch):
         inputs, targets = inputs.to(device), targets.to(device)
         
         preds = net(inputs)
-        loss = criterion(preds,target
+        loss = criterion(preds,target)
         meanloss.append(loss.cpu().data.numpy())
         
         if epoch>30:

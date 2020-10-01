@@ -1,7 +1,7 @@
 
 import torch
 import torch.nn as nn
-import nn.functional as F
+import torch.nn.functional as F
 import torch.optim as optim
 
 
@@ -23,9 +23,9 @@ def loadpretrained(model,correspondance,path):
             quit()
     model.load_state_dict(model_dict)
 
-class Encoding(nn.Module):
+class Tail(nn.Module):
     def __init__(self,nbchannel,pretrained=""):
-        super(Encoding, self).__init__()
+        super(Tail, self).__init__()
 
         self.conv11 = nn.Conv2d(nbchannel, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
@@ -163,11 +163,11 @@ class Embedding(nn.Module):
         self.datahash = set()
         self.dictionnary = nn.ParameterDict()
 
-    def adddataset(datasetdescription):
+    def adddataset(self,datasetdescription):
         datahash,nbchannel,nbclasses = datasetdescription
         if datahash not in self.datahash:
             tmp = nn.ParameterDict({
-                datahash+"_encoder": Encoder(nbchannel,self.pretrained),
+                datahash+"_encoder": Tail(nbchannel,self.pretrained),
                 datahash+"_head": Head(nbclasses)
             })
             self.dictionnary.update(tmp)
@@ -180,14 +180,14 @@ class Embedding(nn.Module):
         if flag=="all":
             return optim.Adam(net.parameters(), lr=0.0001)
 
-        if flag in datasetdescription.hash:
+        if flag in datahash:
             return optim.Adam(list(self.dictionnary[flag+"_head"].parameters())+list(self.dictionnary[flag+"_encoder"].parameters()), lr=0.0001)
 
         print("unknown flag in getoptimizer")
         quit()
 
     def forward(self, data, datasetdescription):
-        datahash,_,_ = datasetdescription
+        datahash,_,nbclasses = datasetdescription
         if datahash not in self.datahash:
             print("unknown datasets")
             quit()
@@ -200,7 +200,7 @@ class Embedding(nn.Module):
             power2resize = nn.AdaptiveAvgPool2d((min(128,(data.shape[2]//32)*32),min(128,(data.shape[3]//32)*32)))
 
             data = power2resize(data)
-            data = self.simpleforward(data,datasetdescription.hash)
+            data = self.simpleforward(data,datahash)
             data = globalresize(data)
             return data
 
@@ -214,10 +214,10 @@ class Embedding(nn.Module):
 
             data = power2resize(data)
 
-            output = torch.zeros(1,datasetdescription.nbclasses,data.shape[2],data.shape[3]).cpu()
+            output = torch.zeros(1,nbclasses,data.shape[2],data.shape[3]).cpu()
             for row in range(0,data.shape[2]-127,32):
                 for col in range(0,data.shape[3]-127,32):
-                    output[:,:,row:row+128,col:col+128] += self.simpleforward(data[:,:,row:row+128,col:col+128],datasetdescription.hash).cpu()
+                    output[:,:,row:row+128,col:col+128] += self.simpleforward(data[:,:,row:row+128,col:col+128],datahash).cpu()
 
             return output.to(device)
 

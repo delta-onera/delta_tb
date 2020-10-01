@@ -66,12 +66,12 @@ class SegSemDataset:
         return (self.datasetname,self.nbchannel,len(self.setofcolors))
 
     def getnames(self):
-        return [name for name in pathTOdata]
+        return [name for name in self.pathTOdata]
 
     def getImageAndLabel(self,name,innumpy=True):
         x,y = self.images[name]
 
-        if self.datasetdescription.nbchannel==3:
+        if self.nbchannel==3:
             image = PIL.Image.open(self.root+"/"+x).convert("RGB").copy()
         else:
             image = PIL.Image.open(self.root+"/"+x).convert("L").copy()
@@ -91,10 +91,10 @@ class SegSemDataset:
 
     def getrawrandomtiles(self,nbtiles,h,w):
         XY = []
-        nbtilesperimage = nbtiles//self.names+1
+        nbtilesperimage = nbtiles//len(self.pathTOdata)+1
 
         #crop
-        for name in self.names:
+        for name in self.pathTOdata:
             image,label = self.getImageAndLabel(name)
 
             col = np.random.randint(0,image.shape[0]-w-2,size = nbtilesperimage)
@@ -143,22 +143,24 @@ class SegSemDataset:
         return mask
 
 
-    def copyTOcache(self,pathTOcache,outputresolution, color, normalize, outputname=""):
-        nativeresolution = self.datasetdescription.resolution
+    def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, outputname=""):
+        nativeresolution = self.resolution
+        if outputresolution<0:
+            outputresolution = nativeresolution
         if outputname=="":
             out = SegSemDataset(self.datasetname)
         else:
             out = SegSemDataset(outputname)
 
         if color:
-            out.datasetdescription.nbchannel = 3
+            out.nbchannel = 3
         else:
-            out.datasetdescription.nbchannel = 1
+            out.nbchannel = 1
         out.setofcolors = self.setofcolors.copy()
         out.resolution = outputresolution
 
         out.root = pathTOcache
-        for name in self.names:
+        for name in self.pathTOdata:
             x,y = self.pathTOdata[name]
 
             if color:
@@ -172,7 +174,8 @@ class SegSemDataset:
                 image = image.resize((int(image.size[0]*nativeresolution/outputresolution),int(image.size[1]*nativeresolution/outputresolution)), PIL.Image.BILINEAR)
                 label = label.resize((image.size[0],image.size[1]), PIL.Image.NEAREST)
 
-            label = out.vtTOcolorvt(out.colorvtTOvt(label)) #very slow but avoid frustrating bug due to label color coding
+            label = out.vtTOcolorvt(out.colorvtTOvt(np.asarray(label,dtype=np.uint8))) #very slow but avoid frustrating bug due to label color coding
+            label = PIL.Image.fromarray(label)
 
             if normalize:
                 image = np.asarray(image,dtype=np.uint8)
@@ -222,7 +225,7 @@ def makeISPRS(datasetpath="", lod0=True, alldata=False,trainData=True, POTSDAM=T
         if datasetpath=="":
             datasetpath = "/data/POSTDAM"
     else:
-        isprs.datasetdescription.datasetname = "VAIHINGEN"
+        isprs = SegSemDataset("VAIHINGEN")
         isprs.nbchannel,isprs.resolution = 3,10
         if datasetpath=="":
             datasetpath = "/data/VAIHINGEN"

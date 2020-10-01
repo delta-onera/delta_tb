@@ -1,7 +1,7 @@
 
 
 import sys
-print sys.argv[0]
+print(sys.argv[0])
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -16,9 +16,9 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 print("load data")
-datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",trainData=False,POSTDAM=False)
-datatest = datatest.copyTOcache("build",70)
-nbclasses = len(datatest.getcolors())
+datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",trainData=False,POTSDAM=False)
+datatest = datatest.copyTOcache(outputresolution=70)
+nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 names=datatest.getnames()
 
