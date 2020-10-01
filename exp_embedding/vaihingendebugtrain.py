@@ -45,9 +45,6 @@ def normalizehistogram(im):
 import PIL
 from PIL import Image
 
-import torch
-import torchvision
-
 class SegSemDataset:
     def __init__(self,datasetname):
         #metadata
@@ -68,7 +65,7 @@ class SegSemDataset:
     def getnames(self):
         return [name for name in pathTOdata]
 
-    def getImageAndLabel(self,name,innumpy=True):
+    def getImageAndLabel(self,name):
         x,y = self.images[name]
 
         if self.datasetdescription.nbchannel==3:
@@ -80,14 +77,8 @@ class SegSemDataset:
         label = PIL.Image.open(self.root+"/"+y).convert("RGB").copy()
         label = colorvtTOvt(np.asarray(label,dtype=np.uint8)) #warning wh swapping
 
-        if innumpy:
-            return image, label
-        else:
-            if self.nbchannel == 3:
-                image = torch.Tensor(np.transpose(image,axes=(2, 0, 1))).unsqueeze(0)
-            else:    
-                image = torch.Tensor(image).unsqueeze(0).unsqueeze(0)
-            return image, label
+        return image, label
+
 
     def getrawrandomtiles(self,nbtiles,h,w):
         XY = []
