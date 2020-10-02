@@ -41,7 +41,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = net.getoptimizer()
 
 meanloss = collections.deque(maxlen=200)
-nbepoch = 90
+nbepoch = 10
 
 def trainaccuracy(datatrain,earlystopping):
     nbclasses = len(datatrain.setofcolors)
