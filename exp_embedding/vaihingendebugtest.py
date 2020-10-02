@@ -41,7 +41,7 @@ with torch.no_grad():
         
         cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
         
-        pred = PIL.Image.fromarray(self.vtTOcolorvt(pred))
+        pred = PIL.Image.fromarray(datatest.vtTOcolorvt(pred))
         pred.save("build/"+name+"_z.jpg")
         
     print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
