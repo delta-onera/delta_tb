@@ -67,10 +67,6 @@ with torch.no_grad():
         _,pred = torch.max(pred[0],0)
         pred = pred.cpu().numpy()
         
-        if label.shape!=pred.shape:
-            print(image.shape,label.shape,pred.shape)
-            quit()
-        
         cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
         
         pred = PIL.Image.fromarray(datatest.vtTOcolorvt(pred))
