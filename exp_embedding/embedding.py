@@ -210,7 +210,7 @@ class Embedding(nn.Module):
         with torch.no_grad():
             device = data.device
             globalresize = nn.AdaptiveAvgPool2d((data.shape[2],data.shape[3]))
-            power2resize = nn.AdaptiveAvgPool2d((min(128,(data.shape[2]//32)*32),min(128,(data.shape[3]//32)*32)))
+            power2resize = nn.AdaptiveAvgPool2d((max(128,(data.shape[2]//32)*32),max(128,(data.shape[3]//32)*32)))
 
             data = power2resize(data)
 
