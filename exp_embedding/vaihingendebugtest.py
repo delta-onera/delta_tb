@@ -13,6 +13,8 @@ if device == "cuda":
 import segsemdata
 import embedding
 import numpy as np
+import PIL
+from PIL import Image
 from sklearn.metrics import confusion_matrix
 
 print("load data")
