@@ -20,7 +20,7 @@ net = net.to(device)
 
 print("load data")
 datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POTSDAM=False)
-datatrain = datatrain.copyTOcache(outputresolution=70)
+datatrain = datatrain.copyTOcache(outputresolution=50)
 net.adddataset(datatrain.metadata())
 net = net.to(device)
 nbclasses = len(datatrain.setofcolors)

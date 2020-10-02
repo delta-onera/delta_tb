@@ -19,7 +19,7 @@ from sklearn.metrics import confusion_matrix
 
 print("load data")
 datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",trainData=False,POTSDAM=False)
-datatest = datatest.copyTOcache(outputresolution=70)
+datatest = datatest.copyTOcache(outputresolution=50)
 nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 names=datatest.getnames()
@@ -49,7 +49,7 @@ with torch.no_grad():
     
 print("load data")
 datatest = segsemdata.makeDFC2015(trainData=False)
-datatest = datatest.copyTOcache(outputresolution=70)
+datatest = datatest.copyTOcache(outputresolution=50)
 nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 names=datatest.getnames()
