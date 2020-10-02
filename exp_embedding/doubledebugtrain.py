@@ -20,7 +20,7 @@ net = net.to(device)
 
 print("load data")
 datatrain1 = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POTSDAM=False)
-datatrain1 = datatrain.copyTOcache(outputresolution=70)
+datatrain1 = datatrain1.copyTOcache(outputresolution=70)
 net.adddataset(datatrain1.metadata())
 
 datatrain2 = segsemdata.makeDFC2015()
