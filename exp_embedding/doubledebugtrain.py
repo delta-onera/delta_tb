@@ -61,7 +61,6 @@ for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
     net.train()
     
-    print("data1")
     trainloader = datatrain1.getrandomtiles(2000,128,16)
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
@@ -82,7 +81,13 @@ for epoch in range(nbepoch):
         if random.randint(0,30)==0:
             print("loss=",(sum(meanloss)/len(meanloss)))
     
-    print("data2")
+    torch.save(net, "build/model.pth")
+    acc1=trainaccuracy(datatrain1,earlystopping1)
+    acc2=trainaccuracy(datatrain2,earlystopping2)
+    print("acc=", acc1,acc2)
+    if acc1>0.97 and acc2>0.97:
+        quit()
+        
     trainloader = datatrain2.getrandomtiles(2000,128,16)
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
