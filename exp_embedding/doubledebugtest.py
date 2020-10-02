@@ -67,7 +67,9 @@ with torch.no_grad():
         _,pred = torch.max(pred[0],0)
         pred = pred.cpu().numpy()
         
-        assert(label.shape==pred.shape)
+        if label.shape!=pred.shape:
+            print(label.shape,pred.shape)
+            quit()
         
         cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
         
