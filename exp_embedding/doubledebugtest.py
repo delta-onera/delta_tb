@@ -46,4 +46,34 @@ with torch.no_grad():
         
     print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
     print(cm)
+    
+print("load data")
+datatest = segsemdata.makeDFC2015(trainData=False)
+datatest = datatest.copyTOcache(outputresolution=70)
+nbclasses = len(datatest.setofcolors)
+cm = np.zeros((nbclasses,nbclasses),dtype=int)
+names=datatest.getnames()
+
+with torch.no_grad():
+    print("load model")
+    net = torch.load("build/model.pth")
+    net = net.to(device)
+    net.eval()
+
+    print("test")    
+    for name in names:
+        image,label = datatest.getImageAndLabel(name,innumpy=False)
+        pred = net(image.to(device),datatest.metadata())
+        _,pred = torch.max(pred[0],0)
+        pred = pred.cpu().numpy()
+        
+        assert(label.shape==pred.shape)
+        
+        cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
+        
+        pred = PIL.Image.fromarray(datatest.vtTOcolorvt(pred))
+        pred.save("build/"+name+"_z.jpg")
+        
+    print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
+    print(cm)
 
