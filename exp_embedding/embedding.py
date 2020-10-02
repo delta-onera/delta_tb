@@ -219,5 +219,5 @@ class Embedding(nn.Module):
                 for col in range(0,data.shape[3]-127,32):
                     output[:,:,row:row+128,col:col+128] += self.simpleforward(data[:,:,row:row+128,col:col+128],datahash).cpu()
 
-            return output.to(device)
+            return globalresize(output.to(device))
 
