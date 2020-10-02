@@ -61,6 +61,7 @@ for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
     net.train()
     
+    print("data1")
     trainloader = datatrain1.getrandomtiles(2000,128,16)
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
@@ -81,6 +82,7 @@ for epoch in range(nbepoch):
         if random.randint(0,30)==0:
             print("loss=",(sum(meanloss)/len(meanloss)))
     
+    print("data2")
     trainloader = datatrain2.getrandomtiles(2000,128,16)
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
