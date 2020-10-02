@@ -85,7 +85,7 @@ for epoch in range(nbepoch):
     acc1=trainaccuracy(datatrain1,earlystopping1)
     acc2=trainaccuracy(datatrain2,earlystopping2)
     print("acc=", acc1,acc2)
-    if acc1>0.94 and acc2>0.94:
+    if acc1>0.97 and acc2>0.97:
         quit()
         
     trainloader = datatrain2.getrandomtiles(2000,128,16)
@@ -112,5 +112,5 @@ for epoch in range(nbepoch):
     acc1=trainaccuracy(datatrain1,earlystopping1)
     acc2=trainaccuracy(datatrain2,earlystopping2)
     print("acc=", acc1,acc2)
-    if acc1>0.94 and acc2>0.94:
+    if acc1>0.97 and acc2>0.97:
         quit()
