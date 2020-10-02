@@ -44,7 +44,7 @@ def trainaccuracy():
     with torch.no_grad():
         for inputs, targets in earlystopping:
             inputs = inputs.to(device)
-            outputs = net(inputs)
+            outputs = net(inputs,datatrain.metadata())
             _,pred = outputs.max(1)
             for i in range(pred.shape[0]):
                 cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses)))
