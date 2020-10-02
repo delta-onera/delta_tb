@@ -161,26 +161,26 @@ class Embedding(nn.Module):
         self.pretrained = pretrained
         self.backbone = UnetBackbone(pretrained)
         self.datahash = set()
-        self.dictionnary = nn.ParameterDict()
+        self.dictionnary = nn.ModuleDict()
 
     def adddataset(self,datasetdescription):
         datahash,nbchannel,nbclasses = datasetdescription
         if datahash not in self.datahash:
-            tmp = nn.ParameterDict({
+            tmp = {
                 datahash+"_encoder": Tail(nbchannel,self.pretrained),
                 datahash+"_head": Head(nbclasses)
-            })
+            }
             self.dictionnary.update(tmp)
-            self.datahash.insert(datahash)
+            self.datahash.add(datahash)
 
     def simpleforward(self, data, datahash):
         return self.dictionnary[datahash+"_head"](self.backbone(self.dictionnary[datahash+"_encoder"](data)))
 
-    def getoptimizer(flag="all"):
+    def getoptimizer(self,flag="all"):
         if flag=="all":
-            return optim.Adam(net.parameters(), lr=0.0001)
+            return optim.Adam(self.parameters(), lr=0.0001)
 
-        if flag in datahash:
+        if flag in self.datahash:
             return optim.Adam(list(self.dictionnary[flag+"_head"].parameters())+list(self.dictionnary[flag+"_encoder"].parameters()), lr=0.0001)
 
         print("unknown flag in getoptimizer")
@@ -193,7 +193,7 @@ class Embedding(nn.Module):
             quit()
 
         if 128 <= data.shape[2] <= 512 and data.shape[2]%32==0 and 128 <= data.shape[3] <= 512 and data.shape[3]%32==0:
-            return self.simpleforward(x,datasetdescription.hash)
+            return self.simpleforward(data,datahash)
 
         if data.shape[2] <= 512 and data.shape[3] <= 512:
             globalresize = nn.AdaptiveAvgPool2d((data.shape[2],data.shape[3]))

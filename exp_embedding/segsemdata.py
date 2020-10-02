@@ -10,7 +10,7 @@ def safeuint8(x):
 
 def symetrie(x,y,i,j,k):
     if i==1:
-        x,y = np.transpose(x,axes=(1,0,2)),np.transpose(y,axes=(1,0,2))
+        x,y = np.transpose(x,axes=(1,0,2)),np.transpose(y,axes=(1,0))
     if j==1:
         x,y = np.flip(x,axis=1),np.flip(y,axis=1)
     if k==1:
@@ -69,7 +69,7 @@ class SegSemDataset:
         return [name for name in self.pathTOdata]
 
     def getImageAndLabel(self,name,innumpy=True):
-        x,y = self.images[name]
+        x,y = self.pathTOdata[name]
 
         if self.nbchannel==3:
             image = PIL.Image.open(self.root+"/"+x).convert("RGB").copy()
@@ -78,7 +78,7 @@ class SegSemDataset:
         image = np.asarray(image,dtype=np.uint8) #warning wh swapping
 
         label = PIL.Image.open(self.root+"/"+y).convert("RGB").copy()
-        label = colorvtTOvt(np.asarray(label,dtype=np.uint8)) #warning wh swapping
+        label = self.colorvtTOvt(np.asarray(label,dtype=np.uint8)) #warning wh swapping
 
         if innumpy:
             return image, label
@@ -89,7 +89,7 @@ class SegSemDataset:
                 image = torch.Tensor(image).unsqueeze(0).unsqueeze(0)
             return image, label
 
-    def getrawrandomtiles(self,nbtiles,h,w):
+    def getrawrandomtiles(self,nbtiles,tilesize):
         XY = []
         nbtilesperimage = nbtiles//len(self.pathTOdata)+1
 
@@ -97,12 +97,12 @@ class SegSemDataset:
         for name in self.pathTOdata:
             image,label = self.getImageAndLabel(name)
 
-            col = np.random.randint(0,image.shape[0]-w-2,size = nbtilesperimage)
-            row = np.random.randint(0,image.shape[1]-h-2,size = nbtilesperimage)
+            row = np.random.randint(0,image.shape[0]-tilesize-2,size = nbtilesperimage)
+            col = np.random.randint(0,image.shape[1]-tilesize-2,size = nbtilesperimage)
 
             for i in range(nbtilesperimage):
-                im = image[row[i]:row[i]+h,col[i]:col[i]+w,:].copy()
-                mask = label[row[i]:row[i]+h,col[i]:col[i]+w,:].copy()
+                im = image[row[i]:row[i]+tilesize,col[i]:col[i]+tilesize,:].copy()
+                mask = label[row[i]:row[i]+tilesize,col[i]:col[i]+tilesize].copy()
                 XY.append((im,mask))
 
         #symetrie
@@ -110,8 +110,8 @@ class SegSemDataset:
         XY = [(symetrie(x,y,symetrieflag[i][0],symetrieflag[i][1],symetrieflag[i][2])) for i,(x,y) in enumerate(XY)]
         return XY
 
-    def getrandomtiles(self,nbtiles,h,w,batchsize):
-        XY = self.getrawrandomtiles(nbtiles,h,w)
+    def getrandomtiles(self,nbtiles,tilesize,batchsize):
+        XY = self.getrawrandomtiles(nbtiles,tilesize)
 
         #pytorch
         if self.nbchannel == 3:

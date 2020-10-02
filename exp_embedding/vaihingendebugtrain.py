@@ -22,8 +22,9 @@ print("load data")
 datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POTSDAM=False)
 datatrain = datatrain.copyTOcache(outputresolution=70)
 net.adddataset(datatrain.metadata())
-nbclasses = len(datatest.setofcolors)
-earlystopping = datatrain.getrandomtiles(1000,128,128,16)
+net = net.to(device)
+nbclasses = len(datatrain.setofcolors)
+earlystopping = datatrain.getrandomtiles(1000,128,16)
 
 print("train setting")
 import torch.nn as nn
@@ -52,13 +53,13 @@ def trainaccuracy():
 print("train")
 for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
-    trainloader = datatrain.getrandomtiles(2000,128,128,16)
+    trainloader = datatrain.getrandomtiles(2000,128,16)
     net.train()
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
         
-        preds = net(inputs)
-        loss = criterion(preds,target)
+        preds = net(inputs,datatrain.metadata())
+        loss = criterion(preds,targets)
         meanloss.append(loss.cpu().data.numpy())
         
         if epoch>30:
