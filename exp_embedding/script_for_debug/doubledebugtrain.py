@@ -2,6 +2,8 @@
 
 import sys
 print(sys.argv[0])
+sys.path.append('..')
+
 
 import torch
 import torch.backends.cudnn as cudnn
