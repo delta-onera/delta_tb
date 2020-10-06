@@ -211,7 +211,7 @@ def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
         quit()
 
     if dataflag == "test" or dataflag=="all":
-        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315135_56865.tif","label_315135_56870.tif")
+        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315135_56865.tif","label_315135_56865.tif")
         dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
     if dataflag == "train" or dataflag=="all":
         dfc.pathTOdata["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
@@ -335,7 +335,7 @@ def makeAIRSdataset(datasetpath="/data/AIRS/trainval", train=True):
     airs = SegSemDataset("AIRS")
     airs.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
     for name in allfile:
-        airs.pathTOdata = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
+        airs.pathTOdata[name] = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
 
     return airs
 
