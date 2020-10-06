@@ -335,7 +335,10 @@ def makeAIRSdataset(datasetpath="/data/AIRS/trainval", train=True):
     airs = SegSemDataset("AIRS")
     airs.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
     for name in allfile:
-        airs.pathTOdata[name] = ("image/"+name,"label/"+name[0:-4]+"_vis.tif")
+        if train:
+            airs.pathTOdata[name] = ("/train/image/"+name,"/train/label/"+name[0:-4]+"_vis.tif")
+        else:
+            airs.pathTOdata[name] = ("/val/image/"+name,"/val/label/"+name[0:-4]+"_vis.tif")
 
     return airs
 
