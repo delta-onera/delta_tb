@@ -242,7 +242,7 @@ def makeISPRS(datasetpath="", lod0=True, alldata=False,trainData=True, POTSDAM=T
             ,[255, 0, 0]]
 
     if POTSDAM:
-        names = ["top_potsdam_2_10_",
+        train = ["top_potsdam_2_10_",
             "top_potsdam_2_11_",
             "top_potsdam_2_12_",
             "top_potsdam_3_10_",
@@ -255,8 +255,8 @@ def makeISPRS(datasetpath="", lod0=True, alldata=False,trainData=True, POTSDAM=T
             "top_potsdam_5_11_",
             "top_potsdam_5_12_",
             "top_potsdam_6_7_",
-            "top_potsdam_6_8_",
-            "top_potsdam_6_9_",
+            "top_potsdam_6_8_"]
+        test = ["top_potsdam_6_9_",
             "top_potsdam_6_10_",
             "top_potsdam_6_11_",
             "top_potsdam_6_12_",
@@ -266,6 +266,13 @@ def makeISPRS(datasetpath="", lod0=True, alldata=False,trainData=True, POTSDAM=T
             "top_potsdam_7_10_",
             "top_potsdam_7_11_",
             "top_potsdam_7_12_"]
+        
+        names = []
+        if alldata or trainData:
+            names = names+train
+        if alldata or (not trainData):
+            names = names+test
+        
         for name in names:
             isprs.pathTOdata[name] = ("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
 
