@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import torch.utils.model_zoo as model_zoo
+import torch.hub as hub
 __all__ = ["segnet"]
 
 class SegNet(nn.Module):
@@ -152,7 +152,7 @@ class SegNet(nn.Module):
 
     def load_pretrained_weights(self):
 
-        vgg16_weights = model_zoo.load_url("https://download.pytorch.org/models/vgg16_bn-6c64b313.pth")
+        vgg16_weights = hub.load_state_dict_from_url("https://download.pytorch.org/models/vgg16_bn-6c64b313.pth")
 
         count_vgg = 0
         count_this = 0
