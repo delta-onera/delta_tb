@@ -285,8 +285,7 @@ def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
         if dataflag=="all":
             names = train+test
         if dataflag=="fewshot":
-            print("TODO")
-            quit()
+            names = ["top_potsdam_2_10_"]
         
         for name in names:
             isprs.pathTOdata[name] = ("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
