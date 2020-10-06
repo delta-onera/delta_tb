@@ -2,7 +2,7 @@
 
 import sys
 print(sys.argv[0])
-sys.path.append('..')
+sys.path.append('../..')
 
 
 import torch
@@ -20,7 +20,7 @@ from PIL import Image
 from sklearn.metrics import confusion_matrix
 
 print("load data")
-datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",trainData=False,POTSDAM=False,lod0=False)
+datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",lod0=False,dataflag="test",POTSDAM=False)
 datatest = datatest.copyTOcache(outputresolution=50)
 nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)

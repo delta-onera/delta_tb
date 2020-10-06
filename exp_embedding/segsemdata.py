@@ -190,7 +190,7 @@ class SegSemDataset:
 
 
 
-def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="train"):
+def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
     dfc = SegSemDataset("DFC2015")
     dfc.nbchannel,dfc.resolution,dfc.root = 3,5,datasetpath
 
@@ -206,27 +206,26 @@ def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="train"):
             ,[255,0,255]
             ,[255,255,0]]
 
-    if dataflag not in ["all","one", "other","train","test"]:
+    if dataflag not in ["all","fewshot","train","test"]:
         print("unknown flag in makeDFC2015",dataflag)
         quit()
 
-    if dataflag == "train" or dataflag=="all" or dataflag=="other":
+    if dataflag == "test" or dataflag=="all":
+        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315135_56865.tif","label_315135_56870.tif")
+        dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
+    if dataflag == "train" or dataflag=="all":
         dfc.pathTOdata["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
         dfc.pathTOdata["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
         dfc.pathTOdata["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
         dfc.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-    if dataflag == "test" or dataflag=="all":
-        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-        dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
-    if dataflag == "one":
-        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
-    if dataflag == "other":
-        dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
+    if dataflag == "fewshot":
+        dfc.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+    
 
     return dfc
 
-def makeISPRS(datasetpath="", lod0=True, dataflag="train", POTSDAM=True):
-    if dataflag not in ["all","one", "other","train","test"]:
+def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
+    if dataflag not in ["all","fewshot","train","test"]:
         print("unknown flag in makeISPRS",dataflag)
         quit()
 
@@ -285,10 +284,7 @@ def makeISPRS(datasetpath="", lod0=True, dataflag="train", POTSDAM=True):
             names = test
         if dataflag=="all":
             names = train+test
-        if dataflag=="one":
-            print("TODO")
-            quit()
-        if dataflag=="other":
+        if dataflag=="fewshot":
             print("TODO")
             quit()
         
@@ -320,11 +316,8 @@ def makeISPRS(datasetpath="", lod0=True, dataflag="train", POTSDAM=True):
             names = test
         if dataflag=="all":
             names = train+test
-        if dataflag=="one":
+        if dataflag=="fewshot":
             names = ["top_mosaic_09cm_area26"]
-        if dataflag=="other":
-            names = train+test
-            names = [name for name in names if name!="top_mosaic_09cm_area26"]
 
         for name in names:
             isprs.pathTOdata[name] = ("top/"+name,"gts_for_participants/"+name)

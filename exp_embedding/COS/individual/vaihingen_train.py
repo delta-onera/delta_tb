@@ -2,7 +2,7 @@
 
 import sys
 print(sys.argv[0])
-sys.path.append('..')
+sys.path.append('../..')
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -20,7 +20,7 @@ net = embedding.Embedding(pretrained="/data/vgg16-00b39a1b.pth")
 net = net.to(device)
 
 print("load data")
-datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",POTSDAM=False,lod0=False)
+datatrain = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",lod0=False,POTSDAM=False,dataflag="train")
 datatrain = datatrain.copyTOcache(outputresolution=50)
 net.adddataset(datatrain.metadata())
 net = net.to(device)
