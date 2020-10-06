@@ -20,7 +20,7 @@ from PIL import Image
 from sklearn.metrics import confusion_matrix
 
 print("load data")
-datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",trainData=False,POTSDAM=False)
+datatest = segsemdata.makeISPRS(datasetpath = "/data/ISPRS_VAIHINGEN",dataflat="test",POTSDAM=False)
 datatest = datatest.copyTOcache(outputresolution=50)
 nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
