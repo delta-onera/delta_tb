@@ -39,17 +39,13 @@ def processtown(root):
     alllabelcopy = alllabel.copy()
     kept = []
     for i in range(few):
-        alllabel = np.zeros(nbclasses)
-        for name in individuallabel:
-            alllabel+=individuallabel[name]
-        alllabel = (alllabel>0).astype(int)
-        
+        alllabel = alllabelcopy.copy()
         for name in kept:
             alllabel-=individuallabel[name]
         alllabel = (alllabel>0).astype(int)    
         print(i,alllabel)
         
-        tmp = [(np.sum(individuallabel[name]*alllabel),name) for name in names]
+        tmp = [(np.sum(individuallabel[name]*alllabel),name) for name in individuallabel if name not in kept]
         tmp = sorted(tmp)
         add,name = tmp[-1]
         alllabel = alllabel-add
