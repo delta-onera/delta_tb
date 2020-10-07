@@ -20,6 +20,7 @@ def labelvector(im):
     return out
 
 def processtown(root):
+    print(root)
     names = os.listdir(root)
     
     individuallabel = {}
@@ -36,6 +37,16 @@ def processtown(root):
     alllabelcopy = alllabel.copy()
     kept = []
     for i in range(few):
+        alllabel = np.zeros(nbclasses)
+        for name in names:
+            alllabel+=individuallabel[name]
+        alllabel = (alllabel>0).astype(int)
+        
+        for name in kept:
+            alllabel-=individuallabel[name]
+        alllabel = (alllabel>0).astype(int)    
+        print(i,alllabel)
+        
         tmp = [(np.sum(individuallabel[name]*alllabel),name) for name in names]
         tmp = sorted(tmp)
         add,name = tmp[-1]
@@ -49,6 +60,8 @@ def processtown(root):
     
     print("town",root,"contains classes",alllabelcopy)
     print("using",kept,"allows to get classes", alllabel)
+    for name in kept:
+        print(individuallabel[name])
     
 def processall(root):
     names = ["Angers","Caen", "Cherbourg", "Lille_Arras_Lens_Douai_Henin",
