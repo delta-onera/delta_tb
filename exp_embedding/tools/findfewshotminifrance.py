@@ -8,12 +8,13 @@ from PIL import Image
 import os
 
 nbclasses = 16
+realclasse = [1,2,5,7,10,11,14]
 minnbpixel= 100
 few = 3
 
 def labelvector(im):
     out = np.zeros(nbclasses)
-    for i in range(nbclasses):
+    for i in realclasse:
         if np.sum((im==i).astype(int))>=minnbpixel:
             out[i]=1
     return out
