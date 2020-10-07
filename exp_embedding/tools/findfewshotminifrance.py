@@ -17,7 +17,7 @@ def labelvector(im):
     for i in realclasse:
         if np.sum((im==i).astype(int))>=minnbpixel:
             out[i]=1
-    return out
+    return out.astype(int)
 
 def processtown(root):
     print(root)
@@ -29,7 +29,7 @@ def processtown(root):
         tmp =np.asarray(tmp,dtype=np.uint8)
         tmp = labelvector(tmp)
         if np.sum(tmp)!=0:
-            individuallabel[name]
+            individuallabel[name]=tmp
     
     alllabel = np.zeros(nbclasses)
     for name in individuallabel:
