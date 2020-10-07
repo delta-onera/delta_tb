@@ -27,7 +27,12 @@ def processtown(root):
         tmp =np.asarray(tmp,dtype=np.uint8)
         individuallabel[name] = labelvector(tmp)
     
-    alllabel = np.ones(nbclasses)
+    alllabel = np.zeros(nbclasses)
+    for name in names:
+        alllabel+=individuallabel[name]
+    alllabel = (alllabel>0).astype(int)
+    
+    alllabelcopy = alllabel.copy()
     kept = []
     for i in range(few):
         tmp = [(np.sum(individuallabel[name]*alllabel),name) for name in names]
@@ -39,8 +44,10 @@ def processtown(root):
     alllabel = np.zeros(nbclasses)
     for name in kept:
         alllabel += individuallabel[name]
+    alllabel = (alllabel>0).astype(int)
     
-    print("using",kept,"allows to get classes", alllabel,"for town",root)
+    print("town",root,"contains classes",alllabelcopy)
+    print("using",kept,"allows to get classes", alllabel)
     
 def processall(root):
     names = ["Angers","Caen", "Cherbourg", "Lille_Arras_Lens_Douai_Henin",
