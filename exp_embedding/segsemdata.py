@@ -351,3 +351,73 @@ def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train"):
         inria.pathTOdata[name] = ("images/"+name,"gt/"+name)
 
     return inria
+
+def makeMiniFrancePerTown(datasetpath="/data/minifrance",town="Nice",dataflag="all"):
+    if dataflag not in ["all","fewshot","train","test"]:
+        print("unknown flag in makeMiniFrancePerTown",dataflag)
+        quit()
+
+    knowntown = ["Angers","Caen","Cherbourg","Lille_Arras_Lens_Douai_Henin",
+        "Marseille_Martigues","Nice","Rennes","Vannes","Brest","Calais_Dunkerque",
+        "Clermont-Ferrand","LeMans","Lorient","Nantes_Saint-Nazaire","Quimper",
+        "Saint-Brieuc"]
+    if town not in knowntown:
+        print("unknown town in makeMiniFrancePerTown",town)
+        quit()
+    
+    minifrance = SegSemDataset("MiniFrance_"+town)
+    minifrance.nbchannel,minifrance.resolution = 3,50
+    minifrance.root = datasetpath
+    minifrance.setofcolors = [[i,i,i] for i in [0,1,2,5,7,10,11,14]]
+    minifrance.town = town
+    
+    if dataflag=="all":
+        allfile = os.listdir(datasetpath+"/UA/"+town)
+        for name in allfile:
+            minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
+    
+    fewshot = {
+        "Angers" : ['49-2013-0440-6705-LA93-0M50-E080_339_2354.tif', '49-2013-0450-6710-LA93-0M50-E080_3176_8597.tif', '49-2013-0415-6705-LA93-0M50-E080_976_3529.tif'],
+        "Caen" : ['14-2012-0470-6910-LA93-0M50-E080_3340_4814.tif', '14-2012-0470-6910-LA93-0M50-E080_8563_1409.tif', '14-2012-0470-6910-LA93-0M50-E080_826_2069.tif'],
+        "Cherbourg" : ['50-2012-0375-6955-LA93-0M50-E080_2474_371.tif', '50-2012-0375-6950-LA93-0M50-E080_5570_4215.tif', '50-2012-0380-6960-LA93-0M50-E080_8312_2519.tif'],
+        "Lille_Arras_Lens_Douai_Henin" : ['59-2012-0675-7070-LA93-0M50-E080_5467_2098.tif', '62-2012-0700-7045-LA93-0M50-E080_8716_7689.tif', '62-2012-0710-7020-LA93-0M50-E080_6584_8644.tif'],
+        "Marseille_Martigues" : ['13-2014-0925-6290-LA93-0M50-E080_8889_5451.tif', '13-2014-0890-6295-LA93-0M50-E080_6271_5801.tif', '13-2014-0925-6295-LA93-0M50-E080_8229_8797.tif'],
+        "Nice" : ['06-2014-1045-6320-LA93-0M50-E080_6969_7103.tif', '06-2014-1050-6315-LA93-0M50-E080_4393_6503.tif', '06-2014-1045-6340-LA93-0M50-E080_7644_2359.tif'],
+        "Rennes" : ['35-2012-0335-6780-LA93-0M50-E080_122_7029.tif', '35-2012-0370-6800-LA93-0M50-E080_7968_1161.tif', '35-2012-0370-6800-LA93-0M50-E080_7399_3835.tif'],
+        "Vannes" : ['56-2013-0260-6760-LA93-0M50-E080_4803_8542.tif', '56-2013-0285-6750-LA93-0M50-E080_7324_8776.tif', '56-2013-0285-6750-LA93-0M50-E080_4910_2657.tif'],
+        "Brest" : ['29-2012-0155-6850-LA93-0M50-E080_6977_7498.tif', '29-2012-0170-6830-LA93-0M50-E080_3404_8749.tif', '29-2012-0170-6830-LA93-0M50-E080_6071_214.tif'],
+        "Calais_Dunkerque" : ['62-2012-0610-7085-LA93-0M50-E080_6945_8076.tif', '62-2012-0625-7095-LA93-0M50-E080_3164_4671.tif', '62-2012-0600-7065-LA93-0M50-E080_2898_2040.tif'],
+        "Clermont-Ferrand" : ['63-2013-0710-6510-LA93-0M50-E080_4035_3983.tif', '63-2013-0735-6510-LA93-0M50-E080_8795_6491.tif', '63-2013-0735-6510-LA93-0M50-E080_1116_8958.tif'],
+        "LeMans" : ['72-2013-0505-6765-LA93-0M50-E080_5108_3755.tif', '72-2013-0505-6765-LA93-0M50-E080_58_8678.tif', '72-2013-0500-6785-LA93-0M50-E080_824_2209.tif'],
+        "Lorient" : ['56-2013-0235-6775-LA93-0M50-E080_3651_2565.tif', '56-2013-0230-6760-LA93-0M50-E080_8959_7032.tif', '56-2013-0240-6775-LA93-0M50-E080_3776_2484.tif'],
+        "Nantes_Saint-Nazaire" : ['44-2013-0375-6685-LA93-0M50-E080_2774_4627.tif', '44-2013-0375-6705-LA93-0M50-E080_4847_2827.tif', '44-2013-0375-6705-LA93-0M50-E080_2298_8926.tif'],
+        "Quimper" : ['29-2012-0185-6790-LA93-0M50-E080_7521_1692.tif', '29-2012-0185-6795-LA93-0M50-E080_8340_307.tif', '29-2012-0185-6795-LA93-0M50-E080_7135_60.tif'],
+        "Saint-Brieuc" : ['22-2012-0280-6830-LA93-0M50-E080_8687_2233.tif', '22-2012-0285-6840-LA93-0M50-E080_7779_5785.tif', '22-2012-0285-6840-LA93-0M50-E080_612_8355.tif']
+    }
+            
+    if dataflag=="fewshot":
+        for name in fewshot[town]:
+            minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
+    
+    if dataflag=="train":
+        allfile = os.listdir(datasetpath+"/UA/"+town)
+        allfile = sorted(allfile)
+        allfile = allfile[0:60*len(allfile)/100]
+        allfile = list(set(allfile+fewshot[town]))
+        
+        for name in allfile:
+            minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
+            
+    if dataflag=="test":
+        allfile = os.listdir(datasetpath+"/UA/"+town)
+        allfile = sorted(allfile)
+        train = allfile[0:60*len(allfile)/100]
+        train = set(train+fewshot[town])
+        
+        allfile = [name for name in allfile if name not in train]
+        
+        for name in allfile:
+            minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
+    
+    return minifrance
+    
