@@ -42,7 +42,7 @@ def processtown(root):
     
     print("using",kept,"allows to get classes", alllabel,"for town",root)
     
-def processall(root)    
+def processall(root):
     names = os.listdir(root)
     for name in names:
         processtown(root+name)
