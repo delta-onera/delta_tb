@@ -402,7 +402,7 @@ def makeMiniFrancePerTown(datasetpath="/data/minifrance",town="Nice",dataflag="a
     if dataflag=="train":
         allfile = os.listdir(datasetpath+"/UA/"+town)
         allfile = sorted(allfile)
-        allfile = allfile[0:60*len(allfile)/100]
+        allfile = allfile[0:int(60*len(allfile)/100)]
         allfile = list(set(allfile+fewshot[town]))
         
         for name in allfile:
@@ -411,7 +411,7 @@ def makeMiniFrancePerTown(datasetpath="/data/minifrance",town="Nice",dataflag="a
     if dataflag=="test":
         allfile = os.listdir(datasetpath+"/UA/"+town)
         allfile = sorted(allfile)
-        train = allfile[0:60*len(allfile)/100]
+        train = allfile[0:int(60*len(allfile)/100)]
         train = set(train+fewshot[town])
         
         allfile = [name for name in allfile if name not in train]

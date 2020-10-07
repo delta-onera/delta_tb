@@ -28,7 +28,7 @@ from PIL import Image
 from sklearn.metrics import confusion_matrix
 
 print("load data")
-datatest = segsemdata.makeMiniFrancePerTown(datasetpath = "/data/minifrance",town=town,dataflag="test")
+datatest = segsemdata.makeMiniFrancePerTown(datasetpath = "/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/",town=town,dataflag="test")
 nbclasses = len(datatest.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 names=datatest.getnames()

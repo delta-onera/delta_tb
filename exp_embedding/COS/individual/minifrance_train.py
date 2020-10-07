@@ -25,11 +25,11 @@ import embedding
 import numpy as np
 
 print("load model")
-net = embedding.Embedding(pretrained="/data/vgg16-00b39a1b.pth")
+net = embedding.Embedding(pretrained="/home/achanhon/vgg16-00b39a1b.pth")
 net = net.to(device)
 
 print("load data")
-datatrain = segsemdata.makeMiniFrancePerTown(datasetpath = "/data/minifrance",town=town,dataflag="train")
+datatrain = segsemdata.makeMiniFrancePerTown(datasetpath = "/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/",town=town,dataflag="train")
 net.adddataset(datatrain.metadata())
 net = net.to(device)
 nbclasses = len(datatrain.setofcolors)
