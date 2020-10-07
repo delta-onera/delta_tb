@@ -33,7 +33,7 @@ datatrain = segsemdata.makeMiniFrancePerTown(datasetpath = "/data01/PUBLIC_DATAS
 net.adddataset(datatrain.metadata())
 net = net.to(device)
 nbclasses = len(datatrain.setofcolors)
-earlystopping = datatrain.getrandomtiles(1000,128,16)
+earlystopping = datatrain.getrandomtiles(2000,128,16)
 
 print("train setting")
 import torch.nn as nn
@@ -64,7 +64,7 @@ def trainaccuracy():
 print("train")
 for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
-    trainloader = datatrain.getrandomtiles(2000,128,16)
+    trainloader = datatrain.getrandomtiles(4000,128,16)
     net.train()
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)
