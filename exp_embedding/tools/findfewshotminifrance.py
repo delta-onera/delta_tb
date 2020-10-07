@@ -27,10 +27,12 @@ def processtown(root):
     for name in names:
         tmp = PIL.Image.open(root+"/"+name).convert("L").copy()
         tmp =np.asarray(tmp,dtype=np.uint8)
-        individuallabel[name] = labelvector(tmp)
+        tmp = labelvector(tmp)
+        if np.sum(tmp)!=0:
+            individuallabel[name]
     
     alllabel = np.zeros(nbclasses)
-    for name in names:
+    for name in individuallabel:
         alllabel+=individuallabel[name]
     alllabel = (alllabel>0).astype(int)
     
@@ -38,7 +40,7 @@ def processtown(root):
     kept = []
     for i in range(few):
         alllabel = np.zeros(nbclasses)
-        for name in names:
+        for name in individuallabel:
             alllabel+=individuallabel[name]
         alllabel = (alllabel>0).astype(int)
         
