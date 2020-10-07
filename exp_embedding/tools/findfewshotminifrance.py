@@ -43,7 +43,11 @@ def processtown(root):
     print("using",kept,"allows to get classes", alllabel,"for town",root)
     
 def processall(root):
-    names = os.listdir(root)
+    names = ["Angers","Caen", "Cherbourg", "Lille_Arras_Lens_Douai_Henin",
+            "Marseille_Martigues", "Nice", "Rennes" ,"Vannes","Brest",
+            "Calais_Dunkerque", "Clermont-Ferrand", "LeMans" ,"Lorient",
+            "Nantes_Saint-Nazaire", "Quimper", "Saint-Brieuc"]
+
     for name in names:
         processtown(root+"/"+name)
 
