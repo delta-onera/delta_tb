@@ -34,7 +34,7 @@ def processtown(root):
         tmp = sorted(tmp)
         add,name = tmp[-1]
         alllabel = alllabel-add
-        kept = name
+        kept.append(name)
     
     alllabel = np.zeros(nbclasses)
     for name in kept:
@@ -45,7 +45,7 @@ def processtown(root):
 def processall(root):
     names = os.listdir(root)
     for name in names:
-        processtown(root+name)
+        processtown(root+"/"+name)
 
 processall("/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/UA")
 
