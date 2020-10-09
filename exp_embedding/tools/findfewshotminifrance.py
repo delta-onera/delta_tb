@@ -8,7 +8,7 @@ from PIL import Image
 import os
 
 nbclasses = 16
-realclasse = [1,2,5,7,10,11,14]
+realclasse = [0,1,4,6,9,10,13]
 minnbpixel= 100
 few = 3
 
