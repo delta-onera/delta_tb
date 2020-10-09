@@ -11,7 +11,7 @@ nbclasses = 16
 
 def labelvector(im):
     out = np.zeros(nbclasses)
-    for i in realclasse:
+    for i in range(nbclasses):
         out[i]=np.sum((im==i).astype(int))
     return out.astype(int)
 
@@ -26,13 +26,13 @@ def processtown(root):
         tmp = labelvector(tmp)
         individuallabel[name]=tmp
     
-    alllabel = np.zeros(nbclasses)
+    alllabel = np.zeros(nbclasses).astype(int)
     for name in individuallabel:
         alllabel+=individuallabel[name]
     
-    print(root)
-    print(alllabel) 
-    print(1.*alllabel/np.sum(alllabel)) 
+    #print(root)
+    #print(alllabel) 
+    print((100.*alllabel/np.sum(alllabel)).astype(int),root) 
     return alllabel
    
 def processall(root):
@@ -41,13 +41,12 @@ def processall(root):
             "Calais_Dunkerque", "Clermont-Ferrand", "LeMans" ,"Lorient",
             "Nantes_Saint-Nazaire", "Quimper", "Saint-Brieuc"]
 
-    alllabel = np.zeros(nbclasses)
+    alllabel = np.zeros(nbclasses).astype(int)
     for name in names:
         alllabel+=processtown(root+"/"+name)
     
-    print(alllabel) 
-    print(1.*alllabel/np.sum(alllabel)) 
-    return alllabel
+    #print(alllabel) 
+    print((100.*alllabel/np.sum(alllabel)).astype(int)) 
 
 processall("/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/UA")
 
