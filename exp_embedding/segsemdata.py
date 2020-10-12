@@ -368,7 +368,7 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
     minifrance = SegSemDataset("TinyMiniFrance_"+town)
     minifrance.nbchannel,minifrance.resolution = 3,50
     minifrance.root = datasetpath
-    minifrance.setofcolors = [[i,i,i] for i in [15,0,1,4,6,9,10,13]
+    minifrance.setofcolors = [[i,i,i] for i in [15,0,1,4,6,9,10,13]]
     minifrance.town = town
     
     if dataflag=="all":
@@ -385,7 +385,6 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
         "Nice" : ['06-2014-1045-6335-LA93-0M50-E080_587_2693.tif', '06-2014-1050-6315-LA93-0M50-E080_8716_2124.tif', '06-2014-1050-6315-LA93-0M50-E080_7046_4892.tif'],
         "Rennes" : ['35-2012-0365-6810-LA93-0M50-E080_5394_8656.tif', '35-2012-0370-6800-LA93-0M50-E080_7968_1161.tif', '35-2012-0370-6800-LA93-0M50-E080_7399_3835.tif'],
         "Vannes" : ['56-2013-0265-6750-LA93-0M50-E080_4710_3525.tif', '56-2013-0275-6760-LA93-0M50-E080_5104_3948.tif', '56-2013-0285-6750-LA93-0M50-E080_7324_8776.tif'],
-        
         "Brest" : ['29-2012-0150-6855-LA93-0M50-E080_143_4164.tif', '29-2012-0170-6830-LA93-0M50-E080_3404_8749.tif', '29-2012-0170-6830-LA93-0M50-E080_6071_214.tif'],
         "Calais_Dunkerque" : ['62-2012-0635-7090-LA93-0M50-E080_3585_7658.tif', '62-2012-0640-7090-LA93-0M50-E080_1843_8933.tif', '62-2012-0640-7095-LA93-0M50-E080_801_7892.tif'],
         "Clermont-Ferrand" : ['63-2013-0725-6540-LA93-0M50-E080_6401_8352.tif', '63-2013-0715-6520-LA93-0M50-E080_4271_5295.tif', '63-2013-0735-6510-LA93-0M50-E080_8925_8046.tif'],
