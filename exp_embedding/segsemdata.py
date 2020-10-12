@@ -352,7 +352,7 @@ def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train"):
 
     return inria
 
-def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dataflag="all"):
+def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dataflag="all",debug=True):
     if dataflag not in ["all","fewshot","train","test"]:
         print("unknown flag in makeMiniFrancePerTown",dataflag)
         quit()
@@ -402,7 +402,8 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
     if dataflag=="train":
         allfile = os.listdir(datasetpath+"/UA/"+town)
         allfile = sorted(allfile)
-        allfile = allfile[0:int(60*len(allfile)/100)]
+        trainindex=[i for i in range(len(allfile)) if i%5<=2]
+        allfile = [allfile[i] for i in trainindex]
         allfile = list(set(allfile+fewshot[town]))
         
         for name in allfile:
@@ -411,13 +412,24 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
     if dataflag=="test":
         allfile = os.listdir(datasetpath+"/UA/"+town)
         allfile = sorted(allfile)
-        train = allfile[0:int(60*len(allfile)/100)]
+        allfile = sorted(allfile)
+        trainindex=[i for i in range(len(allfile)) if i%5<=2]
+        train = [allfile[i] for i in trainindex]
         train = set(train+fewshot[town])
         
         allfile = [name for name in allfile if name not in train]
         
         for name in allfile:
             minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
+    
+    if debug:
+        labeldistribution = np.zeros(len(minifrance.setofcolors))
+        for name in minifrance.getnames():
+            _,label = minifrance.getImageAndLabel(name)
+            for i in range(labeldistribution.shape[0]):
+                labeldistribution[i]+=np.sum((label==i).astype(int))
+        labeldistribution = (100.*labeldistribution/np.sum(labeldistribution)).astype(int)
+        print(labeldistribution,"labeldistribution")
     
     return minifrance
     
