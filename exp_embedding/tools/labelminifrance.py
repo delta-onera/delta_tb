@@ -20,7 +20,7 @@ def labelvector(im):
         outafter[i]=np.sum((im==i).astype(int))
     for i in range(nbclasses):
         if i not in realclasse:
-            outafter[15]=np.sum((im==i).astype(int))
+            outafter[15]+=np.sum((im==i).astype(int))
     
     return out.astype(int),outafter.astype(int)
 
@@ -41,7 +41,7 @@ def processtown(root):
         alllabel+=a
         alllabelafter+=b
     
-    print((10000.*alllabel/np.sum(alllabel)).astype(int)/100,(10000.*alllabelafter/np.sum(alllabelafter)).astype(int)/100,root) 
+    print((100.*alllabel/np.sum(alllabel)).astype(int),(100.*alllabelafter/np.sum(alllabelafter)).astype(int),root) 
     return alllabel,alllabelafter
    
 def processall(root):
@@ -57,7 +57,7 @@ def processall(root):
         alllabelafter+=b
     
     #print(alllabel) 
-    print((10000.*alllabel/np.sum(alllabel)).astype(int)/100,(10000.*alllabelafter/np.sum(alllabelafter)).astype(int)/100)
+    print((100.*alllabel/np.sum(alllabel)).astype(int),(100.*alllabelafter/np.sum(alllabelafter)).astype(int))
 
 processall("/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/UA")
 
