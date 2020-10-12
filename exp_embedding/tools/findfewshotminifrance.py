@@ -58,8 +58,10 @@ def processtown(root):
     
     #print("town",root,"contains classes",alllabelcopy)
     #print("using",kept,"allows to get classes", alllabel)
-    #if np.sum(np.abs(alllabelcopy-alllabel))==0:
-    #    print("ok")
+    if np.sum(np.abs(alllabelcopy-alllabel))==0:
+        print("ok")
+    else:
+        print("NOK",alllabelcopy,alllabel)
     #for name in kept:
     #    print(individuallabel[name])
     print(root,alllabelcopy,kept) 
