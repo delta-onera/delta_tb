@@ -8,12 +8,21 @@ from PIL import Image
 import os
 
 nbclasses = 16
+realclasse = [0,1,4,6,9,10,13]
 
 def labelvector(im):
     out = np.zeros(nbclasses)
     for i in range(nbclasses):
         out[i]=np.sum((im==i).astype(int))
-    return out.astype(int)
+        
+    outafter = np.zeros(nbclasses)
+    for i in realclasse:
+        outafter[i]=np.sum((im==i).astype(int))
+    for i in range(nbclasses):
+        if i not in realclasse:
+            outafter[15]=np.sum((im==i).astype(int))
+    
+    return out.astype(int),outafter.astype(int)
 
 def processtown(root):
     #print(root)
@@ -26,14 +35,14 @@ def processtown(root):
         tmp = labelvector(tmp)
         individuallabel[name]=tmp
     
-    alllabel = np.zeros(nbclasses).astype(int)
+    alllabel,alllabelafter = np.zeros(nbclasses).astype(int),np.zeros(nbclasses).astype(int)
     for name in individuallabel:
-        alllabel+=individuallabel[name]
+        a,b = individuallabel[name]
+        alllabel+=a
+        alllabelafter+=b
     
-    #print(root)
-    #print(alllabel) 
-    print((100.*alllabel/np.sum(alllabel)).astype(int),root) 
-    return alllabel
+    print((10000.*alllabel/np.sum(alllabel)).astype(int)/100,(10000.*alllabelafter/np.sum(alllabelafter)).astype(int)/100,root) 
+    return alllabel,alllabelafter
    
 def processall(root):
     names = ["Angers","Caen", "Cherbourg", "Lille_Arras_Lens_Douai_Henin",
@@ -41,12 +50,14 @@ def processall(root):
             "Calais_Dunkerque", "Clermont-Ferrand", "LeMans" ,"Lorient",
             "Nantes_Saint-Nazaire", "Quimper", "Saint-Brieuc"]
 
-    alllabel = np.zeros(nbclasses).astype(int)
+    alllabel,alllabelafter = np.zeros(nbclasses).astype(int),np.zeros(nbclasses).astype(int)
     for name in names:
-        alllabel+=processtown(root+"/"+name)
+        a,b = processtown(root+"/"+name)
+        alllabel+=a
+        alllabelafter+=b
     
     #print(alllabel) 
-    print((100.*alllabel/np.sum(alllabel)).astype(int)) 
+    print((10000.*alllabel/np.sum(alllabel)).astype(int)/100,(10000.*alllabelafter/np.sum(alllabelafter)).astype(int)/100)
 
 processall("/data01/PUBLIC_DATASETS/MiniFrance/tmFrance/UA")
 
