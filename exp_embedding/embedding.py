@@ -186,7 +186,7 @@ class Embedding(nn.Module):
         print("unknown flag in getoptimizer")
         quit()
 
-    def forward(self, data, datasetdescription):
+    def forward(self, data, datasetdescription,tilesize=128):
         datahash,_,nbclasses = datasetdescription
         if datahash not in self.datahash:
             print("unknown datasets")
@@ -197,7 +197,7 @@ class Embedding(nn.Module):
 
         if data.shape[2] <= 512 and data.shape[3] <= 512:
             globalresize = nn.AdaptiveAvgPool2d((data.shape[2],data.shape[3]))
-            power2resize = nn.AdaptiveAvgPool2d((min(128,(data.shape[2]//32)*32),min(128,(data.shape[3]//32)*32)))
+            power2resize = nn.AdaptiveAvgPool2d((max(128,(data.shape[2]//32)*32),max(128,(data.shape[3]//32)*32)))
 
             data = power2resize(data)
             data = self.simpleforward(data,datahash)
@@ -215,9 +215,9 @@ class Embedding(nn.Module):
             data = power2resize(data)
 
             output = torch.zeros(1,nbclasses,data.shape[2],data.shape[3]).cpu()
-            for row in range(0,data.shape[2]-127,32):
-                for col in range(0,data.shape[3]-127,32):
-                    output[:,:,row:row+128,col:col+128] += self.simpleforward(data[:,:,row:row+128,col:col+128],datahash).cpu()
+            for row in range(0,data.shape[2]-tilesize-1,32):
+                for col in range(0,data.shape[3]-tilesize-1,32):
+                    output[:,:,row:row+tilesize,col:col+tilesize] += self.simpleforward(data[:,:,row:row+tilesize,col:col+tilesize],datahash).cpu()
 
             return globalresize(output.to(device))
 

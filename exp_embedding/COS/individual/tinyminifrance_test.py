@@ -42,7 +42,7 @@ with torch.no_grad():
     print("test")    
     for name in names:
         image,label = datatest.getImageAndLabel(name,innumpy=False)
-        pred = net(image.to(device),datatest.metadata())
+        pred = net(image.to(device),datatest.metadata(),tilesize=256)
         _,pred = torch.max(pred[0],0)
         pred = pred.cpu().numpy()
         
