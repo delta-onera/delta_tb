@@ -57,7 +57,7 @@ with torch.no_grad():
         pred = PIL.Image.fromarray(np.transpose(image[0].cpu().numpy(),axes=(1,2,0)).astype(np.uint8))
         pred.save("build/"+name+"_x.jpg")
     
-    cm = cm[1:-1,1:-1]    
+    cm = cm[1:,1:]    
     print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
     print(cm)
 

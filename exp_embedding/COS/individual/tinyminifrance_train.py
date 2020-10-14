@@ -58,7 +58,7 @@ def trainaccuracy():
             _,pred = outputs.max(1)
             for i in range(pred.shape[0]):
                 cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses)))
-    cm = cm[1:-1,1:-1]
+    cm = cm[1:,1:]
     return np.sum(cm.diagonal())/(np.sum(cm)+1)
 
 print("train")
