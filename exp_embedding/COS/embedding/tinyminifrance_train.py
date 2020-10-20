@@ -43,8 +43,12 @@ import torch.nn as nn
 import collections
 import random
 from sklearn.metrics import confusion_matrix
-weights = torch.tensor([0.]+[1.]*(nbclasses-1)).to(device)
-criterion = nn.CrossEntropyLoss(weight=weights)
+weights = {}
+for town in knowntown:
+    weights[town] = torch.tensor([0.]+[1.]*(nbclasses[town]-1)).to(device)
+criterion = {}
+for town in knowntown:
+    criterion[town] = nn.CrossEntropyLoss(weight=weights[town])
 optimizer = net.getoptimizer()
 
 meanloss = collections.deque(maxlen=200)
@@ -75,7 +79,7 @@ for epoch in range(nbepoch):
     
     trainloader = {}
     for town in knowntown:
-        trainloader[town] = datatrain.getrandomtiles(2000,256,16)
+        trainloader[town] = datatrain[town].getrandomtiles(2000,256,16)
     
     iterators = {}
     for town in knowntown:
@@ -83,7 +87,7 @@ for epoch in range(nbepoch):
     
     copytown = knowntown.copy()
     while True:
-        if copytown.empty():
+        if copytown == []:
             break
         
         i = random.randint(0,len(copytown)-1)
@@ -98,7 +102,7 @@ for epoch in range(nbepoch):
         inputs, targets = inputs.to(device), targets.to(device)
         
         preds = net(inputs,datatrain[town].metadata())
-        loss = criterion(preds,targets)
+        loss = criterion[town](preds,targets)
         meanloss.append(loss.cpu().data.numpy())
         
         if epoch>30:
