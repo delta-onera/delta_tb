@@ -75,11 +75,11 @@ for epoch in range(nbepoch):
     
     trainloader = {}
     for town in knowntown:
-        trainloader{town} = datatrain.getrandomtiles(2000,256,16)
+        trainloader[town] = datatrain.getrandomtiles(2000,256,16)
     
     iterators = {}
     for town in knowntown:
-        iterators{town} = iter(trainloader{town})
+        iterators[town] = iter(trainloader[town])
     
     copytown = knowntown.copy()
     while True:
