@@ -215,8 +215,8 @@ class Embedding(nn.Module):
             data = power2resize(data)
 
             output = torch.zeros(1,nbclasses,data.shape[2],data.shape[3]).cpu()
-            for row in range(0,data.shape[2]-tilesize-1,32):
-                for col in range(0,data.shape[3]-tilesize-1,32):
+            for row in range(0,data.shape[2]-tilesize+1,32):
+                for col in range(0,data.shape[3]-tilesize+1,32):
                     output[:,:,row:row+tilesize,col:col+tilesize] += self.simpleforward(data[:,:,row:row+tilesize,col:col+tilesize],datahash).cpu()
 
             return globalresize(output.to(device))
