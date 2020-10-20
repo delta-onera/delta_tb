@@ -67,7 +67,7 @@ def trainaccuracy():
                 outputs = net(inputs,datatrain[town].metadata())
                 _,pred = outputs.max(1)
                 for i in range(pred.shape[0]):
-                    cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses[town])))
+                    cm[town] += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses[town])))
     for town in knowntown:
         cm[town] = cm[town][1:,1:]
     return [np.sum(cm[town].diagonal())/(np.sum(cm[town])+1) for town in knowntown]
