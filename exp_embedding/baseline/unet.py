@@ -23,9 +23,9 @@ def loadpretrained(model,correspondance,path):
             quit()
     model.load_state_dict(model_dict)
 
-class Unet(nn.Module):
+class UNET(nn.Module):
     def __init__(self,nbclasses,pretrained=""):
-        super(Unet, self).__init__()
+        super(UNET, self).__init__()
 
         self.conv11 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)

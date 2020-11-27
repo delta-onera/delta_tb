@@ -15,13 +15,13 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-sys.path.append('../..')
+sys.path.append('..')
 import segsemdata
 
 
 
 root = "/data/"
-if len(sys.argv)==1 or (datasetname not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
+if len(sys.argv)==1 or (sys.argv[1] not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
     datasetname = "VAIHINGEN"
 else:
     datasetname = sys.argv[1]
@@ -50,8 +50,8 @@ if (len(sys.argv)==3 and sys.argv[2]=="UNET") or True:
     import unet
     print("load model",namemodel)
 
-    net = unet.UNET(nbclasses)
-    net = net.to(device,pretrained = "/data/vgg16-00b39a1b.pth")
+    net = unet.UNET(nbclasses,pretrained="/data/vgg16-00b39a1b.pth")
+    net = net.to(device)
 
 
 
@@ -64,7 +64,7 @@ from sklearn.metrics import confusion_matrix
 criterion = nn.CrossEntropyLoss()
 optimizer = net.getoptimizer()
 meanloss = collections.deque(maxlen=200)
-nbepoch = 90
+nbepoch = 2
 
 earlystopping = datatrain.getrandomtiles(1000,128,16)
 def trainaccuracy():
