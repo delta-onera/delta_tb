@@ -21,7 +21,7 @@ import segsemdata
 
 
 root = "/data/"
-if len(sys.argv)==1 or (datasetname not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
+if len(sys.argv)==1 or (sys.argv[1] not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
     datasetname = "VAIHINGEN"
 else:
     datasetname = sys.argv[1]
