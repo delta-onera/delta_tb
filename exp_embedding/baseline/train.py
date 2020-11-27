@@ -28,19 +28,19 @@ else:
 print("load data",datasetname)
 
 if datasetname == "VAIHINGEN":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
+    datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
 if datasetname == "POSTDAM":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
+    datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
 if datasetname == "BRUGES":
-    datatest = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
+    datatrain = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
 if datasetname == "TOULOUSE":
     print("TODO DATALOADER")
     quit()
 
-datatest = datatest.copyTOcache(outputresolution=50)
-nbclasses = len(datatest.setofcolors)
+datatrain = datatrain.copyTOcache(outputresolution=50)
+nbclasses = len(datatrain.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
-names=datatest.getnames()
+names=datatrain.getnames()
 
 
 
