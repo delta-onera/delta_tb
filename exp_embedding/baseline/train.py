@@ -65,7 +65,7 @@ from sklearn.metrics import confusion_matrix
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 2
+nbepoch = 120
 
 earlystopping = datatrain.getrandomtiles(1000,128,16)
 def trainaccuracy():
