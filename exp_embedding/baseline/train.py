@@ -58,11 +58,12 @@ if (len(sys.argv)==3 and sys.argv[2]=="UNET") or True:
 print("train setting")
 import torch.nn as nn
 import collections
+import torch.optim as optim
 import random
 from sklearn.metrics import confusion_matrix
 
 criterion = nn.CrossEntropyLoss()
-optimizer = net.getoptimizer()
+optimizer = optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 2
 
