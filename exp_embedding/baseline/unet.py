@@ -27,6 +27,8 @@ class UNET(nn.Module):
     def __init__(self,nbclasses,pretrained=""):
         super(UNET, self).__init__()
 
+        self.nbclasses = nbclasses
+
         self.conv11 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
 
@@ -60,7 +62,7 @@ class UNET(nn.Module):
         self.conv21d = nn.Conv2d(128, 64, kernel_size=3, padding=1)
         
         self.final1 = nn.Conv2d(224, 128, kernel_size=3, padding=1)
-        self.final2 = nn.Conv2d(128, nbclasses, kernel_size=3, padding=1)
+        self.final2 = nn.Conv2d(128, self.nbclasses, kernel_size=3, padding=1)
 
         if pretrained!="":
             correspondance=[]
@@ -160,7 +162,7 @@ class UNET(nn.Module):
 
             data = power2resize(data)
 
-            output = torch.zeros(1,nbclasses,data.shape[2],data.shape[3]).cpu()
+            output = torch.zeros(1,self.nbclasses,data.shape[2],data.shape[3]).cpu()
             for row in range(0,data.shape[2]-tilesize+1,32):
                 for col in range(0,data.shape[3]-tilesize+1,32):
                     output[:,:,row:row+tilesize,col:col+tilesize] += self.simpleforward(data[:,:,row:row+tilesize,col:col+tilesize]).cpu()

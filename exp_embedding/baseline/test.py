@@ -29,7 +29,7 @@ print("load data",datasetname)
 
 if datasetname == "VAIHINGEN":
     datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
-if datasetname == "POSTDAM":
+if datasetname == "POTSDAM":
     datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="test",POTSDAM=True)
 if datasetname == "BRUGES":
     datatest = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
