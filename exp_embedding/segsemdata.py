@@ -223,6 +223,32 @@ def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
     
 
     return dfc
+    
+def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", dataflag="all"):
+    semcity = SegSemDataset("SEMCITY")
+    semcity.nbchannel,semcity.resolution,semcity.root = 3,50,datasetpath
+
+    semcity.setofcolors = [[255,255,255],
+        [038, 038, 038],
+        [238, 118, 033],
+        [034, 139, 034],
+        [000, 222, 137],
+        [255, 000, 000],
+        [000, 000, 238],
+        [160, 030, 230]]
+
+    if dataflag not in ["all","train","test"]:
+        print("unknown flag in makeSEMCITY",dataflag)
+        quit()
+
+    if dataflag == "test" or dataflag=="all":
+        semcity.pathTOdata["3"]=("TLS_BDSD_M_03.tif","TLS_GT_03.tif")
+        semcity.pathTOdata["7"]=("TLS_BDSD_M_07.tif","TLS_GT_07.tif")
+    if dataflag == "train" or dataflag=="all":
+        semcity.pathTOdata["4"]=("TLS_BDSD_M_04.tif","TLS_GT_04.tif")
+        semcity.pathTOdata["8"]=("TLS_BDSD_M_08.tif","TLS_GT_08.tif")
+
+    return semcity
 
 def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
     if dataflag not in ["all","fewshot","train","test"]:
