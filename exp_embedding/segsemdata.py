@@ -224,31 +224,6 @@ def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
 
     return dfc
     
-def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", dataflag="all"):
-    semcity = SegSemDataset("SEMCITY")
-    semcity.nbchannel,semcity.resolution,semcity.root = 3,50,datasetpath
-
-    semcity.setofcolors = [[255,255,255],
-        [038, 038, 038],
-        [238, 118, 033],
-        [034, 139, 034],
-        [000, 222, 137],
-        [255, 000, 000],
-        [000, 000, 238],
-        [160, 030, 230]]
-
-    if dataflag not in ["all","train","test"]:
-        print("unknown flag in makeSEMCITY",dataflag)
-        quit()
-
-    if dataflag == "test" or dataflag=="all":
-        semcity.pathTOdata["3"]=("TLS_BDSD_M_03.tif","TLS_GT_03.tif")
-        semcity.pathTOdata["7"]=("TLS_BDSD_M_07.tif","TLS_GT_07.tif")
-    if dataflag == "train" or dataflag=="all":
-        semcity.pathTOdata["4"]=("TLS_BDSD_M_04.tif","TLS_GT_04.tif")
-        semcity.pathTOdata["8"]=("TLS_BDSD_M_08.tif","TLS_GT_08.tif")
-
-    return semcity
 
 def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
     if dataflag not in ["all","fewshot","train","test"]:
@@ -465,4 +440,71 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
         print(labeldistribution,"labeldistribution")
     
     return minifrance
+
+try:
+    import rasterio
+    rasterioIMPORTED = True
+except ImportError:
+    print("no rasterio support")
+    rasterioIMPORTED = False
     
+def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", dataflag="all"):
+    if rasterioIMPORTED=False:
+        return makeDFC2015(dataflag=dataflag)
+    
+    semcity = SegSemDataset("SEMCITY")
+    semcity.nbchannel,semcity.resolution,semcity.root = 3,50,""
+
+    semcity.setofcolors = [[255,255,255],
+        [038, 038, 038],
+        [238, 118, 033],
+        [034, 139, 034],
+        [000, 222, 137],
+        [255, 000, 000],
+        [000, 000, 238],
+        [160, 030, 230]]
+
+    if dataflag not in ["all","train","test"]:
+        print("unknown flag in makeSEMCITY",dataflag)
+        quit()
+
+    l = ["TLS_P_03","TLS_P_07","TLS_P_04","TLS_P_08"]
+    for im in l:
+        src = rasterio.open(datasetpath+"/"+im+".tif")
+        image = np.int16(src.read(1))
+        
+        allvalue = list(image.flatten().tolist())
+        allvalue = sorted(allvalue)
+        
+        N = len(allvalue)
+        allvalueremove = [allvalue[i] for i in range(int(2*N/100),int(98*N/100))]
+        
+        means = sum(allvalueremove)/len(allvalueremove)
+        diffmeans = [(v-means)*(v-means) for v in allvalueremove]
+        var = 1/(len(allvalueremove)-1) * sum(diffmeans)
+        var = math.sqrt(var)
+        
+        keepvalue = [v for v in allvalueremove if means-var*3<v<means+var*3]
+        keepvalue = sorted(keepvalue)
+        
+        vmin = keepvalue[0]
+        vmax = keepvalue[-1]
+        print(vmin,means,vmax,var)
+        
+        output = 254.5*(image-vmin)/(vmax-vmin)
+        output = np.maximum(output,np.zeros(output.shape))
+        output = np.minimum(output,255*np.ones(output.shape))
+        output = np.uint8(output)
+        
+        image8bit = PIL.Image.fromarray(np.stack([output]*3,axis=-1))
+        image8bit.save("/tmp/"+im+".png")
+    
+    if dataflag == "test" or dataflag=="all":
+        semcity.pathTOdata["3"]=("/tmp/TLS_P_03.png",datasetpath+"/TLS_GT_03.tif")
+        semcity.pathTOdata["7"]=("/tmp/TLS_P_07.png",datasetpath+"/TLS_GT_07.tif")
+    if dataflag == "train" or dataflag=="all":
+        semcity.pathTOdata["4"]=("/tmp/TLS_P_04.png",datasetpath+"/TLS_GT_04.tif")
+        semcity.pathTOdata["8"]=("/tmp/TLS_P_08.png",datasetpath+"/TLS_GT_08.tif")
+
+    return semcity
+

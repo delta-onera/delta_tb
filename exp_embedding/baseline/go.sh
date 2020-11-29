@@ -2,6 +2,9 @@ rm -r ../__pycache__
 rm -r build
 mkdir build
 
+/data/anaconda3/bin/python -u train.py TOULOUSE | tee build/toulouse_gray_train.txt
+/data/anaconda3/bin/python -u test.py  TOULOUSE | tee build/toulouse_gray_test.txt
+
 /data/anaconda3/bin/python -u train.py VAIHINGEN | tee build/vaihingen_train.txt
 /data/anaconda3/bin/python -u test.py  VAIHINGEN | tee build/vaihingen_test.txt
 
