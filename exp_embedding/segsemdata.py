@@ -447,22 +447,23 @@ try:
 except ImportError:
     print("no rasterio support")
     rasterioIMPORTED = False
+import math
     
 def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", dataflag="all"):
-    if rasterioIMPORTED=False:
+    if not rasterioIMPORTED :
         return makeDFC2015(dataflag=dataflag)
     
     semcity = SegSemDataset("SEMCITY")
     semcity.nbchannel,semcity.resolution,semcity.root = 3,50,""
 
     semcity.setofcolors = [[255,255,255],
-        [038, 038, 038],
-        [238, 118, 033],
-        [034, 139, 034],
-        [000, 222, 137],
-        [255, 000, 000],
-        [000, 000, 238],
-        [160, 030, 230]]
+        [38, 38, 38],
+        [238, 118, 33],
+        [34, 139,34],
+        [0, 222, 137],
+        [255, 0, 0],
+        [0, 0, 238],
+        [160, 30, 230]]
 
     if dataflag not in ["all","train","test"]:
         print("unknown flag in makeSEMCITY",dataflag)

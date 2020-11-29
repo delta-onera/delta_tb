@@ -34,8 +34,7 @@ if datasetname == "POTSDAM":
 if datasetname == "BRUGES":
     datatest = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
 if datasetname == "TOULOUSE":
-    print("TODO DATALOADER")
-    quit()
+    datatest = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
 
 datatest = datatest.copyTOcache(outputresolution=50)
 nbclasses = len(datatest.setofcolors)

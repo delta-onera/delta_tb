@@ -34,8 +34,7 @@ if datasetname == "POTSDAM":
 if datasetname == "BRUGES":
     datatrain = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
 if datasetname == "TOULOUSE":
-    print("TODO DATALOADER")
-    quit()
+    datatrain = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train")
 
 datatrain = datatrain.copyTOcache(outputresolution=50)
 nbclasses = len(datatrain.setofcolors)
