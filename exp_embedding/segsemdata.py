@@ -410,8 +410,8 @@ def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train", weigh
     
     allfile = os.listdir(datasetpath+"/images")
 
-    inria = SegSemDataset("INRIA")
-    inria.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,50,datasetpath,[[0,0,0],[255,255,255]]
+    data = SegSemDataset("INRIA")
+    data.nbchannel,data.resolution,data.root,data.setofcolors = 3,50,datasetpath,[[0,0,0],[255,255,255]]
     if weightflag=="iou":
         data.colorweights = []
     else:
