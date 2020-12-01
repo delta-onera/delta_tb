@@ -1,11 +1,8 @@
 
 
 import sys
-print(sys.argv[0])
-assert(len(sys.argv)==1)
-assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
-
-
+print(sys.argv)
+assert(len(sys.argv)>1)
 
 import numpy as np
 import PIL
@@ -24,33 +21,31 @@ import segsemdata
 
 
 
-print("load data",sys.argv[1])
+print("load data")
 root = "/data/"
-if sys.argv[1] == "VAIHINGEN":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
-if sys.argv[1] == "VAIHINGEN_lod0":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag="test",POTSDAM=False)
-if sys.argv[1] == "POTSDAM":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="test",POTSDAM=True)
-if sys.argv[1] == "POTSDAM_lod0":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag="test",POTSDAM=True)
-if sys.argv[1] == "BRUGES":
-    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
-if sys.argv[1] == "BRUGES_lod0":
-    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag="test")
-if sys.argv[1] == "TOULOUSE":
-    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
-if sys.argv[1] == "TOULOUSE_lod0":
-    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test", labelflag="lod0",weightflag="iou")  
+alldatasets = []
+
+knowdataset = ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
+for i in range(1,len(sys.argv)):
+    assert(sys.argv[i].find('_')>0)
+    name = sys.argv[i].find('_')
+    mode = sys.argv[i][name+1:]
+    name = sys.argv[i][:name]
+    assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
+    assert(mode in ["test","all"])
+
+    if name == "VAIHINGEN":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=False)
+    if name == "POTSDAM":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=True)
+    if name == "BRUGES":
+        data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
+    if name == "TOULOUSE":
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou")  
   
-if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
-    data = data.copyTOcache(outputresolution=50)
-else:
-    if sys.argv[2]=="grey":
-        data = data.copyTOcache(outputresolution=50,color=False)
-    else:
-        data = data.copyTOcache(outputresolution=50,color=False,normalize=True)
-nbclasses = len(data.setofcolors)
+    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+    
+nbclasses = 2
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 
 
@@ -62,22 +57,24 @@ with torch.no_grad():
     net = net.to(device)
 
 
+
 print("test")
 with torch.no_grad():
     net.eval()
-    for name in names:
-        image,label = data.getImageAndLabel(name,innumpy=False)
-        pred = net(image.to(device))
-        _,pred = torch.max(pred[0],0)
-        pred = pred.cpu().numpy()
+    for data in alldatasets:
+        for name in data.getnames():
+            image,label = data.getImageAndLabel(name,innumpy=False)
+            pred = net(image.to(device))
+            _,pred = torch.max(pred[0],0)
+            pred = pred.cpu().numpy()
 
-        assert(label.shape==pred.shape)
+            assert(label.shape==pred.shape)
 
-        cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
+            cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
 
-        pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
-        pred.save("build/"+name+"_z.png")
+            pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
+            pred.save("build/"+name+"_z.png")
 
-    print(getstat(cm))
-    print(cm)
+        print(getstat(cm))
+        print(cm)
 

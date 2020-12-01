@@ -1,11 +1,9 @@
 
 
 import sys
-print(sys.argv[0])
-assert(len(sys.argv)==1)
-assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
-
-
+print(sys.argv)
+assert(len(sys.argv)>1)
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0"])
 
 import numpy as np
 import PIL
@@ -24,7 +22,7 @@ import segsemdata
 
 
 
-print("load data",sys.argv[1])
+print("load data")
 root = "/data/"
 if sys.argv[1] == "VAIHINGEN":
     data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
@@ -62,10 +60,11 @@ with torch.no_grad():
     net = net.to(device)
 
 
+
 print("test")
 with torch.no_grad():
     net.eval()
-    for name in names:
+    for name in data.getnames():
         image,label = data.getImageAndLabel(name,innumpy=False)
         pred = net(image.to(device))
         _,pred = torch.max(pred[0],0)

@@ -1,10 +1,8 @@
 
 
 import sys
-print(sys.argv[0])
+print(sys.argv)
 assert(len(sys.argv)>1)
-
-
 
 import numpy as np
 import PIL
@@ -21,10 +19,13 @@ if device == "cuda":
 sys.path.append('..')
 import segsemdata
 
+
+
 print("load data")
 class MergedSegSemDataset:
     def __init__(self,alldatasets):
         self.alldatasets = alldatasets
+        self.colorweights=[]
         
     def getrandomtiles(self,nbtiles,tilesize,batchsize):
         XY = []
@@ -38,39 +39,41 @@ class MergedSegSemDataset:
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batchsize, shuffle=True, num_workers=2)
 
         return dataloader
+        
+    def getCriterionWeight(self):
+        return self.colorweights.copy()   
 
 root = "/data/"
 alldatasets = []
 
+knowdataset = ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
 for i in range(1,len(sys.argv)):
-    assert(sys.argv[i] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
+    assert(sys.argv[i].find('_')>0)
+    name = sys.argv[i].find('_')
+    mode = sys.argv[i][name+1:]
+    name = sys.argv[i][:name]
+    assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
+    assert(mode in ["train","all"])
 
-if sys.argv[1] == "VAIHINGEN":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
-if sys.argv[1] == "VAIHINGEN_lod0":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag="train",POTSDAM=False)
-if sys.argv[1] == "POTSDAM":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
-if sys.argv[1] == "POTSDAM_lod0":
-    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag="train",POTSDAM=True)
-if sys.argv[1] == "BRUGES":
-    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
-if sys.argv[1] == "BRUGES_lod0":
-    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag="train")
-if sys.argv[1] == "TOULOUSE":
-    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train")
-if sys.argv[1] == "TOULOUSE_lod0":
-    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train", labelflag="lod0",weightflag="iou")  
+    if name == "VAIHINGEN":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=False)
+    if name == "POTSDAM":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=True)
+    if name == "BRUGES":
+        data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
+    if name == "TOULOUSE":
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou")  
   
-if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
-    data = data.copyTOcache(outputresolution=50)
-else:
-    if sys.argv[2]=="grey":
-        data = data.copyTOcache(outputresolution=50,color=False)
-    else:
-        data = data.copyTOcache(outputresolution=50,color=False,normalize=True)
-nbclasses = len(data.setofcolors)
+    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+    
+nbclasses = 2
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
+
+data = MergedSegSemDataset(alldatasets)
+allfreq = np.zeros(2)
+for singledataset in alldatasets:
+    allfreq+=segsemdata.getBinaryFrequency(alllabels)
+data.colorweights = [1.,1.*allfreq[0]/allfreq[1]]
 
 
 

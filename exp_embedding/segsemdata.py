@@ -58,7 +58,14 @@ def normalizehistogram(im):
             output[:,:,i] = normalizehistogram(im[:,:,i])
         return output
 
-
+def getBinaryFrequency(labelset):
+    freq = np.zeros(2,dtype=int)
+    for im in labelset:
+        freq[0]+=np.sum((im==0).astype(int))
+        freq[1]+=np.sum((im==1).astype(int))
+    return freq
+    
+    
 
 import PIL
 from PIL import Image
@@ -143,8 +150,16 @@ class SegSemDataset:
 
         return dataloader
 
-    def getCriterionWeight():
-        return self.colorweights.copy()
+    def getCriterionWeight(self):
+        if self.colorweights==[]:
+            alllabels = []    
+            for name in self.pathTOdata:
+                _,label = self.getImageAndLabel(name)     
+                alllabels.append(label)
+            freq = getBinaryFrequency(alllabels)
+            self.colorweights = [1.,1.*freq[0]/freq[1]]
+            print("frequency in",self.datasetname,"=",self.colorweights)
+        return self.colorweights.copy()        
 
     def vtTOcolorvt(self,mask):
         maskcolor = np.zeros((mask.shape[0],mask.shape[1],3),dtype=int)
@@ -162,7 +177,6 @@ class SegSemDataset:
             mask+=i*mask1*mask2*mask3
 
         return mask
-
 
     def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, outputname=""):
         nativeresolution = self.resolution
@@ -222,7 +236,7 @@ def makeDFC2015(datasetpath="/data/DFC2015", labelflag="normal", weightflag="sur
     if labelflag=="lod0":
         data.setofcolors = [[255,255,255],[0,0,255]]
         if weightflag == "iou":
-            data.colorweights= [1,10]
+            data.colorweights= []
         else:
             data.colorweights= [1,1]
     if labelflag=="normal":
@@ -275,7 +289,7 @@ def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag=
     if labelflag=="lod0":
         data.setofcolors = [[255,255,255],[0,0,255]]
         if weightflag == "iou":
-            data.colorweights= [1,10]
+            data.colorweights= []
         else:
             data.colorweights= [1,1]
     if labelflag=="normal":
@@ -377,7 +391,7 @@ def makeAIRSdataset(datasetpath="/data/AIRS/trainval", weightflag="iou", datafla
     data = SegSemDataset("AIRS")
     data.nbchannel,data.resolution,data.root,data.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
     if weightflag=="iou":
-        data.colorweights = [1,50]
+        data.colorweights = []
     else:
         data.colorweights = [1,1]
     
@@ -399,7 +413,7 @@ def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train", weigh
     inria = SegSemDataset("INRIA")
     inria.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,50,datasetpath,[[0,0,0],[255,255,255]]
     if weightflag=="iou":
-        data.colorweights = [1,25]
+        data.colorweights = []
     else:
         data.colorweights = [1,1]
         
@@ -516,7 +530,7 @@ def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", labelflag="normal", weight
     if labelflag=="lod0":
         data.setofcolors = [[255,255,255],[238, 118, 33]]
         if weightflag=="iou":
-            data.colorweights = [1,10]
+            data.colorweights = []
         else:
             data.colorweights = [1,1]
 
