@@ -2,6 +2,10 @@
 
 import sys
 print(sys.argv[0])
+assert(len(sys.argv)==1)
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
+
+
 
 import numpy as np
 import PIL

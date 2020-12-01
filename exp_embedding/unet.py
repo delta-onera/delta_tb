@@ -24,12 +24,12 @@ def loadpretrained(model,correspondance,path):
     model.load_state_dict(model_dict)
 
 class UNET(nn.Module):
-    def __init__(self,nbclasses,pretrained=""):
+    def __init__(self,nbclasses,nbchannel=3,pretrained=""):
         super(UNET, self).__init__()
 
         self.nbclasses = nbclasses
 
-        self.conv11 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
+        self.conv11 = nn.Conv2d(nbchannel, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
 
         self.conv21 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
@@ -66,8 +66,9 @@ class UNET(nn.Module):
 
         if pretrained!="":
             correspondance=[]
-            correspondance.append(("features.0","conv11"))
-            correspondance.append(("features.2","conv12"))
+            if nbchannel==3:
+                correspondance.append(("features.0","conv11"))
+                correspondance.append(("features.2","conv12"))
             correspondance.append(("features.5","conv21"))
             correspondance.append(("features.7","conv22"))
             correspondance.append(("features.10","conv31"))

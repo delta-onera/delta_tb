@@ -2,6 +2,24 @@
 
 import sys
 print(sys.argv[0])
+assert(len(sys.argv)==1)
+
+CITY = ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
+LABEL = ["lod0","normal"]
+MODE = ["normal","grey","normalize"]
+POSSIBLE = []
+for city in CITY:
+	for labelmode in LABEL:
+		for modeimage in MODE:
+			possible.append(city+"_"+labelmode+"_"+modeimage)
+assert(sys.argv[1] in POSSIBLE)
+city = sys.argv[1].find('_')
+modeimage = sys.argv[1].rfind('_')
+labelmode =  sys.argv[1][city+1:modeimage]
+city = sys.argv[1][0:city]
+modeimage = sys.argv[1][modeimage+1:]
+
+
 
 import numpy as np
 import PIL
@@ -20,37 +38,26 @@ import segsemdata
 
 
 
-root = "/data/"
-if len(sys.argv)==1 or (sys.argv[1] not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
-    datasetname = "VAIHINGEN"
-else:
-    datasetname = sys.argv[1]
-print("load data",datasetname)
-
-if datasetname == "VAIHINGEN":
+print("load data",sys.argv[1])
+if sys.argv[1] == "VAIHINGEN":
     datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
-if datasetname == "POTSDAM":
+if sys.argv[1] == "POTSDAM":
     datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
-if datasetname == "BRUGES":
+if sys.argv[1] == "BRUGES":
     datatrain = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
-if datasetname == "TOULOUSE":
+if sys.argv[1] == "TOULOUSE":
     datatrain = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train")
 
 datatrain = datatrain.copyTOcache(outputresolution=50)
 nbclasses = len(datatrain.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
-names=datatrain.getnames()
 
 
 
-#### TODO conditional import depending on the model
-namemodel = "UNET"
-if (len(sys.argv)==3 and sys.argv[2]=="UNET") or True:
-    import unet
-    print("load model",namemodel)
-
-    net = unet.UNET(nbclasses,pretrained="/data/vgg16-00b39a1b.pth")
-    net = net.to(device)
+print("load unet")
+import unet
+net = unet.UNET(nbclasses,pretrained="/data/vgg16-00b39a1b.pth")
+net = net.to(device)
 
 
 
@@ -61,7 +68,8 @@ import torch.optim as optim
 import random
 from sklearn.metrics import confusion_matrix
 
-criterion = nn.CrossEntropyLoss()
+weigths = torch.Tensor(datatrain.getCriterionWeight()).to(device)
+criterion = nn.CrossEntropyLoss(weight=weigths)
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
@@ -77,7 +85,7 @@ def trainaccuracy():
             _,pred = outputs.max(1)
             for i in range(pred.shape[0]):
                 cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses)))
-    return np.sum(cm.diagonal())/(np.sum(cm)+1)
+    return segsemdata.getstat(cm)
 
 
 
@@ -106,7 +114,7 @@ for epoch in range(nbepoch):
             print("loss=",(sum(meanloss)/len(meanloss)))
 
     torch.save(net, "build/model.pth")
-    acc=trainaccuracy()
-    print("acc=", acc)
+    acc,iou,IoU=trainaccuracy()
+    print("stat:", acc,iou,IoU)
     if acc>0.97:
         quit()

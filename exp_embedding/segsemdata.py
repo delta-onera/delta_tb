@@ -17,6 +17,22 @@ def symetrie(x,y,i,j,k):
         x,y = np.flip(x,axis=1),np.flip(y,axis=1)
     return x.copy(),y.copy()
 
+def getstat(cm):
+    if cm.shape[0]==0 or np.sum(cm)==0:
+        return 1.,1.,[]
+        
+    nbclasses = cm.shape[0]
+    accuracy = np.sum(cm.diagonal())/np.sum(cm)
+    
+    IoU = []
+    for i in range(nbclasses):
+        U = np.sum(cm[i,:])+np.sum(cm[:,i])-cm[i][i]
+        I = float(cm[i][i])
+        IoU.append(I/U)
+    iou = sum(IoU)/nbclasses
+    
+    return accuracy,iou,IoU
+
 def normalizehistogram(im):
     if len(im.shape)==2:
         allvalues = list(im.flatten())
@@ -42,6 +58,8 @@ def normalizehistogram(im):
             output[:,:,i] = normalizehistogram(im[:,:,i])
         return output
 
+
+
 import PIL
 from PIL import Image
 
@@ -57,6 +75,7 @@ class SegSemDataset:
 
         #vt structure
         self.setofcolors = []
+        self.colorweights = []
 
         #path to data
         self.root = ""
@@ -124,6 +143,8 @@ class SegSemDataset:
 
         return dataloader
 
+    def getCriterionWeight():
+        return self.colorweights.copy()
 
     def vtTOcolorvt(self,mask):
         maskcolor = np.zeros((mask.shape[0],mask.shape[1],3),dtype=int)
@@ -190,14 +211,22 @@ class SegSemDataset:
 
 
 
-def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
-    dfc = SegSemDataset("DFC2015")
-    dfc.nbchannel,dfc.resolution,dfc.root = 3,5,datasetpath
+def makeDFC2015(datasetpath="/data/DFC2015", labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+    assert(labelflag in ["lod0","normal"])
+    assert(weightflag in ["uniform","surfaceonly","iou"])
+    assert(dataflag in ["all","fewshot","train","test"])
+    
+    data = SegSemDataset("DFC2015")
+    data.nbchannel,data.resolution,data.root = 3,5,datasetpath
 
-    if lod0:
-        dfc.setofcolors = [[255,255,255],[0,0,255]]
-    else:
-        dfc.setofcolors = [[255,255,255]
+    if labelflag=="lod0":
+        data.setofcolors = [[255,255,255],[0,0,255]]
+        if weightflag == "iou":
+            data.colorweights= [1,10]
+        else:
+            data.colorweights= [1,1]
+    if labelflag=="normal":
+        data.setofcolors = [[255,255,255]
             ,[0,0,128]
             ,[255,0,0]
             ,[0,255,255]
@@ -205,52 +234,61 @@ def makeDFC2015(datasetpath="/data/DFC2015", lod0=True, dataflag="all"):
             ,[0,255,0]
             ,[255,0,255]
             ,[255,255,0]]
-
-    if dataflag not in ["all","fewshot","train","test"]:
-        print("unknown flag in makeDFC2015",dataflag)
-        quit()
-
+        if weightflag == "surfaceonly":
+            data.colorweights= [1,1,1,1,1,1,0,0]
+        else:
+            data.colorweights= [1,1,1,1,1,1,1,1]
+            
     if dataflag == "test" or dataflag=="all":
-        dfc.pathTOdata["5"]=("BE_ORTHO_27032011_315135_56865.tif","label_315135_56865.tif")
-        dfc.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
+        data.pathTOdata["5"]=("BE_ORTHO_27032011_315135_56865.tif","label_315135_56865.tif")
+        data.pathTOdata["6"]=("BE_ORTHO_27032011_315145_56865.tif","label_315145_56865.tif")
     if dataflag == "train" or dataflag=="all":
-        dfc.pathTOdata["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
-        dfc.pathTOdata["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
-        dfc.pathTOdata["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
-        dfc.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+        data.pathTOdata["1"]=("BE_ORTHO_27032011_315130_56865.tif","label_315130_56865.tif")
+        data.pathTOdata["2"]=("BE_ORTHO_27032011_315130_56870.tif","label_315130_56870.tif")
+        data.pathTOdata["3"]=("BE_ORTHO_27032011_315135_56870.tif","label_315135_56870.tif")
+        data.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
     if dataflag == "fewshot":
-        dfc.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+        data.pathTOdata["4"]=("BE_ORTHO_27032011_315140_56865.tif","label_315140_56865.tif")
+    
+    return data
     
 
-    return dfc
-    
-
-def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
-    if dataflag not in ["all","fewshot","train","test"]:
-        print("unknown flag in makeISPRS",dataflag)
-        quit()
+def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+    assert(labelflag in ["lod0","normal"])
+    assert(weightflag in ["uniform","iou","surfaceonly"])
+    assert(dataflag in ["all","fewshot","train","test"])
 
     if POTSDAM:
-        isprs = SegSemDataset("POTSDAM")
-        isprs.nbchannel,isprs.resolution = 3,5
-        if datasetpath=="":
-            datasetpath = "/data/POSTDAM"
+        data = SegSemDataset("POTSDAM")
+        data.nbchannel,data.resolution = 3,5
+        data.root = datasetpath+"ISPRS_POTSDAM"
     else:
-        isprs = SegSemDataset("VAIHINGEN")
-        isprs.nbchannel,isprs.resolution = 3,10
-        if datasetpath=="":
-            datasetpath = "/data/VAIHINGEN"
-    isprs.root = datasetpath
-
-    if lod0:
-        isprs.setofcolors = [[255,255,255],[0,0,255]]
-    else:
-        isprs.setofcolors = [[255, 255, 255]
+        data = SegSemDataset("VAIHINGEN")
+        data.nbchannel,data.resolution = 3,10
+        data.root = datasetpath+"ISPRS_VAIHINGEN"
+    
+     if mode=="normal":
+        return 
+     else:#lod0
+        return [[255,255,255],[0,0,255]]
+    
+    if labelflag=="lod0":
+        data.setofcolors = [[255,255,255],[0,0,255]]
+        if weightflag == "iou":
+            data.colorweights= [1,10]
+        else:
+            data.colorweights= [1,1]
+    if labelflag=="normal":
+        dfc.setofcolors = [[255, 255, 255]
             ,[0, 0, 255]
             ,[0, 255, 255]
             ,[ 0, 255, 0]
             ,[255, 255, 0]
             ,[255, 0, 0]]
+        if weightflag == "surfaceonly":
+            data.colorweights= [1,1,1,1,0,1]
+        else:
+            data.colorweights= [1,1,1,1,1,1]
 
     if POTSDAM:
         train = ["top_potsdam_2_10_",
@@ -289,7 +327,7 @@ def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
             names = ["top_potsdam_2_10_"]
         
         for name in names:
-            isprs.pathTOdata[name] = ("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
+            data.pathTOdata[name] = ("2_Ortho_RGB/"+name+"RGB.tif","5_Labels_for_participants/"+name+"label.tif")
 
     else:
         train = ["top_mosaic_09cm_area5.tif",
@@ -320,57 +358,70 @@ def makeISPRS(datasetpath="", lod0=True, dataflag="all", POTSDAM=True):
             names = ["top_mosaic_09cm_area26"]
 
         for name in names:
-            isprs.pathTOdata[name] = ("top/"+name,"gts_for_participants/"+name)
+            data.pathTOdata[name] = ("top/"+name,"gts_for_participants/"+name)
 
-    return isprs
+    return data
 
 
 import os
 
-def makeAIRSdataset(datasetpath="/data/AIRS/trainval", train=True):
+def makeAIRSdataset(datasetpath="/data/AIRS/trainval", weightflag="iou", dataflag="all"):
+    assert(weightflag in ["uniform","iou"])
+    assert(dataflag in ["train","test"])
+    
     if train:
         allfile = os.listdir(datasetpath+"/train/image")
     else:
         allfile = os.listdir(datasetpath+"/val/image")
 
-    airs = SegSemDataset("AIRS")
-    airs.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
+    data = SegSemDataset("AIRS")
+    data.nbchannel,data.resolution,data.root,data.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
+    if weightflag=="iou":
+        data.colorweights = [1,50]
+    else:
+        data.colorweights = [1,1]
+    
     for name in allfile:
         if train:
-            airs.pathTOdata[name] = ("/train/image/"+name,"/train/label/"+name[0:-4]+"_vis.tif")
+            data.pathTOdata[name] = ("/train/image/"+name,"/train/label/"+name[0:-4]+"_vis.tif")
         else:
-            airs.pathTOdata[name] = ("/val/image/"+name,"/val/label/"+name[0:-4]+"_vis.tif")
+            data.pathTOdata[name] = ("/val/image/"+name,"/val/label/"+name[0:-4]+"_vis.tif")
 
-    return airs
+    return data
 
-def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train"):
+def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train", weightflag="iou", dataflag="all"):
+    assert(weightflag in ["uniform","iou"])
+    assert(dataflag in ["all"])
+    print("TODO add city + fewshot feature")
+    
     allfile = os.listdir(datasetpath+"/images")
 
     inria = SegSemDataset("INRIA")
     inria.nbchannel,airs.resolution,airs.root,airs.setofcolors = 3,50,datasetpath,[[0,0,0],[255,255,255]]
+    if weightflag=="iou":
+        data.colorweights = [1,25]
+    else:
+        data.colorweights = [1,1]
+        
     for name in allfile:
         inria.pathTOdata[name] = ("images/"+name,"gt/"+name)
 
     return inria
 
-def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dataflag="all",debug=True):
-    if dataflag not in ["all","fewshot","train","test"]:
-        print("unknown flag in makeMiniFrancePerTown",dataflag)
-        quit()
-
+def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dataflag="all"):
     knowntown = ["Angers","Caen","Cherbourg","Lille_Arras_Lens_Douai_Henin",
         "Marseille_Martigues","Nice","Rennes","Vannes","Brest","Calais_Dunkerque",
         "Clermont-Ferrand","LeMans","Lorient","Nantes_Saint-Nazaire","Quimper",
         "Saint-Brieuc"]
-    if town not in knowntown and town!="all":
-        print("unknown town in makeTinyMiniFrancePerTown",town)
-        quit()
-    
+        
+    assert(dataflag in ["all","fewshot","train","test"])
+    assert(town in knowntown+["all"])
     
     minifrance = SegSemDataset("TinyMiniFrance_"+town)
     minifrance.nbchannel,minifrance.resolution = 3,50
     minifrance.root = datasetpath
     minifrance.setofcolors = [[i,i,i] for i in [15,0,1,4,6,9,10,13]]
+    minifrance.colorweights = [0]+[1 for range(7)]
     minifrance.town = town
     
     if town!="all":
@@ -429,15 +480,6 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
             
             for name in allfile:
                 minifrance.pathTOdata[name] = ("BDORTHO/"+town+"/"+name,"UA/"+town+"/"+name)
-        
-    if debug:
-        labeldistribution = np.zeros(len(minifrance.setofcolors))
-        for name in minifrance.getnames():
-            _,label = minifrance.getImageAndLabel(name)
-            for i in range(labeldistribution.shape[0]):
-                labeldistribution[i]+=np.sum((label==i).astype(int))
-        labeldistribution = (100.*labeldistribution/np.sum(labeldistribution)).astype(int)
-        print(labeldistribution,"labeldistribution")
     
     return minifrance
 
@@ -449,63 +491,49 @@ except ImportError:
     rasterioIMPORTED = False
 import math
     
-def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", dataflag="all"):
-    if not rasterioIMPORTED :
-        return makeDFC2015(dataflag=dataflag)
+def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+    assert(rasterioIMPORTED)
+    assert(labelflag in ["lod0","normal"])
+    assert(weightflag in ["uniform","iou","surfaceonly"])
+    assert(dataflag in ["all","train","test"])
     
-    semcity = SegSemDataset("SEMCITY")
-    semcity.nbchannel,semcity.resolution,semcity.root = 3,50,""
+    data = SegSemDataset("SEMCITY")
+    data.nbchannel,data.resolution,data.root = 3,50,""
 
-    semcity.setofcolors = [[255,255,255],
-        [38, 38, 38],
-        [238, 118, 33],
-        [34, 139,34],
-        [0, 222, 137],
-        [255, 0, 0],
-        [0, 0, 238],
-        [160, 30, 230]]
-
-    if dataflag not in ["all","train","test"]:
-        print("unknown flag in makeSEMCITY",dataflag)
-        quit()
+    if labelflag=="normal":
+        data.setofcolors = [[255,255,255],
+            [38, 38, 38],
+            [238, 118, 33],
+            [34, 139,34],
+            [0, 222, 137],
+            [255, 0, 0],
+            [0, 0, 238],
+            [160, 30, 230]]
+        if weightflag=="surfaceonly":
+            data.colorweights = [0,1,1,1,1,0,1,1]
+        else:
+            data.colorweights = [1,1,1,1,1,1,1,1]
+    if labelflag=="lod0":
+        data.setofcolors = [[255,255,255],[238, 118, 33]]
+        if weightflag=="iou":
+            data.colorweights = [1,10]
+        else:
+            data.colorweights = [1,1]
 
     l = ["TLS_P_03","TLS_P_07","TLS_P_04","TLS_P_08"]
     for im in l:
         src = rasterio.open(datasetpath+"/"+im+".tif")
         image = np.int16(src.read(1))
-        
-        allvalue = list(image.flatten().tolist())
-        allvalue = sorted(allvalue)
-        
-        N = len(allvalue)
-        allvalueremove = [allvalue[i] for i in range(int(2*N/100),int(98*N/100))]
-        
-        means = sum(allvalueremove)/len(allvalueremove)
-        diffmeans = [(v-means)*(v-means) for v in allvalueremove]
-        var = 1/(len(allvalueremove)-1) * sum(diffmeans)
-        var = math.sqrt(var)
-        
-        keepvalue = [v for v in allvalueremove if means-var*3<v<means+var*3]
-        keepvalue = sorted(keepvalue)
-        
-        vmin = keepvalue[0]
-        vmax = keepvalue[-1]
-        print(vmin,means,vmax,var)
-        
-        output = 254.5*(image-vmin)/(vmax-vmin)
-        output = np.maximum(output,np.zeros(output.shape))
-        output = np.minimum(output,255*np.ones(output.shape))
-        output = np.uint8(output)
-        
+        output = normalizehistogram(image)
         image8bit = PIL.Image.fromarray(np.stack([output]*3,axis=-1))
         image8bit.save("/tmp/"+im+".png")
     
     if dataflag == "test" or dataflag=="all":
-        semcity.pathTOdata["3"]=("/tmp/TLS_P_03.png",datasetpath+"/TLS_GT_03.tif")
-        semcity.pathTOdata["7"]=("/tmp/TLS_P_07.png",datasetpath+"/TLS_GT_07.tif")
+        data.pathTOdata["3"]=("/tmp/TLS_P_03.png",datasetpath+"/TLS_GT_03.tif")
+        data.pathTOdata["7"]=("/tmp/TLS_P_07.png",datasetpath+"/TLS_GT_07.tif")
     if dataflag == "train" or dataflag=="all":
-        semcity.pathTOdata["4"]=("/tmp/TLS_P_04.png",datasetpath+"/TLS_GT_04.tif")
-        semcity.pathTOdata["8"]=("/tmp/TLS_P_08.png",datasetpath+"/TLS_GT_08.tif")
+        data.pathTOdata["4"]=("/tmp/TLS_P_04.png",datasetpath+"/TLS_GT_04.tif")
+        data.pathTOdata["8"]=("/tmp/TLS_P_08.png",datasetpath+"/TLS_GT_08.tif")
 
-    return semcity
+    return data
 
