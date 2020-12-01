@@ -2,22 +2,8 @@
 
 import sys
 print(sys.argv[0])
-assert(len(sys.argv)==1)
-
-CITY = ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
-LABEL = ["lod0","normal"]
-MODE = ["normal","grey","normalize"]
-POSSIBLE = []
-for city in CITY:
-	for labelmode in LABEL:
-		for modeimage in MODE:
-			possible.append(city+"_"+labelmode+"_"+modeimage)
-assert(sys.argv[1] in POSSIBLE)
-city = sys.argv[1].find('_')
-modeimage = sys.argv[1].rfind('_')
-labelmode =  sys.argv[1][city+1:modeimage]
-city = sys.argv[1][0:city]
-modeimage = sys.argv[1][modeimage+1:]
+assert(len(sys.argv)>1)
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0"])
 
 
 
@@ -39,17 +25,32 @@ import segsemdata
 
 
 print("load data",sys.argv[1])
+root = "/data/"
 if sys.argv[1] == "VAIHINGEN":
-    datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
+if sys.argv[1] == "VAIHINGEN_lod0":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag="train",POTSDAM=False)
 if sys.argv[1] == "POTSDAM":
-    datatrain = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="train",POTSDAM=True)
+if sys.argv[1] == "POTSDAM_lod0":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag="train",POTSDAM=True)
 if sys.argv[1] == "BRUGES":
-    datatrain = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
+    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="train")
+if sys.argv[1] == "BRUGES_lod0":
+    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag="train")
 if sys.argv[1] == "TOULOUSE":
-    datatrain = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train")
-
-datatrain = datatrain.copyTOcache(outputresolution=50)
-nbclasses = len(datatrain.setofcolors)
+    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train")
+if sys.argv[1] == "TOULOUSE_lod0":
+    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="train", labelflag="lod0",weightflag="iou")  
+  
+if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
+    data = data.copyTOcache(outputresolution=50)
+else:
+    if sys.argv[2]=="grey":
+        data = data.copyTOcache(outputresolution=50,color=False)
+    else:
+        data = data.copyTOcache(outputresolution=50,color=False,normalize=True)
+nbclasses = len(data.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 
 
@@ -68,13 +69,13 @@ import torch.optim as optim
 import random
 from sklearn.metrics import confusion_matrix
 
-weigths = torch.Tensor(datatrain.getCriterionWeight()).to(device)
+weigths = torch.Tensor(data.getCriterionWeight()).to(device)
 criterion = nn.CrossEntropyLoss(weight=weigths)
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
 
-earlystopping = datatrain.getrandomtiles(1000,128,16)
+earlystopping = data.getrandomtiles(1000,128,16)
 def trainaccuracy():
     net.eval()
     cm = np.zeros((nbclasses,nbclasses),dtype=int)
@@ -92,7 +93,7 @@ def trainaccuracy():
 print("train")
 for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
-    trainloader = datatrain.getrandomtiles(2000,128,16)
+    trainloader = data.getrandomtiles(2000,128,16)
     net.train()
     for inputs, targets in trainloader:
         inputs, targets = inputs.to(device), targets.to(device)

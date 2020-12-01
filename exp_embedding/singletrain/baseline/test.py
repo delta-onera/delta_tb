@@ -24,46 +24,49 @@ import segsemdata
 
 
 
+print("load data",sys.argv[1])
 root = "/data/"
-if len(sys.argv)==1 or (sys.argv[1] not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
-    datasetname = "VAIHINGEN"
+if sys.argv[1] == "VAIHINGEN":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
+if sys.argv[1] == "VAIHINGEN_lod0":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag="test",POTSDAM=False)
+if sys.argv[1] == "POTSDAM":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="test",POTSDAM=True)
+if sys.argv[1] == "POTSDAM_lod0":
+    data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag="test",POTSDAM=True)
+if sys.argv[1] == "BRUGES":
+    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
+if sys.argv[1] == "BRUGES_lod0":
+    data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag="test")
+if sys.argv[1] == "TOULOUSE":
+    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
+if sys.argv[1] == "TOULOUSE_lod0":
+    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test", labelflag="lod0",weightflag="iou")  
+  
+if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
+    data = data.copyTOcache(outputresolution=50)
 else:
-    datasetname = sys.argv[1]
-print("load data",datasetname)
-
-if datasetname == "VAIHINGEN":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
-if datasetname == "POTSDAM":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="test",POTSDAM=True)
-if datasetname == "BRUGES":
-    datatest = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
-if datasetname == "TOULOUSE":
-    datatest = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
-
-datatest = datatest.copyTOcache(outputresolution=50)
-nbclasses = len(datatest.setofcolors)
+    if sys.argv[2]=="grey":
+        data = data.copyTOcache(outputresolution=50,color=False)
+    else:
+        data = data.copyTOcache(outputresolution=50,color=False,normalize=True)
+nbclasses = len(data.setofcolors)
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
-names=datatest.getnames()
 
 
 
-#### TODO conditional import depending on the model
-namemodel = "UNET"
-if (len(sys.argv)==3 and sys.argv[2]=="UNET") or True:
-    import unet
-
-    print("load model",namemodel)
-    with torch.no_grad():
-        net = torch.load("build/model.pth")
-        net = net.to(device)
-
+print("load unet")
+import unet
+with torch.no_grad():
+    net = torch.load("build/model.pth")
+    net = net.to(device)
 
 
 print("test")
 with torch.no_grad():
     net.eval()
     for name in names:
-        image,label = datatest.getImageAndLabel(name,innumpy=False)
+        image,label = data.getImageAndLabel(name,innumpy=False)
         pred = net(image.to(device))
         _,pred = torch.max(pred[0],0)
         pred = pred.cpu().numpy()
@@ -72,9 +75,9 @@ with torch.no_grad():
 
         cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
 
-        pred = PIL.Image.fromarray(datatest.vtTOcolorvt(pred))
+        pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
         pred.save("build/"+name+"_z.png")
 
-    print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
+    print(getstat(cm))
     print(cm)
 
