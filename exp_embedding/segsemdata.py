@@ -188,10 +188,7 @@ class SegSemDataset:
         else:
             out = SegSemDataset(outputname)
 
-        if color:
-            out.nbchannel = 3
-        else:
-            out.nbchannel = 1
+        out.nbchannel = self.nbchannel
         out.setofcolors = self.setofcolors.copy()
         out.resolution = outputresolution
         if refreshweight:

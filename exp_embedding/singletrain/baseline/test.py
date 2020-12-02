@@ -77,6 +77,6 @@ with torch.no_grad():
         pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
         pred.save("build/"+name+"_z.png")
 
-    print(getstat(cm))
+    print(segsemdata.getstat(cm))
     print(cm)
 
