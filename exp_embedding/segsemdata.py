@@ -159,6 +159,7 @@ class SegSemDataset:
             freq = getBinaryFrequency(alllabels)
             self.colorweights = [1.,1.*freq[0]/freq[1]]
             print("frequency in",self.datasetname,"=",self.colorweights)
+        
         return self.colorweights.copy()        
 
     def vtTOcolorvt(self,mask):
@@ -178,7 +179,7 @@ class SegSemDataset:
 
         return mask
 
-    def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, outputname=""):
+    def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, refreshweight=False, outputname=""):
         nativeresolution = self.resolution
         if outputresolution<0:
             outputresolution = nativeresolution
@@ -193,7 +194,11 @@ class SegSemDataset:
             out.nbchannel = 1
         out.setofcolors = self.setofcolors.copy()
         out.resolution = outputresolution
-
+        if refreshweight:
+            out.colorweights = []
+        else:
+            out.colorweights = self.colorweights
+        
         out.root = pathTOcache
         for name in self.pathTOdata:
             x,y = self.pathTOdata[name]
@@ -225,7 +230,7 @@ class SegSemDataset:
 
 
 
-def makeDFC2015(datasetpath="/data/DFC2015", labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+def makeDFC2015(datasetpath, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
     assert(labelflag in ["lod0","normal"])
     assert(weightflag in ["uniform","surfaceonly","iou"])
     assert(dataflag in ["all","fewshot","train","test"])
@@ -267,7 +272,7 @@ def makeDFC2015(datasetpath="/data/DFC2015", labelflag="normal", weightflag="sur
     return data
     
 
-def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+def makeISPRS(datasetpath,POTSDAM=True, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
     assert(labelflag in ["lod0","normal"])
     assert(weightflag in ["uniform","iou","surfaceonly"])
     assert(dataflag in ["all","fewshot","train","test"])
@@ -275,16 +280,10 @@ def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag=
     if POTSDAM:
         data = SegSemDataset("POTSDAM")
         data.nbchannel,data.resolution = 3,5
-        data.root = datasetpath+"ISPRS_POTSDAM"
     else:
         data = SegSemDataset("VAIHINGEN")
         data.nbchannel,data.resolution = 3,10
-        data.root = datasetpath+"ISPRS_VAIHINGEN"
-    
-     if mode=="normal":
-        return 
-     else:#lod0
-        return [[255,255,255],[0,0,255]]
+    data.root = datasetpath
     
     if labelflag=="lod0":
         data.setofcolors = [[255,255,255],[0,0,255]]
@@ -293,7 +292,7 @@ def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag=
         else:
             data.colorweights= [1,1]
     if labelflag=="normal":
-        dfc.setofcolors = [[255, 255, 255]
+        data.setofcolors = [[255, 255, 255]
             ,[0, 0, 255]
             ,[0, 255, 255]
             ,[ 0, 255, 0]
@@ -379,7 +378,7 @@ def makeISPRS(datasetpath="/data/",POTSDAM=True, labelflag="normal", weightflag=
 
 import os
 
-def makeAIRSdataset(datasetpath="/data/AIRS/trainval", weightflag="iou", dataflag="all"):
+def makeAIRSdataset(datasetpath, weightflag="iou", dataflag="all"):
     assert(weightflag in ["uniform","iou"])
     assert(dataflag in ["train","test"])
     
@@ -403,7 +402,7 @@ def makeAIRSdataset(datasetpath="/data/AIRS/trainval", weightflag="iou", datafla
 
     return data
 
-def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train", weightflag="iou", dataflag="all"):
+def makeINRIAdataset(datasetpath, weightflag="iou", dataflag="all"):
     assert(weightflag in ["uniform","iou"])
     assert(dataflag in ["all"])
     print("TODO add city + fewshot feature")
@@ -422,7 +421,7 @@ def makeINRIAdataset(datasetpath = "/data/INRIA/AerialImageDataset/train", weigh
 
     return inria
 
-def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dataflag="all"):
+def makeTinyMiniFrancePerTown(datasetpath,town="Nice",dataflag="all"):
     knowntown = ["Angers","Caen","Cherbourg","Lille_Arras_Lens_Douai_Henin",
         "Marseille_Martigues","Nice","Rennes","Vannes","Brest","Calais_Dunkerque",
         "Clermont-Ferrand","LeMans","Lorient","Nantes_Saint-Nazaire","Quimper",
@@ -435,7 +434,7 @@ def makeTinyMiniFrancePerTown(datasetpath="/data/tinyminifrance",town="Nice",dat
     minifrance.nbchannel,minifrance.resolution = 3,50
     minifrance.root = datasetpath
     minifrance.setofcolors = [[i,i,i] for i in [15,0,1,4,6,9,10,13]]
-    minifrance.colorweights = [0]+[1 for range(7)]
+    minifrance.colorweights = [0]+[1 for i in range(7)]
     minifrance.town = town
     
     if town!="all":
@@ -505,7 +504,7 @@ except ImportError:
     rasterioIMPORTED = False
 import math
     
-def makeSEMCITY(datasetpath="/data/SEMCITY_TOULOUSE", labelflag="normal", weightflag="surfaceonly", dataflag="all"):
+def makeSEMCITY(datasetpath, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
     assert(rasterioIMPORTED)
     assert(labelflag in ["lod0","normal"])
     assert(weightflag in ["uniform","iou","surfaceonly"])

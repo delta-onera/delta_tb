@@ -17,7 +17,7 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-sys.path.append('..')
+sys.path.append('../..')
 import segsemdata
 
 
