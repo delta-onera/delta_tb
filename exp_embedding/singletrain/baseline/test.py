@@ -3,7 +3,7 @@
 import sys
 print(sys.argv)
 assert(len(sys.argv)>1)
-assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0"])
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0","AIRS"])
 
 import numpy as np
 import PIL
@@ -40,6 +40,8 @@ if sys.argv[1] == "TOULOUSE":
     data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
 if sys.argv[1] == "TOULOUSE_lod0":
     data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test", labelflag="lod0",weightflag="iou")  
+if sys.argv[1] == "AIRS":
+    data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag="test",weightflag="iou")  
   
 if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
     data = data.copyTOcache(outputresolution=50)
