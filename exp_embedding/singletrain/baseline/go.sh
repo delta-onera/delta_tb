@@ -5,6 +5,12 @@ mkdir build
 /home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN | tee build/vaihingen_train.txt
 /home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN | tee build/vaihingen_test.txt
 
+/home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN_lod0 | tee build/vaihingenlod0_train.txt
+/home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN_lod0 | tee build/vaihingenlod0_test.txt
+
+/home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN_lod0 normalize | tee build/vaihingenlod0normalize_train.txt
+/home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN_lod0 normalize | tee build/vaihingenlod0normalize_test.txt
+
 /home/achanhon/anaconda3/bin/python -u train.py POTSDAM | tee build/potsdam_train.txt
 /home/achanhon/anaconda3/bin/python -u test.py  POTSDAM | tee build/potsdam_test.txt
 
