@@ -179,7 +179,7 @@ class SegSemDataset:
 
         return mask
 
-    def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, refreshweight=False, outputname=""):
+    def copyTOcache(self,pathTOcache="build",outputresolution=-1, color=True, normalize=False, outputname=""):
         nativeresolution = self.resolution
         if outputresolution<0:
             outputresolution = nativeresolution
@@ -189,12 +189,9 @@ class SegSemDataset:
             out = SegSemDataset(outputname)
 
         out.nbchannel = self.nbchannel
-        out.setofcolors = self.setofcolors.copy()
+        out.setofcolors = self.setofcolors
         out.resolution = outputresolution
-        if refreshweight:
-            out.colorweights = []
-        else:
-            out.colorweights = self.colorweights
+        out.colorweights = self.colorweights
         
         out.root = pathTOcache
         for name in self.pathTOdata:
@@ -217,7 +214,7 @@ class SegSemDataset:
             if normalize:
                 image = np.asarray(image,dtype=np.uint8)
                 image = normalizehistogram(image)
-                image = PIL.Image.fromarray(np.stack(image,axis=-1))
+                image = PIL.Image.fromarray(image)
 
             image.save(out.root+"/"+name+"_x.png")
             label.save(out.root+"/"+name+"_y.png")
