@@ -51,7 +51,7 @@ nbclasses = 2
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
 
 print("load unet")
-import unet
+import embedding
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.to(device)
@@ -64,7 +64,7 @@ with torch.no_grad():
     for data in alldatasets:
         for name in data.getnames():
             image,label = data.getImageAndLabel(name,innumpy=False)
-            pred = net(image.to(device))
+            pred = net(image.to(device),data.metadata())
             _,pred = torch.max(pred[0],0)
             pred = pred.cpu().numpy()
 
