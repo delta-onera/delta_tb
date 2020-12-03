@@ -16,33 +16,12 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-sys.path.append('..')
+sys.path.append('../..')
 import segsemdata
 
 
 
 print("load data")
-class MergedSegSemDataset:
-    def __init__(self,alldatasets):
-        self.alldatasets = alldatasets
-        self.colorweights=[]
-        
-    def getrandomtiles(self,nbtiles,tilesize,batchsize):
-        XY = []
-        for dataset in self.alldatasets:
-            xy = dataset.getrawrandomtiles((nbtiles//len(self.alldatasets))+1,tilesize)
-            XY = x+y
-        
-        X = torch.stack([torch.Tensor(np.transpose(x,axes=(2, 0, 1))).cpu() for x,y in XY])
-        Y = torch.stack([torch.from_numpy(y).long().cpu() for x,y in XY])
-        dataset = torch.utils.data.TensorDataset(X,Y)
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batchsize, shuffle=True, num_workers=2)
-
-        return dataloader
-        
-    def getCriterionWeight(self):
-        return self.colorweights.copy()   
-
 root = "/data/"
 alldatasets = []
 
@@ -69,10 +48,6 @@ for i in range(1,len(sys.argv)):
     
 nbclasses = 2
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
-
-data = MergedSegSemDataset(alldatasets)
-
-
 
 print("load unet")
 import unet
