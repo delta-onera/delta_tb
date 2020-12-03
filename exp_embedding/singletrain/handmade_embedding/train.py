@@ -74,7 +74,7 @@ cm = np.zeros((nbclasses,nbclasses),dtype=int)
 data = MergedSegSemDataset(alldatasets)
 allfreq = np.zeros(2)
 for singledataset in alldatasets:
-    allfreq+=segsemdata.getBinaryFrequency(alllabels)
+    allfreq+=singledataset.getfrequency()
 data.colorweights = [1.,1.*allfreq[0]/allfreq[1]]
 
 

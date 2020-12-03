@@ -152,16 +152,20 @@ class SegSemDataset:
 
     def getCriterionWeight(self):
         if self.colorweights==[]:
-            alllabels = []    
-            for name in self.pathTOdata:
-                _,label = self.getImageAndLabel(name)     
-                alllabels.append(label)
-            freq = getBinaryFrequency(alllabels)
+            freq = self.getfrequency()
             self.colorweights = [1.,1.*freq[0]/freq[1]]
             print("frequency in",self.datasetname,"=",self.colorweights)
         
         return self.colorweights.copy()        
-
+    
+    def getfrequency(self):
+        alllabels = []    
+        for name in self.pathTOdata:
+            _,label = self.getImageAndLabel(name)     
+            alllabels.append(label)
+        freq = getBinaryFrequency(alllabels)
+        return freq
+    
     def vtTOcolorvt(self,mask):
         maskcolor = np.zeros((mask.shape[0],mask.shape[1],3),dtype=int)
         for i in range(len(self.setofcolors)):
