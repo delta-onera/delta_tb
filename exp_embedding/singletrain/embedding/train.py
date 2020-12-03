@@ -129,14 +129,7 @@ for epoch in range(nbepoch):
         loss = sum(losses)
         ###batch accumulation over dataset    
         
-        meanloss.append(loss.cpu().data.numpy())    
-        if epoch>30:
-            loss = loss*0.5
-        if epoch>60:
-            loss = loss*0.5
-        
-        optimizer.zero_grad()
-        loss.backward()
+        meanloss.append(loss)    
         optimizer.step()
 
         if random.randint(0,30)==0:
