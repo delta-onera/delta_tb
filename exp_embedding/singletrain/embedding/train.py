@@ -125,9 +125,8 @@ for epoch in range(nbepoch):
             preds = net(inputs,data.metadata())
             tmp = criterion[data.datasetname](preds,targets)
             tmp.backward(retain_graph=True)
-            losses.append(tmp)
-        losses = torch.Tensor(losses)
-        loss = torch.sum(losses)
+            losses.append(tmp.cpu().data.numpy())
+        loss = sum(losses)
         ###batch accumulation over dataset    
         
         meanloss.append(loss.cpu().data.numpy())    
