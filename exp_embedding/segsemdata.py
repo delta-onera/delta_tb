@@ -384,8 +384,8 @@ def makeAIRSdataset(datasetpath, weightflag="iou", dataflag="all"):
         tmp = [("/train/",name) for name in tmp]
         allfile = allfile +tmp
     if dataflag in ["test","all"]:
-        tmp = os.listdir(datasetpath+"/test/image")
-        tmp = [("/test/",name) for name in tmp]
+        tmp = os.listdir(datasetpath+"/val/image")
+        tmp = [("/val/",name) for name in tmp]
         allfile = allfile +tmp
 
     data = SegSemDataset("AIRS")
