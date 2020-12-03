@@ -1,7 +1,8 @@
 
 
 import sys
-print(sys.argv[0])
+print(sys.argv)
+assert(len(sys.argv)>1)
 
 import numpy as np
 import PIL
@@ -15,62 +16,70 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-sys.path.append('..')
+sys.path.append('../..')
 import segsemdata
 
 
 
+print("load data")
 root = "/data/"
-if len(sys.argv)==1 or (sys.argv[1] not in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]):
-    datasetname = "VAIHINGEN"
-else:
-    datasetname = sys.argv[1]
-print("load data",datasetname)
+alldatasets = []
 
-if datasetname == "VAIHINGEN":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
-if datasetname == "POTSDAM":
-    datatest = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM",dataflag="test",POTSDAM=True)
-if datasetname == "BRUGES":
-    datatest = segsemdata.makeDFC2015(datasetpath = root+"DFC2015",dataflag="test")
-if datasetname == "TOULOUSE":
-    datatest = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
+for i in range(1,len(sys.argv)):
+    if sys.argv[i].find('*')>0:
+        mode = "all"
+        name = sys.argv[i][:-1]
+    else:
+        mode = "test"
+        name = sys.argv[i]
+    assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","AIRS"])
 
-datatest = datatest.copyTOcache(outputresolution=50)
-nbclasses = len(datatest.setofcolors)
+    if name == "VAIHINGEN":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=False)
+    if name == "POTSDAM":
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=True)
+    if name == "BRUGES":
+        data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
+    if name == "TOULOUSE":
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou") 
+    if name == "AIRS":
+        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
+  
+    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+    
+nbclasses = 2
 cm = np.zeros((nbclasses,nbclasses),dtype=int)
-names=datatest.getnames()
 
-
-
-#### TODO conditional import depending on the model
-namemodel = "UNET"
-if (len(sys.argv)==3 and sys.argv[2]=="UNET") or True:
-    import unet
-
-    print("load model",namemodel)
-    with torch.no_grad():
-        net = torch.load("build/model.pth")
-        net = net.to(device)
+print("load unet")
+import unet
+with torch.no_grad():
+    net = torch.load("build/model.pth")
+    net = net.to(device)
 
 
 
 print("test")
 with torch.no_grad():
     net.eval()
-    for name in names:
-        image,label = datatest.getImageAndLabel(name,innumpy=False)
-        pred = net(image.to(device))
-        _,pred = torch.max(pred[0],0)
-        pred = pred.cpu().numpy()
+    for data in alldatasets:
+        for name in data.getnames():
+            image,label = data.getImageAndLabel(name,innumpy=False)
+            pred = net(image.to(device))
+            _,pred = torch.max(pred[0],0)
+            pred = pred.cpu().numpy()
 
-        assert(label.shape==pred.shape)
+            assert(label.shape==pred.shape)
 
-        cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
+            cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
 
-        pred = PIL.Image.fromarray(datatest.vtTOcolorvt(pred))
-        pred.save("build/"+name+"_z.png")
+            pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
+            pred.save("build/"+name+"_z.png")
 
-    print("accuracy=",np.sum(cm.diagonal())/(np.sum(cm)+1))
-    print(cm)
+        print(data.datasetname)
+        print(segsemdata.getstat(cm))
+        print(cm)
+
+print("global")
+print(segsemdata.getstat(cm))
+print(cm)
 
