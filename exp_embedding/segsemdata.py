@@ -265,7 +265,6 @@ def makeDFC2015(datasetpath, labelflag="normal", weightflag="surfaceonly", dataf
     
     return data
     
-
 def makeISPRS(datasetpath,POTSDAM=True, labelflag="normal", weightflag="surfaceonly", dataflag="all"):
     assert(labelflag in ["lod0","normal"])
     assert(weightflag in ["uniform","iou","surfaceonly"])
@@ -368,18 +367,22 @@ def makeISPRS(datasetpath,POTSDAM=True, labelflag="normal", weightflag="surfaceo
             data.pathTOdata[name] = ("top/"+name,"gts_for_participants/"+name)
 
     return data
-
-
+    
 import os
 
 def makeAIRSdataset(datasetpath, weightflag="iou", dataflag="all"):
     assert(weightflag in ["uniform","iou"])
-    assert(dataflag in ["train","test"])
+    assert(dataflag in ["train","test","all"])
     
-    if train:
-        allfile = os.listdir(datasetpath+"/train/image")
-    else:
-        allfile = os.listdir(datasetpath+"/val/image")
+    allfile = []
+    if dataflag in ["train","all"]:
+        tmp = os.listdir(datasetpath+"/train/image")
+        tmp = [("/train/",name) for name in tmp]
+        allfile = allfile +tmp
+    if dataflag in ["test","all"]:
+        tmp = os.listdir(datasetpath+"/test/image")
+        tmp = [("/test/",name) for name in tmp]
+        allfile = allfile +tmp
 
     data = SegSemDataset("AIRS")
     data.nbchannel,data.resolution,data.root,data.setofcolors = 3,8,datasetpath,[[0,0,0],[255,255,255]]
@@ -388,11 +391,8 @@ def makeAIRSdataset(datasetpath, weightflag="iou", dataflag="all"):
     else:
         data.colorweights = [1,1]
     
-    for name in allfile:
-        if train:
-            data.pathTOdata[name] = ("/train/image/"+name,"/train/label/"+name[0:-4]+"_vis.tif")
-        else:
-            data.pathTOdata[name] = ("/val/image/"+name,"/val/label/"+name[0:-4]+"_vis.tif")
+    for token,name in allfile:
+        data.pathTOdata[name] = (token+"image/"+name,token+"label/"+name[0:-4]+"_vis.tif")
 
     return data
 
