@@ -58,7 +58,7 @@ for i in range(1,len(sys.argv)):
     if name == "VAIHINGEN":
         data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=False)
     if name == "POTSDAM":
-        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=True)
+        data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_POTSDAM", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=True)
     if name == "BRUGES":
         data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
     if name == "TOULOUSE":
