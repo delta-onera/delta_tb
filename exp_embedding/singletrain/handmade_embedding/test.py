@@ -26,12 +26,13 @@ root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    assert(sys.argv[i].find('_')>0)
-    name = sys.argv[i].find('_')
-    mode = sys.argv[i][name+1:]
-    name = sys.argv[i][:name]
+    if sys.argv[i].find('*'):
+        mode = "all"
+        name = sys.argv[i][:-1]
+    else:
+        mode = "test"
+        name = sys.argv[i]
     assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","AIRS"])
-    assert(mode in ["test","all"])
 
     if name == "VAIHINGEN":
         data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN", labelflag="lod0",weightflag="iou",dataflag=mode,POTSDAM=False)
