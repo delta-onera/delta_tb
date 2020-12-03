@@ -121,10 +121,11 @@ for epoch in range(nbepoch):
         losses = []
         for data in alldatasets: 
             inputs, targets = next(iterators[data.datasetname])
-            inputs.requires_grad=True
             inputs,targets = inputs.to(device),targets.to(device)
             preds = net(inputs,data.metadata())
-            losses.append(criterion[data.datasetname](preds,targets))
+            tmp = criterion[data.datasetname](preds,targets)
+            tmp.backward(retain_graph=True)
+            losses.append(tmp)
         losses = torch.Tensor(losses)
         loss = torch.sum(losses)
         ###batch accumulation over dataset    
@@ -136,7 +137,7 @@ for epoch in range(nbepoch):
             loss = loss*0.5
         
         optimizer.zero_grad()
-        loss.backward(allow_unreachable=True)
+        loss.backward()
         optimizer.step()
 
         if random.randint(0,30)==0:
