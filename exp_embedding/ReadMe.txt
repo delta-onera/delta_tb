@@ -8,6 +8,9 @@ singletrain
         
     embedding : permet de lancer embedding en train ou test sur un set de jeux de données
         listes des datasets (avec flag classes et objectif)
+
+sequentialtrain
+    learning a representation and then applying on a new area
         
     
     

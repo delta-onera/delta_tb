@@ -20,6 +20,9 @@ mkdir build
 /achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0 | tee build/potsdamlod0_train.txt
 /home/achanhon/anaconda3/bin/python -u test.py  POTSDAM_lod0 | tee build/potsdamlod0_test.txt
 
+/achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0 normalize | tee build/potsdamlod0_train.txt
+/home/achanhon/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/potsdamlod0_test.txt
+
 /home/achanhon/anaconda3/bin/python -u train.py BRUGES | tee build/bruges_train.txt
 /home/achanhon/anaconda3/bin/python -u test.py  BRUGES | tee build/burges_test.txt
 
