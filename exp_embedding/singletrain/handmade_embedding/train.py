@@ -31,7 +31,7 @@ class MergedSegSemDataset:
         XY = []
         for dataset in self.alldatasets:
             xy = dataset.getrawrandomtiles((nbtiles//len(self.alldatasets))+1,tilesize)
-            XY = x+y
+            XY = XY+xy
         
         X = torch.stack([torch.Tensor(np.transpose(x,axes=(2, 0, 1))).cpu() for x,y in XY])
         Y = torch.stack([torch.from_numpy(y).long().cpu() for x,y in XY])
