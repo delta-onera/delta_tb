@@ -22,32 +22,11 @@ import segsemdata
 
 
 print("load data")
-class MergedSegSemDataset:
-    def __init__(self,alldatasets):
-        self.alldatasets = alldatasets
-        self.colorweights=[]
-        
-    def getrandomtiles(self,nbtiles,tilesize,batchsize):
-        XY = []
-        for dataset in self.alldatasets:
-            xy = dataset.getrawrandomtiles((nbtiles//len(self.alldatasets))+1,tilesize)
-            XY = XY+xy
-        
-        X = torch.stack([torch.Tensor(np.transpose(x,axes=(2, 0, 1))).cpu() for x,y in XY])
-        Y = torch.stack([torch.from_numpy(y).long().cpu() for x,y in XY])
-        dataset = torch.utils.data.TensorDataset(X,Y)
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batchsize, shuffle=True, num_workers=2)
-
-        return dataloader
-        
-    def getCriterionWeight(self):
-        return self.colorweights.copy()   
-
 root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    if sys.argv[i][-1]=='*':
+    if sys.argv[i].find('*')>0:
         mode = "all"
         name = sys.argv[i][:-1]
     else:
@@ -67,21 +46,14 @@ for i in range(1,len(sys.argv)):
         data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
   
     alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
-    
-nbclasses = 2
-cm = np.zeros((nbclasses,nbclasses),dtype=int)
-
-data = MergedSegSemDataset(alldatasets)
-allfreq = np.zeros(2)
-for singledataset in alldatasets:
-    allfreq+=singledataset.getfrequency()
-data.colorweights = [1.,1.*allfreq[0]/allfreq[1]]
 
 
 
-print("load unet")
-import unet
-net = unet.UNET(nbclasses,pretrained="/data/vgg16-00b39a1b.pth")
+print("load embedding")
+import embedding
+net = embedding.Embedding(pretrained="/data/vgg16-00b39a1b.pth")
+for data in alldatasets:
+    net.adddataset(data.metadata())
 net = net.to(device)
 
 
@@ -93,44 +65,74 @@ import torch.optim as optim
 import random
 from sklearn.metrics import confusion_matrix
 
-weigths = torch.Tensor(data.getCriterionWeight()).to(device)
-criterion = nn.CrossEntropyLoss(weight=weigths)
-optimizer = optim.Adam(net.parameters(), lr=0.0001)
+optimizer = net.getoptimizer()
+weights = {}
+criterion = {}
+earlystopping = {}
+nbclasses = {}
+for data in alldatasets:
+    weights[data.datasetname] = torch.Tensor(data.getCriterionWeight()).to(device)
+    criterion[data.datasetname] = nn.CrossEntropyLoss(weight=weights[data.datasetname])
+    earlystopping[data.datasetname] = data.getrandomtiles(1000,128,16)
+    nbclasses[data.datasetname] = len(data.setofcolors)
+    
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
 
-earlystopping = data.getrandomtiles(1000,128,16)
-def trainaccuracy():
-    net.eval()
-    cm = np.zeros((nbclasses,nbclasses),dtype=int)
+def trainaccuracy(data):
+    nbclasses_=nbclasses[data.datasetname]
+    cm = np.zeros((nbclasses_,nbclasses_),dtype=int)
     with torch.no_grad():
-        for inputs, targets in earlystopping:
+        for inputs, targets in earlystopping[data.datasetname]:
             inputs = inputs.to(device)
-            outputs = net(inputs)
+            outputs = net(inputs,data.metadata())
             _,pred = outputs.max(1)
             for i in range(pred.shape[0]):
-                cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses)))
+                cm += confusion_matrix(pred[i].cpu().numpy().flatten(),targets[i].cpu().numpy().flatten(),list(range(nbclasses_)))
     return segsemdata.getstat(cm)
+
+def trainaccuracyall():
+    net.eval()
+    ACC = 0
+    for data in alldatasets: 
+        acc,iou,IOU = trainaccuracy(data)
+        ACC+=acc
+    return ACC/len(alldatasets)
 
 
 
 print("train")
 for epoch in range(nbepoch):
     print("epoch=", epoch,"/",nbepoch)
-    trainloader = data.getrandomtiles(2000,128,16)
     net.train()
-    for inputs, targets in trainloader:
-        inputs, targets = inputs.to(device), targets.to(device)
-
-        preds = net(inputs)
-        loss = criterion(preds,targets)
-        meanloss.append(loss.cpu().data.numpy())
-
+    
+    trainloader = {}
+    iterators = {}
+    for data in alldatasets: 
+        trainloader[data.datasetname] = data.getrandomtiles(2000,128,16)
+        iterators[data.datasetname] = iter(trainloader[data.datasetname])
+    
+    assert(2000//16*16==2000)
+        
+    for iteration in range(2000//16):
+        optimizer.zero_grad()
+        
+        ###batch accumulation over dataset
+        losses = []
+        for data in alldatasets: 
+            inputs, targets = next(iterators[town])
+            preds = net(inputs,data.metadata())
+            losses.append(criterion[town](preds,targets))
+        losses = torch.Tensor(losses)
+        loss = torch.sum(losses)
+        ###batch accumulation over dataset    
+        
+        meanloss.append(loss.cpu().data.numpy())    
         if epoch>30:
             loss = loss*0.5
         if epoch>60:
             loss = loss*0.5
-
+        
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -139,7 +141,7 @@ for epoch in range(nbepoch):
             print("loss=",(sum(meanloss)/len(meanloss)))
 
     torch.save(net, "build/model.pth")
-    acc,iou,IoU=trainaccuracy()
-    print("stat:", acc,iou,IoU)
+    acc=trainaccuracyall()
+    print("average acc:", acc)
     if acc>0.97:
         quit()

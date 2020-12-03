@@ -26,7 +26,7 @@ root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    if sys.argv[i].find('*')>0:
+    if sys.argv[i][-1]=='*':
         mode = "all"
         name = sys.argv[i][:-1]
     else:
