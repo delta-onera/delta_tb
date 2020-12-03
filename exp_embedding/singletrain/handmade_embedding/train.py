@@ -46,13 +46,12 @@ class MergedSegSemDataset:
 root = "/data/"
 alldatasets = []
 
-knowdataset = ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"]
 for i in range(1,len(sys.argv)):
     assert(sys.argv[i].find('_')>0)
     name = sys.argv[i].find('_')
     mode = sys.argv[i][name+1:]
     name = sys.argv[i][:name]
-    assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE"])
+    assert(name in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","AIRS"])
     assert(mode in ["train","all"])
 
     if name == "VAIHINGEN":
@@ -62,7 +61,9 @@ for i in range(1,len(sys.argv)):
     if name == "BRUGES":
         data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
     if name == "TOULOUSE":
-        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou")  
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou") 
+    if name == "AIRS":
+        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
   
     alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
     
