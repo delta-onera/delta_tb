@@ -96,6 +96,7 @@ def trainaccuracyall():
     ACC = 0
     for data in alldatasets: 
         acc,iou,IOU = trainaccuracy(data)
+        print(data.datasetname,acc,iou)
         ACC+=acc
     return ACC/len(alldatasets)
 
