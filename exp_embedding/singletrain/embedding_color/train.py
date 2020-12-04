@@ -26,7 +26,7 @@ root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    if sys.argv[i].find('*')>0:
+    if sys.argv[i][-1]=='*':
         mode = "all"
         name = sys.argv[i][:-1]
     else:
@@ -96,6 +96,7 @@ def trainaccuracyall():
     ACC = 0
     for data in alldatasets: 
         acc,iou,IOU = trainaccuracy(data)
+        print(data.datasetname,acc,iou)
         ACC+=acc
     return ACC/len(alldatasets)
 
@@ -120,21 +121,16 @@ for epoch in range(nbepoch):
         ###batch accumulation over dataset
         losses = []
         for data in alldatasets: 
-            inputs, targets = next(iterators[town])
+            inputs, targets = next(iterators[data.datasetname])
+            inputs,targets = inputs.to(device),targets.to(device)
             preds = net(inputs,data.metadata())
-            losses.append(criterion[town](preds,targets))
-        losses = torch.Tensor(losses)
-        loss = torch.sum(losses)
+            tmp = criterion[data.datasetname](preds,targets)
+            tmp.backward(retain_graph=True)
+            losses.append(tmp.cpu().data.numpy())
+        loss = sum(losses)
         ###batch accumulation over dataset    
         
-        meanloss.append(loss.cpu().data.numpy())    
-        if epoch>30:
-            loss = loss*0.5
-        if epoch>60:
-            loss = loss*0.5
-        
-        optimizer.zero_grad()
-        loss.backward()
+        meanloss.append(loss)    
         optimizer.step()
 
         if random.randint(0,30)==0:

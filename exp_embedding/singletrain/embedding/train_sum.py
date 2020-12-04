@@ -26,7 +26,7 @@ root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    if sys.argv[i].find('*')>0:
+    if sys.argv[i][-1]=='*':
         mode = "all"
         name = sys.argv[i][:-1]
     else:
@@ -74,7 +74,7 @@ for data in alldatasets:
     weights[data.datasetname] = torch.Tensor(data.getCriterionWeight()).to(device)
     criterion[data.datasetname] = nn.CrossEntropyLoss(weight=weights[data.datasetname])
     earlystopping[data.datasetname] = data.getrandomtiles(1000,128,16)
-    nbclasses[data.datasetname] = len(data.setofcolors)
+    nbclasses[data.datasetname] = 2
     
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
@@ -96,6 +96,7 @@ def trainaccuracyall():
     ACC = 0
     for data in alldatasets: 
         acc,iou,IOU = trainaccuracy(data)
+        print(data.datasetname,acc,iou)
         ACC+=acc
     return ACC/len(alldatasets)
 
@@ -120,20 +121,21 @@ for epoch in range(nbepoch):
         ###batch accumulation over dataset
         losses = []
         for data in alldatasets: 
-            inputs, targets = next(iterators[town])
+            inputs, targets = next(iterators[data.datasetname])
+            inputs,targets = inputs.to(device),targets.to(device)
             preds = net(inputs,data.metadata())
-            losses.append(criterion[town](preds,targets))
-        losses = torch.Tensor(losses)
-        loss = torch.sum(losses)
+            tmp = criterion[data.datasetname](preds,targets)
+            losses.append(tmp)
+        loss = sum(losses)
         ###batch accumulation over dataset    
         
         meanloss.append(loss.cpu().data.numpy())    
+        
         if epoch>30:
             loss = loss*0.5
         if epoch>60:
             loss = loss*0.5
         
-        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 

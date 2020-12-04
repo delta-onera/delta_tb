@@ -74,7 +74,7 @@ for data in alldatasets:
     weights[data.datasetname] = torch.Tensor(data.getCriterionWeight()).to(device)
     criterion[data.datasetname] = nn.CrossEntropyLoss(weight=weights[data.datasetname])
     earlystopping[data.datasetname] = data.getrandomtiles(1000,128,16)
-    nbclasses[data.datasetname] = len(data.setofcolors)
+    nbclasses[data.datasetname] = 2
     
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
