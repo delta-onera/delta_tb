@@ -3,7 +3,6 @@
 import sys
 print(sys.argv)
 assert(len(sys.argv)>1)
-assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0","AIRS"])
 
 import numpy as np
 import PIL
@@ -24,6 +23,7 @@ import segsemdata
 
 print("load data")
 root = "/data/"
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0","AIRS"])
 if sys.argv[1] == "VAIHINGEN":
     data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="train",POTSDAM=False)
 if sys.argv[1] == "VAIHINGEN_lod0":

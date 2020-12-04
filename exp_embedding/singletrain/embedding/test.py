@@ -61,7 +61,7 @@ print("test")
 with torch.no_grad():
     net.eval()
     for data in alldatasets:
-        nbclasses = len(data.setofcolors)
+        nbclasses = 2
         cm = np.zeros((nbclasses,nbclasses),dtype=int)
         for name in data.getnames():
             image,label = data.getImageAndLabel(name,innumpy=False)

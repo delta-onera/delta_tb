@@ -26,7 +26,7 @@ root = "/data/"
 alldatasets = []
 
 for i in range(1,len(sys.argv)):
-    if sys.argv[i].find('*')>0:
+    if sys.argv[i][-1]=='*':
         mode = "all"
         name = sys.argv[i][:-1]
     else:
@@ -41,16 +41,15 @@ for i in range(1,len(sys.argv)):
     if name == "BRUGES":
         data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
     if name == "TOULOUSE":
-        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou") 
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou")
     if name == "AIRS":
-        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
-  
-    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
-    
-nbclasses = 2
-cm = np.zeros((nbclasses,nbclasses),dtype=int)
+        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")
 
-print("load unet")
+    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+
+
+
+print("load embedding")
 import embedding
 with torch.no_grad():
     net = torch.load("build/model.pth")
@@ -62,6 +61,8 @@ print("test")
 with torch.no_grad():
     net.eval()
     for data in alldatasets:
+        nbclasses = len(data.setofcolors)
+        cm = np.zeros((nbclasses,nbclasses),dtype=int)
         for name in data.getnames():
             image,label = data.getImageAndLabel(name,innumpy=False)
             pred = net(image.to(device),data.metadata())
@@ -78,8 +79,3 @@ with torch.no_grad():
         print(data.datasetname)
         print(segsemdata.getstat(cm))
         print(cm)
-
-print("global")
-print(segsemdata.getstat(cm))
-print(cm)
-
