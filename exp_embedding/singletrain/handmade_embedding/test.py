@@ -41,14 +41,13 @@ for i in range(1,len(sys.argv)):
     if name == "BRUGES":
         data = segsemdata.makeDFC2015(datasetpath = root+"DFC2015", labelflag="lod0",weightflag="iou",dataflag=mode)
     if name == "TOULOUSE":
-        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou") 
+        data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag=mode, labelflag="lod0",weightflag="iou")
     if name == "AIRS":
-        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
-  
+        data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")
+
     alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
-    
-nbclasses = 2
-cm = np.zeros((nbclasses,nbclasses),dtype=int)
+
+
 
 print("load unet")
 import unet
@@ -62,6 +61,8 @@ print("test")
 with torch.no_grad():
     net.eval()
     for data in alldatasets:
+        nbclasses = 2
+        cm = np.zeros((nbclasses,nbclasses),dtype=int)
         for name in data.getnames():
             image,label = data.getImageAndLabel(name,innumpy=False)
             pred = net(image.to(device))
@@ -78,8 +79,3 @@ with torch.no_grad():
         print(data.datasetname)
         print(segsemdata.getstat(cm))
         print(cm)
-
-print("global")
-print(segsemdata.getstat(cm))
-print(cm)
-

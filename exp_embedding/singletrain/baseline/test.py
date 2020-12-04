@@ -3,7 +3,6 @@
 import sys
 print(sys.argv)
 assert(len(sys.argv)>1)
-assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0","AIRS"])
 
 import numpy as np
 import PIL
@@ -24,6 +23,7 @@ import segsemdata
 
 print("load data")
 root = "/data/"
+assert(sys.argv[1] in ["VAIHINGEN","POTSDAM","BRUGES","TOULOUSE","VAIHINGEN_lod0","POTSDAM_lod0","BRUGES_lod0","TOULOUSE_lod0","AIRS"])
 if sys.argv[1] == "VAIHINGEN":
     data = segsemdata.makeISPRS(datasetpath = root+"ISPRS_VAIHINGEN",dataflag="test",POTSDAM=False)
 if sys.argv[1] == "VAIHINGEN_lod0":
@@ -39,10 +39,10 @@ if sys.argv[1] == "BRUGES_lod0":
 if sys.argv[1] == "TOULOUSE":
     data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test")
 if sys.argv[1] == "TOULOUSE_lod0":
-    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test", labelflag="lod0",weightflag="iou")  
+    data = segsemdata.makeSEMCITY(datasetpath = root+"SEMCITY_TOULOUSE",dataflag="test", labelflag="lod0",weightflag="iou")
 if sys.argv[1] == "AIRS":
-    data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag="test",weightflag="iou")  
-  
+    data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag="test",weightflag="iou")
+
 if sys.argv[1] in ["TOULOUSE","TOULOUSE_lod0"] or len(sys.argv)==2 or sys.argv[2] not in ["grey","normalize"]:
     data = data.copyTOcache(outputresolution=50)
 else:
@@ -50,8 +50,6 @@ else:
         data = data.copyTOcache(outputresolution=50,color=False)
     else:
         data = data.copyTOcache(outputresolution=50,color=False,normalize=True)
-nbclasses = len(data.setofcolors)
-cm = np.zeros((nbclasses,nbclasses),dtype=int)
 
 
 
@@ -66,19 +64,22 @@ with torch.no_grad():
 print("test")
 with torch.no_grad():
     net.eval()
-    for name in data.getnames():
-        image,label = data.getImageAndLabel(name,innumpy=False)
-        pred = net(image.to(device))
-        _,pred = torch.max(pred[0],0)
-        pred = pred.cpu().numpy()
+    if True:
+        nbclasses = len(data.setofcolors)
+        cm = np.zeros((nbclasses,nbclasses),dtype=int)
+        for name in data.getnames():
+            image,label = data.getImageAndLabel(name,innumpy=False)
+            pred = net(image.to(device))
+            _,pred = torch.max(pred[0],0)
+            pred = pred.cpu().numpy()
 
-        assert(label.shape==pred.shape)
+            assert(label.shape==pred.shape)
 
-        cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
+            cm+= confusion_matrix(label.flatten(),pred.flatten(),list(range(nbclasses)))
 
-        pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
-        pred.save("build/"+name+"_z.png")
+            pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
+            pred.save("build/"+name+"_z.png")
 
-    print(segsemdata.getstat(cm))
-    print(cm)
-
+        print(data.datasetname)
+        print(segsemdata.getstat(cm))
+        print(cm)
