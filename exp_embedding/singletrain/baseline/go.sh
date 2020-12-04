@@ -2,28 +2,21 @@ rm -r ../../__pycache__
 rm -r build
 mkdir build
 
-#/home/achanhon/anaconda3/bin/python -u train.py AIRS | tee build/airs_train.txt
-#/home/achanhon/anaconda3/bin/python -u test.py  AIRS | tee build/airs_test.txt
+echo "############################ different training settings -- all test on potsdam ############################"
+echo "supervised color"
+/achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0
+/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 | tee build/p2pcolor.txt
 
-/home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN | tee build/vaihingen_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN | tee build/vaihingen_test.txt
+echo "supervised"
+/achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0 normalize
+/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/p2p.txt
 
-/home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN_lod0 | tee build/vaihingenlod0_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN_lod0 | tee build/vaihingenlod0_test.txt
+echo "transfert "
+/data/anaconda3/bin/python -u train.py VAIHINGEN_lod0 normalize
+/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/v2p.txt
 
-/home/achanhon/anaconda3/bin/python -u train.py VAIHINGEN_lod0 normalize | tee build/vaihingenlod0normalize_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  VAIHINGEN_lod0 normalize | tee build/vaihingenlod0normalize_test.txt
+/data/anaconda3/bin/python -u train.py BRUGES_lod0 normalize
+/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/b2p.txt
 
-/home/achanhon/anaconda3/bin/python -u train.py POTSDAM | tee build/potsdam_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  POTSDAM | tee build/potsdam_test.txt
-
-/achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0 | tee build/potsdamlod0_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  POTSDAM_lod0 | tee build/potsdamlod0_test.txt
-
-/achanhon/anaconda3/bin/python -u train.py POTSDAM_lod0 normalize | tee build/potsdamlod0n_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/potsdamlod0n_test.txt
-
-/home/achanhon/anaconda3/bin/python -u train.py BRUGES | tee build/bruges_train.txt
-/home/achanhon/anaconda3/bin/python -u test.py  BRUGES | tee build/burges_test.txt
 
 rm -r ../../__pycache__
