@@ -12,11 +12,11 @@ echo "supervised"
 /data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/p2p.txt
 
 echo "transfert "
+/data/anaconda3/bin/python -u train.py AIRS normalize
+/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/a2p.txt
+
 /data/anaconda3/bin/python -u train.py VAIHINGEN_lod0 normalize
 /data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/v2p.txt
-
-/data/anaconda3/bin/python -u train.py BRUGES_lod0 normalize
-/data/anaconda3/bin/python -u test.py  POTSDAM_lod0 normalize | tee build/b2p.txt
 
 
 rm -r ../../__pycache__

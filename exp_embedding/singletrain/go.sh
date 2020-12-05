@@ -10,4 +10,8 @@ cd embedding
 sh go.sh
 cd ..
 
+cd embedding_color
+sh go.sh
+cd ..
+
 
