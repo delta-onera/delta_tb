@@ -45,7 +45,7 @@ for i in range(1,len(sys.argv)):
     if name == "AIRS":
         data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")
 
-    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+    alldatasets.append(data.copyTOcache(outputresolution=50))
 
 
 
@@ -61,7 +61,7 @@ print("test")
 with torch.no_grad():
     net.eval()
     for data in alldatasets:
-        nbclasses = len(data.setofcolors)
+        nbclasses = 2
         cm = np.zeros((nbclasses,nbclasses),dtype=int)
         for name in data.getnames():
             image,label = data.getImageAndLabel(name,innumpy=False)

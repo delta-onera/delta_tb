@@ -125,12 +125,18 @@ for epoch in range(nbepoch):
             inputs,targets = inputs.to(device),targets.to(device)
             preds = net(inputs,data.metadata())
             tmp = criterion[data.datasetname](preds,targets)
-            tmp.backward(retain_graph=True)
-            losses.append(tmp.cpu().data.numpy())
+            losses.append(tmp)
         loss = sum(losses)
         ###batch accumulation over dataset    
         
-        meanloss.append(loss)    
+        meanloss.append(loss.cpu().data.numpy())    
+        
+        if epoch>30:
+            loss = loss*0.5
+        if epoch>60:
+            loss = loss*0.5
+        
+        loss.backward()
         optimizer.step()
 
         if random.randint(0,30)==0:
