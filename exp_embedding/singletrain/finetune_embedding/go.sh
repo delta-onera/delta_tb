@@ -2,7 +2,7 @@ rm -r ../../__pycache__
 rm -r build
 mkdir build
 
-echo "semi-supervised embedding"
+echo "semi-supervised embedding with finetuning"
 /data/anaconda3/bin/python -u train_sum.py AIRS VAIHINGEN BRUGES POTSDAM
 /data/anaconda3/bin/python -u test.py  POTSDAM | tee build/avbp2p_sum.txt
 
