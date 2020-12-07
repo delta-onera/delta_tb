@@ -139,5 +139,37 @@ for epoch in range(nbepoch):
     torch.save(net, "build/model.pth")
     acc=trainaccuracyall()
     print("average acc:", acc)
-    if acc>0.97:
-        quit()
+    if acc>0.95:
+        break()
+        
+
+
+print("finetuning")
+for data in alldatasets: 
+    print(data.datasetname)
+    meanloss = collections.deque(maxlen=200)
+    optimizer_global = net.getoptimizer()
+    optimizer_local = net.getoptimizer(data.datasetname)
+    for epoch in range(nbepoch):
+        print("epoch=", epoch,"/",nbepoch)
+        trainloader = data.getrandomtiles(2000,128,16)
+        net.train()
+        for inputs, targets in trainloader:
+            inputs, targets = inputs.to(device), targets.to(device)
+
+            preds = net(inputs)
+            loss = criterion[data.datasetname](preds,targets)
+            meanloss.append(loss.cpu().data.numpy())
+
+            optimizer_global.zero_grad()
+            loss.backward()
+            optimizer_local.step()
+
+            if random.randint(0,30)==0:
+                print("loss=",(sum(meanloss)/len(meanloss)))
+
+        torch.save(net, "build/model.pth")
+        acc,iou,IoU=trainaccuracy(data)
+        print("stat:", acc,iou,IoU)
+        if acc>0.97:
+            break
