@@ -1,3 +1,5 @@
+echo "############################ different training settings -- all test on potsdam ############################"
+
 cd baseline
 sh go.sh
 cd ..

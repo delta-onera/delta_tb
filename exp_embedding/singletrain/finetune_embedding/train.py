@@ -45,7 +45,7 @@ for i in range(1,len(sys.argv)):
     if name == "AIRS":
         data = segsemdata.makeAIRSdataset(datasetpath = root+"AIRS",dataflag=mode,weightflag="iou")  
   
-    alldatasets.append(data.copyTOcache(outputresolution=50,color=False,normalize=True))
+    alldatasets.append(data.copyTOcache(outputresolution=50))
 
 
 
