@@ -16,7 +16,7 @@ cd embedding_color
 sh go.sh
 cd ..
 
-cd finetuning_embedding
+cd finetune_embedding
 sh go.sh
 cd ..
 
