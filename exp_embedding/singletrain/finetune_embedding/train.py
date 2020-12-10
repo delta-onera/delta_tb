@@ -140,7 +140,7 @@ for epoch in range(nbepoch):
     acc=trainaccuracyall()
     print("average acc:", acc)
     if acc>0.95:
-        break()
+        break
         
 
 
