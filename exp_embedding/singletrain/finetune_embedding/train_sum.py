@@ -163,7 +163,7 @@ for data in alldatasets:
         for inputs, targets in trainloader:
             inputs, targets = inputs.to(device), targets.to(device)
 
-            preds = net(inputs)
+            preds = net(inputs,data.metadata())
             loss = criterion[data.datasetname](preds,targets)
             meanloss.append(loss.cpu().data.numpy())
 
