@@ -13,7 +13,7 @@ if device == "cuda":
     cudnn.benchmark = True
 
 whereIam = os.uname()[1]
-print(sys.argv)
+print(whereIam,sys.argv)
 assert len(sys.argv) > 1
 
 
