@@ -50,7 +50,7 @@ class SegSemDataset:
     ###
     ### get the hole image
     ### for test usage -- or in internal call for extracting crops
-    def getImageAndLabel(self, i, innumpy=True):
+    def getImageAndLabel(self, i):
         assert i < self.nbImages
 
         image = (
@@ -61,12 +61,7 @@ class SegSemDataset:
         label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
         label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
         label = np.uint8(label != 0)
-
-        if innumpy:
-            return image, label
-        else:
-            image = torch.Tensor(np.transpose(image, axes=(2, 0, 1))).unsqueeze(0)
-            return image, label
+        return image, label
 
     ###
     ### get randomcrops + symetrie

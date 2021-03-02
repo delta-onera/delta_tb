@@ -1,4 +1,3 @@
-import sys
 import os
 import numpy as np
 import PIL
@@ -7,14 +6,14 @@ from sklearn.metrics import confusion_matrix
 
 import torch
 import torch.backends.cudnn as cudnn
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
 whereIam = os.uname()[1]
-print(whereIam,sys.argv)
-assert(whereIam in ["super","wdtis719z","ldtis706z"])
+assert whereIam in ["super", "wdtis719z", "ldtis706z"]
 
 
 print("load model")
@@ -27,41 +26,70 @@ import dataloader
 
 print("massif benchmark")
 cm = {}
-
 with torch.no_grad():
-    if whereIam in ["super","wdtis719z"]:
-        availabledata=["toulouse","potsdam"]
+    if whereIam in ["super", "wdtis719z"]:
+        availabledata = ["toulouse", "potsdam"]
         root = "/data/miniworld/"
-        
+
     if whereIam in ["ldtis706z"]:
-        availabledata=["toulouse","potsdam","bruges","newzealand"]
+        availabledata = ["toulouse", "potsdam", "bruges", "newzealand"]
         root = "/media/achanhon/bigdata/data/miniworld/"
-    
+
     for name in availabledata:
-        print("load",name)
-        data = dataloader.SegSemDataset(root+name+"/test",name in ["toulouse","potsdam","bruges","newzealand"])
+        data = dataloader.SegSemDataset(
+            root + name + "/test",
+            name in ["toulouse", "potsdam", "bruges", "newzealand"],
+        )
 
-		cm[name] = np.zeros((2,2), dtype=int)
-		for i in range(data.nbImages):
-			image, label = data.getImageAndLabel(i, innumpy=False)
-			image = image.to(device)
-			
-			globalresize = nn.AdaptiveAvgPool2d((image.shape[2],image.shape[3]))
-            power2resize = nn.AdaptiveAvgPool2d((data.shape[2]//32)*32,(data.shape[3]//32)*32)
-			
-			pred = (net, image.to(device))
-			_, pred = torch.max(pred[0], 0)
-			pred = pred.cpu().numpy()
+        cm[name] = np.zeros((2, 2), dtype=int)
+        for i in range(data.nbImages):
+            imageraw, label = data.getImageAndLabel(i, innumpy=False)
+            image = (
+                torch.Tensor(np.transpose(imageraw, axes=(2, 0, 1)))
+                .to(device)
+                .unsqueeze(0)
+            )
 
-			assert label.shape == pred.shape
+            globalresize = nn.AdaptiveAvgPool2d((image.shape[2], image.shape[3]))
+            power2resize = nn.AdaptiveAvgPool2d(
+                (data.shape[2] // 32) * 32, (data.shape[3] // 32) * 32
+            )
 
-			cm[name] += confusion_matrix(
-				label.flatten(), pred.flatten(), list(range(nbclasses))
-			)
+            pred = (net, image.to(device))
+            _, pred = torch.max(pred[0], 0)
+            pred = pred.cpu().numpy()
 
-			pred = PIL.Image.fromarray(data.vtTOcolorvt(pred))
-			pred.save("build/" + name +"_"+ str( + "_z.png")
+            assert label.shape == pred.shape
 
-		print(data.datasetname)
-		print(segsemdata.getstat(cm))
-		print(cm)
+            cm[name] += confusion_matrix(
+                label.flatten(), pred.flatten(), list(range(nbclasses))
+            )
+
+            if name in ["toulouse", "potsdam"]:
+                imageraw = PIL.Image.fromarray(np.uint8(imageraw))
+                pred.save("build/" + name + "_" + str(i) + "_x.png")
+                label = PIL.Image.fromarray(np.uint8(label) * 255)
+                pred.save("build/" + name + "_" + str(i) + "_y.png")
+                pred = PIL.Image.fromarray(np.uint8(pred) * 255)
+                pred.save("build/" + name + "_" + str(i) + "_z.png")
+
+        print(
+            name,
+            cm[name][0][0],
+            cm[name][0][1],
+            cm[name][1][0],
+            cm[name][1][1],
+            100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name]),
+            50.0 * cm[name][0][0] / (cm[name][0][0] + cm[name][1][0] + cm[name][0][1])
+            + 50.0
+            * cm[name][1][1]
+            / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1]),
+        )
+
+print("summary")
+for name in availabledata:
+    print(
+        name,
+        50.0 * cm[name][0][0] / (cm[name][0][0] + cm[name][1][0] + cm[name][0][1])
+        + 50.0 * cm[name][1][1] / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1]),
+    )
