@@ -43,22 +43,32 @@ with torch.no_grad():
 
         cm[name] = np.zeros((2, 2), dtype=int)
         for i in range(data.nbImages):
-            imageraw, label = data.getImageAndLabel(i, innumpy=False)
-            image = (
-                torch.Tensor(np.transpose(imageraw, axes=(2, 0, 1)))
-                .to(device)
-                .unsqueeze(0)
-            )
+            imageraw, label = data.getImageAndLabel(i)
 
-            globalresize = nn.AdaptiveAvgPool2d((image.shape[2], image.shape[3]))
-            power2resize = nn.AdaptiveAvgPool2d(
+            image = torch.Tensor(np.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
+            globalresize = torch.nn.AdaptiveAvgPool2d((image.shape[2], image.shape[3]))
+            power2resize = torch.nn.AdaptiveAvgPool2d(
                 (data.shape[2] // 32) * 32, (data.shape[3] // 32) * 32
             )
+            image = power2resize(image)
 
-            pred = (net, image.to(device))
+            if image.shape[2] > 512 or image.shape[3] > 512:
+                tilesize, stride = 128, 32
+                pred = torch.zeros(2, image.shape[2], image.shape[3]).cpu()
+                for row in range(0, image.shape[2] - tilesize + 1, stride):
+                    for col in range(0, image.shape[3] - tilesize + 1, stride):
+                        tmp = net(
+                            image[:, :, row : row + tilesize, col : col + tilesize]
+                            .float()
+                            .to(device)
+                        ).cpu()
+                        pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
+            else:
+                pred = net(image.to(device))
+
+            pred = globalresize(pred)
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
-
             assert label.shape == pred.shape
 
             cm[name] += confusion_matrix(
