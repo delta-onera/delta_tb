@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import PIL
 from PIL import Image
@@ -29,8 +30,8 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
     i = 0
     for name in XY:
         x, y = XY[name]
-        image = PIL.Image.from_array(np.uint8(x))
-        label = PIL.Image.from_array(np.uint8(y))
+        image = PIL.Image.fromarray(np.uint8(x))
+        label = PIL.Image.fromarray(np.uint8(y))
 
         if nativeresolution != outputresolution:
             image = image.resize(
