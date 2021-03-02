@@ -7,14 +7,10 @@ from sklearn.metrics import confusion_matrix
 
 import torch
 import torch.backends.cudnn as cudnn
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
-
-import segsemdata
-
 
 whereIam = os.uname()[1]
 print(sys.argv)
@@ -38,7 +34,6 @@ if whereIam == "wdtis719z":
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.to(device)
@@ -56,6 +51,7 @@ if len(sys.argv) > 1:
 else:
     flag = "TR"
 
+import segsemdata
 if sys.argv[1] == "ISPRS":
     data = segsemdata.makeISPRS(datasetpath=root + "ISPRS_POTSDAM", flag=flag)
 if sys.argv[1] == "DFC2015":
@@ -65,17 +61,6 @@ if sys.argv[1] == "SEMITY":
 if sys.argv[1] == "AIRS":
     data = segsemdata.makeAIRSdataset(datasetpath=root + "AIRS", flag=flag)
 
-
-print("load model")
-sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
-sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
-sys.path.append("/home/achanhon/github/segmentation_models/pretrained-models.pytorch")
-sys.path.append("/home/achanhon/github/segmentation_models/segmentation_models.pytorch")
-import segmentation_models_pytorch as smp
-
-with torch.no_grad():
-    net = torch.load("build/model.pth")
-    net = net.to(device)
 
 
 print("test")
