@@ -24,6 +24,17 @@ with torch.no_grad():
 
 import dataloader
 
+
+def accu(cm):
+    return 100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name])
+
+
+def f1(cm):
+    return 50.0 * cm[name][0][0] / (
+        cm[name][0][0] + cm[name][1][0] + cm[name][0][1]
+    ) + 50.0 * cm[name][1][1] / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1])
+
+
 print("massif benchmark")
 cm = {}
 with torch.no_grad():
@@ -31,15 +42,12 @@ with torch.no_grad():
         availabledata = ["toulouse", "potsdam"]
         root = "/data/miniworld/"
 
-    if whereIam in ["ldtis706z"]:
+    if whereIam == "ldtis706z":
         availabledata = ["toulouse", "potsdam", "bruges", "newzealand"]
         root = "/media/achanhon/bigdata/data/miniworld/"
 
     for name in availabledata:
-        data = dataloader.SegSemDataset(
-            root + name + "/test",
-            name in ["toulouse", "potsdam", "bruges", "newzealand"],
-        )
+        data = dataloader.SegSemDataset(root + name + "/test")
 
         cm[name] = np.zeros((2, 2), dtype=int)
         for i in range(data.nbImages):
@@ -52,28 +60,25 @@ with torch.no_grad():
             )
             image = power2resize(image)
 
-            if image.shape[2] > 512 or image.shape[3] > 512:
-                tilesize, stride = 128, 32
-                pred = torch.zeros(2, image.shape[2], image.shape[3]).cpu()
-                for row in range(0, image.shape[2] - tilesize + 1, stride):
-                    for col in range(0, image.shape[3] - tilesize + 1, stride):
-                        tmp = net(
-                            image[:, :, row : row + tilesize, col : col + tilesize]
-                            .float()
-                            .to(device)
-                        ).cpu()
-                        pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
-            else:
+            if image.shape[2] < 512 and image.shape[3] < 512:
                 pred = net(image.to(device))
+            else:
+                pred = largeforward(net, image, device)
 
             pred = globalresize(pred)
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
             assert label.shape == pred.shape
 
-            cm[name] += confusion_matrix(
-                label.flatten(), pred.flatten(), list(range(nbclasses))
-            )
+            ### for weakly labelled area
+            ### we do not want 1 in 0 area
+            ### but we may have 0 in 1 area
+            ### assuming they will be some 1 in 1 area
+            ### we offer to considered label*pred as label
+            if name in ["TODO"]:
+                label = label * pred
+
+            cm[name] += confusion_matrix(label.flatten(), pred.flatten(), [0, 1])
 
             if name in ["toulouse", "potsdam"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
@@ -89,17 +94,16 @@ with torch.no_grad():
             cm[name][0][1],
             cm[name][1][0],
             cm[name][1][1],
-            100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name]),
-            50.0 * cm[name][0][0] / (cm[name][0][0] + cm[name][1][0] + cm[name][0][1])
-            + 50.0
-            * cm[name][1][1]
-            / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1]),
+            accu(cm),
+            f1(cm),
         )
 
-print("summary")
+print("supervised results")
 for name in availabledata:
-    print(
-        name,
-        50.0 * cm[name][0][0] / (cm[name][0][0] + cm[name][1][0] + cm[name][0][1])
-        + 50.0 * cm[name][1][1] / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1]),
-    )
+    if name in ["TODO"]:
+        print(name, f1(cm))
+
+print("weakly supervised results -- performance may be dramatically biased")
+for name in availabledata:
+    if name not in ["TODO"]:
+        print(name, f1(cm))

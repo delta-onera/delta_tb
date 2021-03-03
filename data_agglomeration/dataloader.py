@@ -23,13 +23,11 @@ import PIL
 from PIL import Image
 
 import torch
-import torchvision
 
 
 class SegSemDataset:
-    def __init__(self, pathTOdata, vtflag):
+    def __init__(self, pathTOdata):
         self.pathTOdata = pathTOdata
-        self.vtflag = vtflag
 
     self.nbImages = 0
     while os.path.exists(
@@ -37,7 +35,7 @@ class SegSemDataset:
     ) and os.path.exists(self.pathTOdata + str(self.nbImages) + "_y.png"):
         self.nbImages += 1
 
-    nbbat, nbnonbat = 0, 0
+    self.nbbat, self.nbnonbat = 0, 0
     for i in range(self.nbImages):
         label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
         label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
@@ -45,7 +43,7 @@ class SegSemDataset:
         nbbat += np.sum((label == 1).astype(int))
         nbnonbat += np.sum((label == 0).astype(int))
 
-    self.balance = nbnonbat / nbbat
+    self.balance = self.nbnonbat / self.nbbat
 
     ###
     ### get the hole image
@@ -97,3 +95,36 @@ class SegSemDataset:
             for i, (x, y) in enumerate(XY)
         ]
         return XY
+
+    ###
+    ### get randomcrops + symetrie
+    ### get train usage with a single dataset
+    def getrandomtiles(self, nbtiles, tilesize, batchsize):
+        XY = self.getrawrandomtiles(nbtiles, tilesize)
+
+        # pytorch
+        X = torch.stack(
+            [torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu() for x, y in XY]
+        )
+        Y = torch.stack([torch.from_numpy(y).long().cpu() for x, y in XY])
+        dataset = torch.utils.data.TensorDataset(X, Y)
+        dataloader = torch.utils.data.DataLoader(
+            dataset, batch_size=batchsize, shuffle=True, num_workers=2
+        )
+
+        return dataloader
+
+
+def largeforward(net, image, device, tilesize=128, stride=32):
+    pred = torch.zeros(2, image.shape[2], image.shape[3]).cpu()
+
+    for row in range(0, image.shape[2] - tilesize + 1, stride):
+        for col in range(0, image.shape[3] - tilesize + 1, stride):
+            tmp = net(
+                image[:, :, row : row + tilesize, col : col + tilesize]
+                .float()
+                .to(device)
+            ).cpu()
+            pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
+
+    return pred

@@ -16,7 +16,7 @@ if os.path.exists(root + "miniworld"):
     quit()
 
 os.makedirs(root + "miniworld")
-if whereIam == "super":    
+if whereIam == "super":
     os.makedirs(root + "miniworld/toulouse")
     os.makedirs(root + "miniworld/toulouse/train")
     os.makedirs(root + "miniworld/toulouse/test")
