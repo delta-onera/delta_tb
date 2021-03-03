@@ -13,14 +13,81 @@ if device == "cuda":
     cudnn.benchmark = True
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtis719z", "ldtis706z"]
-
+assert whereIam in [
+    "super",
+    "wdtis719z",
+    "ldtis706z",
+    "calculon",
+    "astroboy",
+    "flexo",
+    "bender",
+]
 
 print("load model")
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.to(device)
     net.eval()
+
+
+print("massif benchmark")
+if whereIam in ["super", "wdtis719z"]:
+    availabledata = ["toulouse", "potsdam"]
+    root = "/data/miniworld/"
+
+if whereIam == "ldtis706z":
+    availabledata = [
+        "toulouse",
+        "potsdam",
+        "bruges",
+        "newzealand",
+    ]
+    root = "/media/achanhon/bigdata/data/miniworld/"
+
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    availabledata = [
+        "toulouse",
+        "potsdam",
+        "bruges",
+        "newzealand",
+        "Angers",
+        "Caen",
+        "Cherbourg",
+        "Lille_Arras_Lens_Douai_Henin",
+        "Marseille_Martigues",
+        "Nice",
+        "Rennes",
+        "Vannes",
+        "Brest",
+        "Calais_Dunkerque",
+        "Clermont-Ferrand",
+        "LeMans",
+        "Lorient",
+        "Nantes_Saint-Nazaire",
+        "Quimper",
+        "Saint-Brieuc",
+    ]
+    root = "TODO"
+
+weaklysupervised = [
+    "Angers",
+    "Caen",
+    "Cherbourg",
+    "Lille_Arras_Lens_Douai_Henin",
+    "Marseille_Martigues",
+    "Nice",
+    "Rennes",
+    "Vannes",
+    "Brest",
+    "Calais_Dunkerque",
+    "Clermont-Ferrand",
+    "LeMans",
+    "Lorient",
+    "Nantes_Saint-Nazaire",
+    "Quimper",
+    "Saint-Brieuc",
+]
+
 
 import dataloader
 
@@ -35,17 +102,8 @@ def f1(cm):
     ) + 50.0 * cm[name][1][1] / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1])
 
 
-print("massif benchmark")
 cm = {}
 with torch.no_grad():
-    if whereIam in ["super", "wdtis719z"]:
-        availabledata = ["toulouse", "potsdam"]
-        root = "/data/miniworld/"
-
-    if whereIam == "ldtis706z":
-        availabledata = ["toulouse", "potsdam", "bruges", "newzealand"]
-        root = "/media/achanhon/bigdata/data/miniworld/"
-
     for name in availabledata:
         data = dataloader.SegSemDataset(root + name + "/test")
 
@@ -75,10 +133,10 @@ with torch.no_grad():
             ### but we may have 0 in 1 area
             ### assuming they will be some 1 in 1 area
             ### we offer to considered label*pred as label
-            if name in ["TODO"]:
+            if name in weaklysupervised:
                 label = label * pred
 
-            cm[name] += confusion_matrix(label.flatten(), pred.flatten(), [0, 1])
+            cm[name] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
             if name in ["toulouse", "potsdam"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
@@ -100,10 +158,10 @@ with torch.no_grad():
 
 print("supervised results")
 for name in availabledata:
-    if name in ["TODO"]:
+    if name not in weaklysupervised:
         print(name, f1(cm))
 
 print("weakly supervised results -- performance may be dramatically biased")
 for name in availabledata:
-    if name not in ["TODO"]:
+    if name in weaklysupervised:
         print(name, f1(cm))

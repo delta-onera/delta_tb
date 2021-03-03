@@ -47,18 +47,67 @@ net.train()
 
 
 print("load data")
-import dataloader
-
 if whereIam in ["super", "wdtis719z"]:
     availabledata = ["toulouse", "potsdam"]
     root = "/data/miniworld/"
 
 if whereIam == "ldtis706z":
-    availabledata = ["toulouse", "potsdam", "bruges", "newzealand"]
+    availabledata = [
+        "toulouse",
+        "potsdam",
+        "bruges",
+        "newzealand",
+    ]
     root = "/media/achanhon/bigdata/data/miniworld/"
 
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    availabledata = [
+        "toulouse",
+        "potsdam",
+        "bruges",
+        "newzealand",
+        "Angers",
+        "Caen",
+        "Cherbourg",
+        "Lille_Arras_Lens_Douai_Henin",
+        "Marseille_Martigues",
+        "Nice",
+        "Rennes",
+        "Vannes",
+        "Brest",
+        "Calais_Dunkerque",
+        "Clermont-Ferrand",
+        "LeMans",
+        "Lorient",
+        "Nantes_Saint-Nazaire",
+        "Quimper",
+        "Saint-Brieuc",
+    ]
+    root = "TODO"
+
+weaklysupervised = [
+    "Angers",
+    "Caen",
+    "Cherbourg",
+    "Lille_Arras_Lens_Douai_Henin",
+    "Marseille_Martigues",
+    "Nice",
+    "Rennes",
+    "Vannes",
+    "Brest",
+    "Calais_Dunkerque",
+    "Clermont-Ferrand",
+    "LeMans",
+    "Lorient",
+    "Nantes_Saint-Nazaire",
+    "Quimper",
+    "Saint-Brieuc",
+]
+
+import dataloader
+
 dataset, cm, earlystopping, weigths, criterion = {}, {}, {}, {}, {}
-datacode = []
+datacode, status = [], []
 for data in availabledata:
     print("load", data)
     dataset[data] = dataloader.SegSemDataset(root + name + "/train")
@@ -66,8 +115,15 @@ for data in availabledata:
     cm[data] = np.zeros((2, 2), dtype=int)
     weights[data] = torch.Tensor([1, dataset[data].balance]).to(device)
     criterion[data] = nn.CrossEntropyLoss(weight=weigths)
-
+    status.append(data in weaklysupervised)
     datacode.append(data)
+
+
+print("train")
+
+
+def accu(cm):
+    return 100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name])
 
 
 def trainaccuracy(data):
@@ -82,11 +138,10 @@ def trainaccuracy(data):
                 cm[data] += confusion_matrix(
                     pred[i].cpu().numpy().flatten(),
                     targets[i].cpu().numpy().flatten(),
-                    [0, 1],
+                    labels=[0, 1],
                 )
 
 
-print("train")
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
@@ -109,6 +164,8 @@ for epoch in range(nbepoch):
             y = torch.from_numpy(y).long().cpu()
             tmp = torch.ones(y.shape)
             tmp * code
+
+            ### ENCODE DATA SOURCE IN Y
             y = torch.stack([y, tmp])
             Y.append(y)
 
@@ -120,29 +177,28 @@ for epoch in range(nbepoch):
         dataset, batch_size=batchsize, shuffle=True, num_workers=2
     )
 
-    print("forward backward")
+    print("forward backward patch")
     net.train()
     for inputs, targets in patchloader:
         inputs = inputs.to(device)
         outputs = net(inputs)
         _, pred = outputs.max(1)
 
-        codes = [targets[i][1][0][0] for i in range(targets.shape[0])]
+        ### DECODE Y TO GET DATA SOURCE
+        codes = [targets[i][1][0][0].cpu().numpy() for i in range(targets.shape[0])]
         targets = targets[:, 0, :, :]
 
         losses = torch.zeros(inputs.shape[0]).to(device)
         for i in range(preds.shape[0]):
-            if datacode[codes[i]] in ["TODO"]:
+            ### if supervised we want outputs==target
+            ### if weakly supervised, we only want outputs*target==target
+            if status[codes[i]]:
                 targets[i] = targets[i] * preds[i]
+
             losses[i] = criterion[datacode[codes[i]]](outputs[i], targets[i])
 
-        loss = criterion(preds, targets)
+        loss = torch.sum(losses)
         meanloss.append(loss.cpu().data.numpy())
-
-        if epoch > 30:
-            loss = loss * 0.5
-        if epoch > 60:
-            loss = loss * 0.5
 
         optimizer.zero_grad()
         loss.backward()
@@ -151,8 +207,26 @@ for epoch in range(nbepoch):
         if random.randint(0, 30) == 0:
             print("loss=", (sum(meanloss) / len(meanloss)))
 
+    print("backup model")
     torch.save(net, "build/model.pth")
-    acc, iou, IoU = trainaccuracy()
-    print("stat:", acc, iou, IoU)
-    if acc > 0.97:
+
+    for data in availabledata:
+        trainaccuracy(data)
+        print("accuracy", data, acc(cm[data]))
+
+    allsupervised = [
+        acc(cm[data]) for data in availabledata if data not in weaklysupervised
+    ]
+    if all([i > 98 for i in allsupervised]):
+        print("training stops after reaching high training accuracy in each town")
         quit()
+    globalcm = np.zeros((2, 2))
+    for data in availabledata:
+        if data not in weaklysupervised:
+            globalcm += cm[data]
+    print("global accuracy", acc(globalcm))
+    if acc(globalcm) > 98:
+        print("training stops after reaching high training accuracy in average")
+        quit()
+
+print("training stops after reaching time limit")
