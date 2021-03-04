@@ -49,9 +49,9 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtis719z", "ldtis706z"]
+assert whereIam in ["super", "wdtim719z", "ldtis706z"]
 
-if whereIam in ["super", "wdtis719z"]:
+if whereIam in ["super", "wdtim719z"]:
     availabledata = ["toulouse", "potsdam"]
     root = "/data/"
 

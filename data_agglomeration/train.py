@@ -14,7 +14,7 @@ if device == "cuda":
     cudnn.benchmark = True
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtis719z", "ldtis706z"]
+assert whereIam in ["super", "wdtim719z", "ldtis706z"]
 
 
 print("define model")
@@ -32,7 +32,7 @@ if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/pytorch-image-models")
     sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
     sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
-if whereIam == "wdtis719z":
+if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
@@ -53,7 +53,7 @@ net.train()
 
 
 print("load data")
-if whereIam in ["super", "wdtis719z"]:
+if whereIam in ["super", "wdtim719z"]:
     availabledata = ["toulouse", "potsdam"]
     root = "/data/miniworld/"
 

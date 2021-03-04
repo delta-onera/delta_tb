@@ -2,9 +2,9 @@ import os
 import sys
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtis719z", "ldtis706z"]
+assert whereIam in ["super", "wdtim719z", "ldtis706z"]
 
-if whereIam in ["super", "wdtis719z"]:
+if whereIam in ["super", "wdtim719z"]:
     root = "/data/"
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
@@ -32,7 +32,7 @@ if whereIam == "ldtis706z":
     os.makedirs(root + "miniworld/potsdam/test")
 
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
-if whereIam == "wdtis719z":
+if whereIam == "wdtim719z":
     os.makedirs(root + "miniworld/toulouse")
     os.makedirs(root + "miniworld/toulouse/train")
     os.makedirs(root + "miniworld/toulouse/test")
@@ -41,3 +41,5 @@ if whereIam == "wdtis719z":
     os.makedirs(root + "miniworld/potsdam/test")
 
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
+
+print("miniworld has been successfully created")

@@ -2,9 +2,9 @@ import os
 import sys
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtis719z", "ldtis706z"]
+assert whereIam in ["super", "wdtim719z", "ldtis706z"]
 
-if whereIam in ["super", "wdtis719z"]:
+if whereIam in ["super", "wdtim719z"]:
     root = "/data/"
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
@@ -23,7 +23,7 @@ if whereIam == "super":
     os.system("/data/anaconda3/bin/python train.py ")
 if whereIam == "ldtis706z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
-if whereIam == "wdtis719z":
+if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
 
 if os.path.exists("__pycache__"):

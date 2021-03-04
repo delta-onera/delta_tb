@@ -15,7 +15,7 @@ if device == "cuda":
 whereIam = os.uname()[1]
 assert whereIam in [
     "super",
-    "wdtis719z",
+    "wdtim719z",
     "ldtis706z",
     "calculon",
     "astroboy",
@@ -31,7 +31,7 @@ with torch.no_grad():
 
 
 print("massif benchmark")
-if whereIam in ["super", "wdtis719z"]:
+if whereIam in ["super", "wdtim719z"]:
     availabledata = ["toulouse", "potsdam"]
     root = "/data/miniworld/"
 
