@@ -18,7 +18,7 @@ assert whereIam in ["super", "wdtis719z", "ldtis706z"]
 
 
 print("define model")
-if whereIam in ["super", "ldtis706z"]:
+if whereIam=="super":
     sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
     sys.path.append(
@@ -27,7 +27,7 @@ if whereIam in ["super", "ldtis706z"]:
     sys.path.append(
         "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
     )
-if whereIam == "wdtis719z":
+if whereIam == ["wdtis719z", "ldtis706z"]:
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
     sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
