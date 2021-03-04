@@ -13,12 +13,18 @@ if not os.path.exists(root + "miniworld"):
     print("run merge before")
     quit()
 
+if os.path.exists("__pycache__"):
+    os.rmdir("__pycache__")
 if os.path.exists("build"):
     os.rmdir("build")
 os.makedirs("build")
 
 if whereIam == "super":
     os.system("/data/anaconda3/bin/python train.py ")
-
 if whereIam == "ldtis706z":
-    os.system("/data/anaconda3/bin/python train.py ")
+    os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
+if whereIam == "wdtis719z":
+    os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
+
+if os.path.exists("__pycache__"):
+    os.rmdir("__pycache__")

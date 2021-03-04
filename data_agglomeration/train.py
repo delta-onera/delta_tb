@@ -18,7 +18,7 @@ assert whereIam in ["super", "wdtis719z", "ldtis706z"]
 
 
 print("define model")
-if whereIam=="super":
+if whereIam == "super":
     sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
     sys.path.append(
@@ -27,11 +27,16 @@ if whereIam=="super":
     sys.path.append(
         "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
     )
-if whereIam == ["wdtis719z", "ldtis706z"]:
+if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
     sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
     sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
+if whereIam == "wdtis719z":
+    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
+    sys.path.append("/home/optimom/github/pytorch-image-models")
+    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
+    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
 import collections
