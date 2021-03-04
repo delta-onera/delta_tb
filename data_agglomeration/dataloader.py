@@ -34,13 +34,15 @@ class SegSemDataset:
             self.pathTOdata + str(self.nbImages) + "_x.png"
         ) and os.path.exists(self.pathTOdata + str(self.nbImages) + "_y.png"):
             self.nbImages += 1
-        if self.nbImages==0:
-            print("wrong path",self.pathTOdata)
+        if self.nbImages == 0:
+            print("wrong path", self.pathTOdata)
             quit()
 
         self.nbbat, self.nbnonbat = 0, 0
         for i in range(self.nbImages):
-            label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
+            label = (
+                PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
+            )
             label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
             label = np.uint8(label != 0)
             self.nbbat += np.sum((label == 1).astype(int))

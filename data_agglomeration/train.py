@@ -201,7 +201,9 @@ for epoch in range(nbepoch):
             if status[codes[i]]:
                 targets[i] = targets[i] * preds[i]
 
-            losses[i] = criterion[datacode[codes[i]]](outputs[i].unsqueeze(0), targets[i].unsqueeze(0))
+            losses[i] = criterion[datacode[codes[i]]](
+                outputs[i].unsqueeze(0), targets[i].unsqueeze(0)
+            )
 
         loss = torch.sum(losses)
         meanloss.append(loss.cpu().data.numpy())
