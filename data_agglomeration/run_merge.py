@@ -47,6 +47,9 @@ if whereIam == "wdtim719z":
     os.makedirs(root + "miniworld/potsdam")
     os.makedirs(root + "miniworld/potsdam/train")
     os.makedirs(root + "miniworld/potsdam/test")
+    os.makedirs(root + "miniworld/christchurch")
+    os.makedirs(root + "miniworld/christchurch/train")
+    os.makedirs(root + "miniworld/christchurch/test")
 
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
 

@@ -4,7 +4,7 @@ import PIL
 from PIL import Image
 
 
-def resizefile(root, XY, output, nativeresolution, outputresolution=50):
+def resizefile(root, XY, output, nativeresolution, outputresolution=50.0):
     i = 0
     for name in XY:
         x, y = XY[name]
@@ -50,15 +50,35 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 whereIam = os.uname()[1]
 
-if whereIam in ["super", "wdtim719z"]:
+if whereIam == "super":
     availabledata = ["toulouse", "potsdam"]
     root = "/data/"
-
-if whereIam in ["ldtis706z"]:
-    availabledata = ["toulouse", "potsdam", "bruges", "newzealand"]
+if whereIam == "wdtim719z":
+    availabledata = ["toulouse", "potsdam", "christchurch"]
+    root = "/data/"
+if whereIam == "ldtis706z":
+    availabledata = ["toulouse", "potsdam", "bruges"]
     root = "/media/achanhon/bigdata/data/"
 
-if True:
+if "christchurch" in availabledata:
+    print("export airs")
+
+    XY = {}
+    for flag, flag2 in [("train", "train"), ("test", "val")]:
+        allname = os.listdir(root + "AIRS/" + flag2 + "/image")
+        for name in allname:
+            XY[name] = (
+                "image/" + name[0:-4] + ".tif",
+                "label/" + name[0:-4] + "_vis.tif",
+            )
+        resizefile(
+            root + "AIRS/" + flag2,
+            XY,
+            root + "miniworld/christchurch/" + flag + "/",
+            7.5,
+        )
+
+if "potsdam" in availabledata:
     print("export isprs potsdam")
     names = {}
     names["train"] = [
@@ -163,7 +183,7 @@ def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=
     return np.uint8(out)
 
 
-if True:
+if "toulouse" in availabledata:
     print("export semcity toulouse")
 
     names = {}
