@@ -25,3 +25,13 @@ if whereIam == "super":
     os.makedirs(root + "miniworld/potsdam/test")
 
     os.system("/data/anaconda3/envs/rahh/bin/python building_mini_world.py ")
+    
+if whereIam == "ldtis706z":
+    os.makedirs(root + "miniworld/toulouse")
+    os.makedirs(root + "miniworld/toulouse/train")
+    os.makedirs(root + "miniworld/toulouse/test")
+    os.makedirs(root + "miniworld/potsdam")
+    os.makedirs(root + "miniworld/potsdam/train")
+    os.makedirs(root + "miniworld/potsdam/test")
+
+    os.system("/data/anaconda3/bin/python building_mini_world.py ")
