@@ -49,16 +49,28 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 
 whereIam = os.uname()[1]
-
 if whereIam == "super":
     availabledata = ["toulouse", "potsdam"]
     root = "/data/"
+
 if whereIam == "wdtim719z":
     availabledata = ["toulouse", "potsdam", "christchurch"]
     root = "/data/"
+
 if whereIam == "ldtis706z":
-    availabledata = ["toulouse", "potsdam"]
+    availabledata = ["toulouse", "potsdam", "christchurch", "bruges", "INRIA"]
     root = "/media/achanhon/bigdata/data/"
+
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    availabledata = [
+        "toulouse",
+        "potsdam",
+        "christchurch",
+        "bruges",
+        "INRIA" "MINIFRANCE",
+    ]
+    root = "TODO"
+
 
 if "christchurch" in availabledata:
     print("export airs")

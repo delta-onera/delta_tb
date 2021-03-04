@@ -35,6 +35,8 @@ if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/pytorch-image-models")
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    sys.path.append("TODO")
 
 import segmentation_models_pytorch as smp
 import collections
