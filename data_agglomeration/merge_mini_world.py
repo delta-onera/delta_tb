@@ -57,7 +57,7 @@ if whereIam == "wdtim719z":
     availabledata = ["toulouse", "potsdam", "christchurch"]
     root = "/data/"
 if whereIam == "ldtis706z":
-    availabledata = ["toulouse", "potsdam", "bruges"]
+    availabledata = ["toulouse", "potsdam"]
     root = "/media/achanhon/bigdata/data/"
 
 if "christchurch" in availabledata:

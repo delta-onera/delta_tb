@@ -150,16 +150,13 @@ def getindexeddata():
         root = "/data/miniworld/"
 
     if whereIam == "wdtim719z":
-        availabledata = ["toulouse", "potsdam"]
+        availabledata = ["toulouse", "potsdam","christchurch"]
         root = "/data/miniworld/"
 
     if whereIam == "ldtis706z":
         availabledata = [
             "toulouse",
-            "potsdam",
-            "bruges",
-            "newzealand",
-        ]
+            "potsdam"        ]
         root = "/media/achanhon/bigdata/data/miniworld/"
 
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
