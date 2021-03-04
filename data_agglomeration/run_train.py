@@ -9,29 +9,16 @@ if whereIam in ["super", "wdtis719z"]:
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
 
-if os.path.exists(root + "miniworld"):
-    print(
-        "it seems miniworld exists, please remove it by hand to be sure you are ok to do that"
-    )
+if not os.path.exists(root + "miniworld"):
+    print("run merge before")
     quit()
 
-os.makedirs(root + "miniworld")
+if os.path.exists("build"):
+    os.rmdir("build")
+os.makedirs("build")
+
 if whereIam == "super":
-    os.makedirs(root + "miniworld/toulouse")
-    os.makedirs(root + "miniworld/toulouse/train")
-    os.makedirs(root + "miniworld/toulouse/test")
-    os.makedirs(root + "miniworld/potsdam")
-    os.makedirs(root + "miniworld/potsdam/train")
-    os.makedirs(root + "miniworld/potsdam/test")
+    os.system("/data/anaconda3/bin/python train.py ")
 
-    os.system("/data/anaconda3/envs/rahh/bin/python building_mini_world.py ")
-    
 if whereIam == "ldtis706z":
-    os.makedirs(root + "miniworld/toulouse")
-    os.makedirs(root + "miniworld/toulouse/train")
-    os.makedirs(root + "miniworld/toulouse/test")
-    os.makedirs(root + "miniworld/potsdam")
-    os.makedirs(root + "miniworld/potsdam/train")
-    os.makedirs(root + "miniworld/potsdam/test")
-
-    os.system("/data/anaconda3/bin/python building_mini_world.py ")
+    os.system("/data/anaconda3/bin/python train.py ")
