@@ -14,9 +14,9 @@ if not os.path.exists(root + "miniworld"):
     quit()
 
 if os.path.exists("__pycache__"):
-    os.rmdir("__pycache__")
+    os.system("rm -rf __pycache__")
 if os.path.exists("build"):
-    os.rmdir("build")
+    os.system("rm -rf build")
 os.makedirs("build")
 
 if whereIam == "super":
@@ -27,4 +27,4 @@ if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
 
 if os.path.exists("__pycache__"):
-    os.rmdir("__pycache__")
+    os.system("rm -rf __pycache__")

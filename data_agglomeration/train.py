@@ -112,15 +112,15 @@ weaklysupervised = [
 
 import dataloader
 
-dataset, cm, earlystopping, weigths, criterion = {}, {}, {}, {}, {}
+dataset, cm, earlystopping, weights, criterion = {}, {}, {}, {}, {}
 datacode, status = [], []
 for data in availabledata:
     print("load", data)
-    dataset[data] = dataloader.SegSemDataset(root + name + "/train")
+    dataset[data] = dataloader.SegSemDataset(root + data + "/train/")
     earlystopping[data] = dataset[data].getrandomtiles(128, 128, 16)
     cm[data] = np.zeros((2, 2), dtype=int)
     weights[data] = torch.Tensor([1, dataset[data].balance]).to(device)
-    criterion[data] = nn.CrossEntropyLoss(weight=weigths)
+    criterion[data] = torch.nn.CrossEntropyLoss(weight=weights[data])
     status.append(data in weaklysupervised)
     datacode.append(data)
 
@@ -148,7 +148,7 @@ def trainaccuracy(data):
                 )
 
 
-optimizer = optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 120
 batchsize = 16

@@ -29,21 +29,24 @@ class SegSemDataset:
     def __init__(self, pathTOdata):
         self.pathTOdata = pathTOdata
 
-    self.nbImages = 0
-    while os.path.exists(
-        self.pathTOdata + str(self.nbImages) + "_x.png"
-    ) and os.path.exists(self.pathTOdata + str(self.nbImages) + "_y.png"):
-        self.nbImages += 1
+        self.nbImages = 0
+        while os.path.exists(
+            self.pathTOdata + str(self.nbImages) + "_x.png"
+        ) and os.path.exists(self.pathTOdata + str(self.nbImages) + "_y.png"):
+            self.nbImages += 1
+        if self.nbImages==0:
+            print("wrong path",self.pathTOdata)
+            quit()
 
-    self.nbbat, self.nbnonbat = 0, 0
-    for i in range(self.nbImages):
-        label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
-        label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
-        label = np.uint8(label != 0)
-        nbbat += np.sum((label == 1).astype(int))
-        nbnonbat += np.sum((label == 0).astype(int))
+        self.nbbat, self.nbnonbat = 0, 0
+        for i in range(self.nbImages):
+            label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
+            label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
+            label = np.uint8(label != 0)
+            self.nbbat += np.sum((label == 1).astype(int))
+            self.nbnonbat += np.sum((label == 0).astype(int))
 
-    self.balance = self.nbnonbat / self.nbbat
+        self.balance = self.nbnonbat / self.nbbat
 
     ###
     ### get the hole image
@@ -66,10 +69,10 @@ class SegSemDataset:
     ### get train usage
     def getrawrandomtiles(self, nbtiles, tilesize):
         XY = []
-        nbtilesperimage = nbtiles // self.images + 1
+        nbtilesperimage = nbtiles // self.nbImages + 1
 
         # crop
-        for name in range(self.images):
+        for name in range(self.nbImages):
             image, label = self.getImageAndLabel(name)
 
             row = np.random.randint(
