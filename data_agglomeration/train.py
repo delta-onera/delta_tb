@@ -129,7 +129,7 @@ print("train")
 
 
 def accu(cm):
-    return 100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name])
+    return 100.0 * (cm[0][0] + cm[1][1]) / np.sum(cm)
 
 
 def trainaccuracy(data):
@@ -165,14 +165,14 @@ for epoch in range(nbepoch):
 
         XY = dataset[data].getrawrandomtiles(512, 128)
         for x, y in XY:
-            X.append(torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu())
+            X.append(torch.Tensor(np.transpose(x, axes=(2, 0, 1))).float().cpu())
 
-            y = torch.from_numpy(y).long().cpu()
-            tmp = torch.ones(y.shape)
-            tmp * code
+            y = torch.from_numpy(y).float().cpu()
+            tmp = torch.ones(y.shape).cpu()
+            tmp *= code
 
             ### ENCODE DATA SOURCE IN Y
-            y = torch.stack([y, tmp])
+            y = torch.stack([y, tmp]).long().cpu()
             Y.append(y)
 
     X = torch.stack(X)  ### Kx3xWxH
@@ -180,7 +180,7 @@ for epoch in range(nbepoch):
 
     patchdataset = torch.utils.data.TensorDataset(X, Y)
     patchloader = torch.utils.data.DataLoader(
-        dataset, batch_size=batchsize, shuffle=True, num_workers=2
+        patchdataset, batch_size=batchsize, shuffle=True, num_workers=2
     )
 
     print("forward backward patch")
@@ -188,11 +188,11 @@ for epoch in range(nbepoch):
     for inputs, targets in patchloader:
         inputs = inputs.to(device)
         outputs = net(inputs)
-        _, pred = outputs.max(1)
+        _, preds = outputs.max(1)
 
         ### DECODE Y TO GET DATA SOURCE
         codes = [targets[i][1][0][0].cpu().numpy() for i in range(targets.shape[0])]
-        targets = targets[:, 0, :, :]
+        targets = targets[:, 0, :, :].to(device)
 
         losses = torch.zeros(inputs.shape[0]).to(device)
         for i in range(preds.shape[0]):
@@ -201,7 +201,7 @@ for epoch in range(nbepoch):
             if status[codes[i]]:
                 targets[i] = targets[i] * preds[i]
 
-            losses[i] = criterion[datacode[codes[i]]](outputs[i], targets[i])
+            losses[i] = criterion[datacode[codes[i]]](outputs[i].unsqueeze(0), targets[i].unsqueeze(0))
 
         loss = torch.sum(losses)
         meanloss.append(loss.cpu().data.numpy())
@@ -218,10 +218,10 @@ for epoch in range(nbepoch):
 
     for data in availabledata:
         trainaccuracy(data)
-        print("accuracy", data, acc(cm[data]))
+        print("accuracy", data, accu(cm[data]))
 
     allsupervised = [
-        acc(cm[data]) for data in availabledata if data not in weaklysupervised
+        accu(cm[data]) for data in availabledata if data not in weaklysupervised
     ]
     if all([i > 98 for i in allsupervised]):
         print("training stops after reaching high training accuracy in each town")
@@ -230,8 +230,8 @@ for epoch in range(nbepoch):
     for data in availabledata:
         if data not in weaklysupervised:
             globalcm += cm[data]
-    print("global accuracy", acc(globalcm))
-    if acc(globalcm) > 98:
+    print("global accuracy", accu(globalcm))
+    if accu(globalcm) > 98:
         print("training stops after reaching high training accuracy in average")
         quit()
 
