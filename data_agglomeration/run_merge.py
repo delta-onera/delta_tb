@@ -2,7 +2,15 @@ import os
 import sys
 
 whereIam = os.uname()[1]
-assert whereIam in ["super", "wdtim719z", "ldtis706z"]
+assert whereIam in [
+    "super",
+    "wdtim719z",
+    "ldtis706z",
+    "calculon",
+    "astroboy",
+    "flexo",
+    "bender",
+]
 
 if whereIam in ["super", "wdtim719z"]:
     root = "/data/"

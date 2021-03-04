@@ -20,14 +20,13 @@ if whereIam == "ldtis706z":
 if not os.path.exists(root + "miniworld"):
     print("run merge before")
     quit()
-
-if os.path.exists("build"):
-    os.system("rm -rf build")
-os.makedirs("build")
+if not os.path.exists("build/model.pth"):
+    print("run train before")
+    quit()
 
 if whereIam == "super":
-    os.system("/data/anaconda3/bin/python train.py ")
+    os.system("/data/anaconda3/bin/python test.py ")
 if whereIam == "ldtis706z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
+    os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")
 if whereIam == "wdtim719z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
+    os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")

@@ -13,15 +13,6 @@ if device == "cuda":
     cudnn.benchmark = True
 
 whereIam = os.uname()[1]
-assert whereIam in [
-    "super",
-    "wdtim719z",
-    "ldtis706z",
-    "calculon",
-    "astroboy",
-    "flexo",
-    "bender",
-]
 
 print("load model")
 with torch.no_grad():
@@ -31,65 +22,9 @@ with torch.no_grad():
 
 
 print("massif benchmark")
-if whereIam in ["super", "wdtim719z"]:
-    availabledata = ["toulouse", "potsdam"]
-    root = "/data/miniworld/"
-
-if whereIam == "ldtis706z":
-    availabledata = [
-        "toulouse",
-        "potsdam",
-        "bruges",
-        "newzealand",
-    ]
-    root = "/media/achanhon/bigdata/data/miniworld/"
-
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = [
-        "toulouse",
-        "potsdam",
-        "bruges",
-        "newzealand",
-        "Angers",
-        "Caen",
-        "Cherbourg",
-        "Lille_Arras_Lens_Douai_Henin",
-        "Marseille_Martigues",
-        "Nice",
-        "Rennes",
-        "Vannes",
-        "Brest",
-        "Calais_Dunkerque",
-        "Clermont-Ferrand",
-        "LeMans",
-        "Lorient",
-        "Nantes_Saint-Nazaire",
-        "Quimper",
-        "Saint-Brieuc",
-    ]
-    root = "TODO"
-
-weaklysupervised = [
-    "Angers",
-    "Caen",
-    "Cherbourg",
-    "Lille_Arras_Lens_Douai_Henin",
-    "Marseille_Martigues",
-    "Nice",
-    "Rennes",
-    "Vannes",
-    "Brest",
-    "Calais_Dunkerque",
-    "Clermont-Ferrand",
-    "LeMans",
-    "Lorient",
-    "Nantes_Saint-Nazaire",
-    "Quimper",
-    "Saint-Brieuc",
-]
-
-
 import dataloader
+
+root, availabledata, weaklysupervised = dataloader.getindexeddata()
 
 
 def accu(cm):

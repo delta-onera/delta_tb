@@ -133,3 +133,70 @@ def largeforward(net, image, device, tilesize=128, stride=32):
             pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
 
     return pred
+
+
+def getindexeddata():
+    whereIam = os.uname()[1]
+
+    if whereIam == "super":
+        availabledata = ["toulouse", "potsdam"]
+        root = "/data/miniworld/"
+
+    if whereIam == "wdtim719z":
+        availabledata = ["toulouse", "potsdam"]
+        root = "/data/miniworld/"
+
+    if whereIam == "ldtis706z":
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "newzealand",
+        ]
+        root = "/media/achanhon/bigdata/data/miniworld/"
+
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "newzealand",
+            "Angers",
+            "Caen",
+            "Cherbourg",
+            "Lille_Arras_Lens_Douai_Henin",
+            "Marseille_Martigues",
+            "Nice",
+            "Rennes",
+            "Vannes",
+            "Brest",
+            "Calais_Dunkerque",
+            "Clermont-Ferrand",
+            "LeMans",
+            "Lorient",
+            "Nantes_Saint-Nazaire",
+            "Quimper",
+            "Saint-Brieuc",
+        ]
+        root = "TODO"
+
+    weaklysupervised = [
+        "Angers",
+        "Caen",
+        "Cherbourg",
+        "Lille_Arras_Lens_Douai_Henin",
+        "Marseille_Martigues",
+        "Nice",
+        "Rennes",
+        "Vannes",
+        "Brest",
+        "Calais_Dunkerque",
+        "Clermont-Ferrand",
+        "LeMans",
+        "Lorient",
+        "Nantes_Saint-Nazaire",
+        "Quimper",
+        "Saint-Brieuc",
+    ]
+
+    return root, availabledata, weaklysupervised
