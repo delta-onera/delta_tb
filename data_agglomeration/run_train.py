@@ -31,4 +31,5 @@ if whereIam == "ldtis706z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
-print("TODO")
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    print("TODO")

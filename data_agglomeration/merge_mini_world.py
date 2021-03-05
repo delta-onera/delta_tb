@@ -50,29 +50,23 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 whereIam = os.uname()[1]
 if whereIam == "super":
-    availabledata = ["toulouse", "potsdam"]
+    availabledata = ["semcity", "isprs"]
     root = "/data/"
 
 if whereIam == "wdtim719z":
-    availabledata = ["toulouse", "potsdam", "christchurch"]
+    availabledata = ["semcity", "isprs", "airs"]
     root = "/data/"
 
 if whereIam == "ldtis706z":
-    availabledata = ["toulouse", "potsdam", "christchurch", "bruges", "INRIA"]
+    availabledata = ["semcity", "isprs", "airs", "dfc", "inria"]
     root = "/media/achanhon/bigdata/data/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = [
-        "toulouse",
-        "potsdam",
-        "christchurch",
-        "bruges",
-        "INRIA" "MINIFRANCE",
-    ]
+    availabledata = ["semcity", "isprs", "airs", "dfc", "inria", "mini"]
     root = "TODO"
 
 
-if "christchurch" in availabledata:
+if "airs" in availabledata:
     print("export airs")
 
     XY = {}
@@ -90,7 +84,7 @@ if "christchurch" in availabledata:
             7.5,
         )
 
-if "potsdam" in availabledata:
+if "isprs" in availabledata:
     print("export isprs potsdam")
     names = {}
     names["train"] = [
@@ -195,8 +189,8 @@ def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=
     return np.uint8(out)
 
 
-if "toulouse" in availabledata:
-    print("export semcity toulouse")
+if "semcity" in availabledata:
+    print("export toulouse")
 
     names = {}
     names["train"] = ["04", "08"]

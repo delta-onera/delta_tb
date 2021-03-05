@@ -30,5 +30,6 @@ if whereIam == "ldtis706z":
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")
-print("TODO")
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    print("TODO")
 print("benchmark performed successfully")

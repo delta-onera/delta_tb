@@ -31,6 +31,7 @@ if whereIam == "super":
     os.makedirs(root + "miniworld/potsdam/test")
 
     os.system("/data/anaconda3/envs/rahh/bin/python merge_mini_world.py ")
+
 if whereIam == "wdtim719z":
     os.makedirs(root + "miniworld/toulouse")
     os.makedirs(root + "miniworld/toulouse/train")
@@ -43,6 +44,7 @@ if whereIam == "wdtim719z":
     os.makedirs(root + "miniworld/christchurch/test")
 
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
+
 if whereIam == "ldtis706z":
     os.makedirs(root + "miniworld/toulouse")
     os.makedirs(root + "miniworld/toulouse/train")
@@ -50,9 +52,35 @@ if whereIam == "ldtis706z":
     os.makedirs(root + "miniworld/potsdam")
     os.makedirs(root + "miniworld/potsdam/train")
     os.makedirs(root + "miniworld/potsdam/test")
+    os.makedirs(root + "miniworld/christchurch")
+    os.makedirs(root + "miniworld/christchurch/train")
+    os.makedirs(root + "miniworld/christchurch/test")
+    os.makedirs(root + "miniworld/bruges")
+    os.makedirs(root + "miniworld/bruges/train")
+    os.makedirs(root + "miniworld/bruges/test")
+
+    os.makedirs(root + "TODO-inria")
 
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
 
-print("TODO")
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    os.makedirs(root + "miniworld/toulouse")
+    os.makedirs(root + "miniworld/toulouse/train")
+    os.makedirs(root + "miniworld/toulouse/test")
+    os.makedirs(root + "miniworld/potsdam")
+    os.makedirs(root + "miniworld/potsdam/train")
+    os.makedirs(root + "miniworld/potsdam/test")
+    os.makedirs(root + "miniworld/christchurch")
+    os.makedirs(root + "miniworld/christchurch/train")
+    os.makedirs(root + "miniworld/christchurch/test")
+    os.makedirs(root + "miniworld/bruges")
+    os.makedirs(root + "miniworld/bruges/train")
+    os.makedirs(root + "miniworld/bruges/test")
+
+    os.makedirs(root + "TODO")
+    os.makedirs(root + "TODO-mini")
+
+    os.system("TODO")
+
 
 print("miniworld has been successfully created")
