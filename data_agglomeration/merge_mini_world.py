@@ -69,8 +69,8 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 if "airs" in availabledata:
     print("export airs")
 
-    XY = {}
-    for flag, flag2 in [("test", "val"),("train", "train")]:
+    for flag, flag2 in [("test", "val"), ("train", "train")]:
+        XY = {}
         allname = os.listdir(root + "AIRS/" + flag2 + "/image")
         for name in allname:
             XY[name] = (
