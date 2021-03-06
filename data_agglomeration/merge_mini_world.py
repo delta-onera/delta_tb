@@ -70,7 +70,7 @@ if "airs" in availabledata:
     print("export airs")
 
     XY = {}
-    for flag, flag2 in [("train", "train"), ("test", "val")]:
+    for flag, flag2 in [("test", "val"),("train", "train")]:
         allname = os.listdir(root + "AIRS/" + flag2 + "/image")
         for name in allname:
             XY[name] = (
