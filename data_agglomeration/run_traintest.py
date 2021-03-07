@@ -28,7 +28,7 @@ os.makedirs("build")
 if whereIam == "super":
     os.system("/data/anaconda3/bin/python train.py ")
     os.system("/data/anaconda3/bin/python test.py ")
-if whereIam in ["ldtis706z","wdtim719z"]:
+if whereIam in ["ldtis706z", "wdtim719z"]:
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:

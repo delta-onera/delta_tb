@@ -116,9 +116,7 @@ if "dfc" in availabledata:
         XY = {}
         for name in names[flag]:
             x = (
-                PIL.Image.open(
-                    root + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif"
-                )
+                PIL.Image.open(root + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif")
                 .convert("RGB")
                 .copy()
             )

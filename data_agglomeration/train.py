@@ -99,7 +99,7 @@ meanloss = collections.deque(maxlen=200)
 nbepoch = 400
 batchsize = 32
 if whereIam == "super":
-    nbepoch = 4
+    nbepoch = 8
     batchsize = 16
 
 for epoch in range(nbepoch):
