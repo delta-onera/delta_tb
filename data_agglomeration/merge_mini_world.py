@@ -104,6 +104,25 @@ if "inria" in availabledata:
             30,
         )
 
+if "airs" in availabledata:
+    print("export airs")
+    makepath("christchurch")
+
+    for flag, flag2 in [("test", "val"), ("train", "train")]:
+        XY = {}
+        allname = os.listdir(root + "AIRS/" + flag2 + "/image")
+        for name in allname:
+            XY[name] = (
+                "image/" + name[0:-4] + ".tif",
+                "label/" + name[0:-4] + "_vis.tif",
+            )
+        resizefile(
+            root + "AIRS/" + flag2,
+            XY,
+            root + "miniworld/christchurch/" + flag + "/",
+            7.5,
+        )
+
 if "dfc" in availabledata:
     print("export dfc 2015 bruges")
     makepath("bruges")
@@ -136,25 +155,6 @@ if "dfc" in availabledata:
             XY[name] = (x, y)
 
         resizeram(XY, root + "miniworld/bruges/" + flag, 5)
-
-if "airs" in availabledata:
-    print("export airs")
-    makepath("christchurch")
-
-    for flag, flag2 in [("test", "val"), ("train", "train")]:
-        XY = {}
-        allname = os.listdir(root + "AIRS/" + flag2 + "/image")
-        for name in allname:
-            XY[name] = (
-                "image/" + name[0:-4] + ".tif",
-                "label/" + name[0:-4] + "_vis.tif",
-            )
-        resizefile(
-            root + "AIRS/" + flag2,
-            XY,
-            root + "miniworld/christchurch/" + flag + "/",
-            7.5,
-        )
 
 if "isprs" in availabledata:
     print("export isprs potsdam")
