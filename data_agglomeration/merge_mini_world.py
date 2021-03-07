@@ -65,6 +65,38 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     availabledata = ["semcity", "isprs", "airs", "dfc", "inria", "mini"]
     root = "TODO"
 
+if "dfc" in availabledata:
+    print("export dfc 2015 bruges")
+    names = {}
+    names["train"] = ["315130_56865", "315130_56870", "315135_56870", "315140_56865"]
+    names["test"] = ["315135_56865", "315145_56865"]
+
+    for flag in ["train", "test"]:
+        XY = {}
+        for name in names[flag]:
+            x = (
+                PIL.Image.open(
+                    root + "DFC2015/" + "BE_ORTHO_27032011_/" + name + ".tif"
+                )
+                .convert("RGB")
+                .copy()
+            )
+            y = (
+                PIL.Image.open(root + "DFC2015/" + "label_/" + name + ".tif")
+                .convert("RGB")
+                .copy()
+            )
+            y = np.uint8(np.asarray(y))
+            y = (
+                np.uint8(y[:, :, 0] == 0)
+                * np.uint8(y[:, :, 1] == 0)
+                * np.uint8(y[:, :, 2] == 255)
+                * 255
+            )
+
+            XY[name] = (x, y)
+
+        resizeram(XY, root + "miniworld/bruges/" + flag, 5)
 
 if "airs" in availabledata:
     print("export airs")
