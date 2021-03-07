@@ -74,15 +74,35 @@ def makepath(name):
 
 if "inria" in availabledata:
     print("export inria")
-    makepath("austin")
-    makepath("chicago")
-    makepath("kitsap")
-    makepath("tyrol")
-    makepath("vienna")
+    towns = ["austin", "chicago", "kitsap", "tyrol", "vienna"]
+    for town in towns:
+        makepath(town)
 
-    names = {}
-    names["train"] = ["315130_56865", "315130_56870", "315135_56870", "315140_56865"]
-    names["test"] = ["315135_56865", "315145_56865"]
+        XY = {}
+        for i in range(20):
+            XY[i] = (
+                "images/" + town + str(1 + i) + ".tif",
+                "gt/" + town + str(1 + i) + ".tif",
+            )
+        resizefile(
+            root + "INRIA/AerialImageDataset/train/",
+            XY,
+            root + "miniworld/" + town + "/train/",
+            30,
+        )
+
+        XY = {}
+        for i in range(15):
+            XY[i] = (
+                "images/" + town + str(21 + i) + ".tif",
+                "gt/" + town + str(21 + i) + ".tif",
+            )
+        resizefile(
+            root + "INRIA/AerialImageDataset/train/",
+            XY,
+            root + "miniworld/" + town + "/test/",
+            30,
+        )
 
 if "dfc" in availabledata:
     print("export dfc 2015 bruges")
