@@ -50,11 +50,11 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 whereIam = os.uname()[1]
 if whereIam == "super":
-    availabledata = ["semcity", "isprs"]
+    availabledata = ["semcity", "isprs", "dfc"]
     root = "/data/"
 
 if whereIam == "wdtim719z":
-    availabledata = ["semcity", "isprs", "airs"]
+    availabledata = ["semcity", "isprs", "airs", "dfc"]
     root = "/data/"
 
 if whereIam == "ldtis706z":
@@ -65,8 +65,29 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     availabledata = ["semcity", "isprs", "airs", "dfc", "inria", "mini"]
     root = "TODO"
 
+
+def makepath(name):
+    os.makedirs(root + "miniworld/" + name)
+    os.makedirs(root + "miniworld/" + name + "/train")
+    os.makedirs(root + "miniworld/" + name + "/test")
+
+
+if "inria" in availabledata:
+    print("export inria")
+    makepath("austin")
+    makepath("chicago")
+    makepath("kitsap")
+    makepath("tyrol")
+    makepath("vienna")
+
+    names = {}
+    names["train"] = ["315130_56865", "315130_56870", "315135_56870", "315140_56865"]
+    names["test"] = ["315135_56865", "315145_56865"]
+
 if "dfc" in availabledata:
     print("export dfc 2015 bruges")
+    makepath("bruges")
+
     names = {}
     names["train"] = ["315130_56865", "315130_56870", "315135_56870", "315140_56865"]
     names["test"] = ["315135_56865", "315145_56865"]
@@ -100,6 +121,7 @@ if "dfc" in availabledata:
 
 if "airs" in availabledata:
     print("export airs")
+    makepath("christchurch")
 
     for flag, flag2 in [("test", "val"), ("train", "train")]:
         XY = {}
@@ -118,6 +140,8 @@ if "airs" in availabledata:
 
 if "isprs" in availabledata:
     print("export isprs potsdam")
+    makepath("potsdam")
+
     names = {}
     names["train"] = [
         "top_potsdam_2_10_",
@@ -223,6 +247,7 @@ def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=
 
 if "semcity" in availabledata:
     print("export toulouse")
+    makepath("toulouse")
 
     names = {}
     names["train"] = ["04", "08"]

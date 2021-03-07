@@ -146,24 +146,37 @@ def getindexeddata():
     whereIam = os.uname()[1]
 
     if whereIam == "super":
-        availabledata = ["toulouse", "potsdam"]
+        availabledata = ["toulouse", "bruges", "potsdam"]
         root = "/data/miniworld/"
 
     if whereIam == "wdtim719z":
-        availabledata = ["toulouse", "potsdam", "christchurch"]
+        availabledata = ["toulouse", "potsdam", "bruges"]
         root = "/data/miniworld/"
 
     if whereIam == "ldtis706z":
-        availabledata = ["toulouse", "potsdam", "christchurch", "bruges", "TODO-INRIA"]
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "austin",
+            "chicago",
+            "kitsap",
+            "tyrol",
+            "vienna",
+        ]
         root = "/media/achanhon/bigdata/data/miniworld/"
 
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
         availabledata = [
             "toulouse",
             "potsdam",
-            "christchurch",
             "bruges",
-            "TODO-INRIA" "Angers",
+            "austin",
+            "chicago",
+            "kitsap",
+            "tyrol",
+            "vienna",
+            "Angers",
             "Caen",
             "Cherbourg",
             "Lille_Arras_Lens_Douai_Henin",
@@ -179,6 +192,7 @@ def getindexeddata():
             "Nantes_Saint-Nazaire",
             "Quimper",
             "Saint-Brieuc",
+            "christchurch",
         ]
         root = "TODO"
 
