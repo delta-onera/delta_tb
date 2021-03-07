@@ -145,8 +145,17 @@ def largeforward(net, image, device, tilesize=128, stride=32):
 def getindexeddata():
     whereIam = os.uname()[1]
 
-    if whereIam in ["super","wdtim719z"]:
+    if whereIam == "super":
         availabledata = ["toulouse", "potsdam"]
+        root = "/data/miniworld/"
+
+    if whereIam == "wdtim719z":
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "christchurch",
+        ]
         root = "/data/miniworld/"
 
     if whereIam == "ldtis706z":

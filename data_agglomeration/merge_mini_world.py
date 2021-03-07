@@ -50,7 +50,7 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 whereIam = os.uname()[1]
 if whereIam == "super":
-    availabledata = ["semcity", "isprs", "dfc"]
+    availabledata = ["semcity", "isprs"]
     root = "/data/"
 
 if whereIam == "wdtim719z":
