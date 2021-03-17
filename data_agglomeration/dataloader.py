@@ -29,7 +29,7 @@ def getindexeddata():
     whereIam = os.uname()[1]
 
     if whereIam == "super":
-        availabledata = ["potsdam","toulouse"]
+        availabledata = ["potsdam", "toulouse"]
         root = "/data/miniworld/"
 
     if whereIam == "wdtim719z":
@@ -180,7 +180,9 @@ class MiniWorld:
         print(
             "indexing miniworld (mode",
             flag,
-            "):", len(self.towns), "towns found (",
+            "):",
+            len(self.towns),
+            "towns found (",
             self.towns,
             ") with a total of",
             self.nbImages,
