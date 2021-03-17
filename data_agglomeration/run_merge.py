@@ -17,6 +17,9 @@ if whereIam in ["super", "wdtim719z"]:
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
 
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    root = "/scratch_ai4geo/"
+
 if os.path.exists(root + "miniworld"):
     print("it seems miniworld exists, please remove it by hand")
     quit()
@@ -32,7 +35,7 @@ if whereIam == "ldtis706z":
     os.system("/data/anaconda3/bin/python merge_mini_world.py ")
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("TODO")
+    os.system("/d/jcastillo/anaconda3/bin/python merge_mini_world.py")
 
 
 print("miniworld has been successfully created")
