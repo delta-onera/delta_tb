@@ -122,7 +122,7 @@ for epoch in range(nbepoch):
     print("backup model")
     torch.save(net, "build/model.pth")
     cm = trainaccuracy()
-    print("accuracy", data, accu(cm))
+    print("accuracy", accu(cm))
 
     if accu(cm) > 98:
         print("training stops after reaching high training accuracy")
