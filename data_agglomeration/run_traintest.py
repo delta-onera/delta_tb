@@ -16,6 +16,8 @@ if whereIam in ["super", "wdtim719z"]:
     root = "/data/"
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    root = "/scratch_ai4geo/"
 
 if not os.path.exists(root + "miniworld"):
     print("run merge before")
