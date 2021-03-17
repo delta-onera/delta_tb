@@ -53,23 +53,24 @@ import dataloader
 
 miniworld = dataloader.MiniWorld("test")
 
+
 def accu(cm):
-    return 100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name])
+    return 100.0 * (cm[town][0][0] + cm[town][1][1]) / np.sum(cm[town])
 
 
 def f1(cm):
-    return 50.0 * cm[name][0][0] / (
-        cm[name][0][0] + cm[name][1][0] + cm[name][0][1]
-    ) + 50.0 * cm[name][1][1] / (cm[name][1][1] + cm[name][1][0] + cm[name][0][1])
+    return 50.0 * cm[town][0][0] / (
+        cm[town][0][0] + cm[town][1][0] + cm[town][0][1]
+    ) + 50.0 * cm[town][1][1] / (cm[town][1][1] + cm[town][1][0] + cm[town][0][1])
 
 
 cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
         print("town")
-        cm[name] = np.zeros((2, 2), dtype=int)
-        for i in range(data.nbImages):
-            imageraw, label = data.getImageAndLabel(i)
+        cm[town] = np.zeros((2, 2), dtype=int)
+        for i in range(miniworld.data[town].nbImages):
+            imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
             image = torch.Tensor(np.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
             globalresize = torch.nn.AdaptiveAvgPool2d((image.shape[2], image.shape[3]))
@@ -89,9 +90,9 @@ with torch.no_grad():
 
             assert label.shape == pred.shape
 
-            cm[name] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
+            cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            if name in ["toulouse", "potsdam"]:
+            if town in ["toulouse", "potsdam"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + name + "_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
@@ -99,7 +100,7 @@ with torch.no_grad():
                 pred = PIL.Image.fromarray(np.uint8(pred) * 255)
                 pred.save("build/" + name + "_" + str(i) + "_z.png")
 
-        print(cm[name][0][0], cm[name][0][1], cm[name][1][0], cm[name][1][1])
+        print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
             accu(cm),
             f1(cm),
@@ -108,10 +109,8 @@ with torch.no_grad():
 print("-------- results ----------")
 for town in miniworld.towns:
     print(town, f1(cm[town]))
-    
+
 globalcm = np.zeros((2, 2), dtype=int)
 for town in miniworld.towns:
-    globalcm+=cm[town]
-print("miniworld", f1(globalcm))    
-        
-
+    globalcm += cm[town]
+print("miniworld", f1(globalcm))

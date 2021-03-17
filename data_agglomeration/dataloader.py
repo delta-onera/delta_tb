@@ -166,38 +166,45 @@ class SegSemDataset:
 
 
 class MiniWorld:
-    def __init__(self,flag="train"):
-        assert flag in ["train","test"]
-        
+    def __init__(self, flag="train"):
+        assert flag in ["train", "test"]
+
         self.root, self.towns = getindexeddata()
-        
-        self.towndata={}
+
+        self.data = {}
         self.nbImages = 0
         for town in self.towns:
-            self.towndata[town] = SegSemDataset(self.root+town+"/"+flag)
-            self.nbImages += self.towndata[town].nbImages
-            
-        print("indexing miniworld for",flag,": towns",self.towns,"have been found with a total of",self.nbImages,"images")
-        
-    def getImageAndLabel(self, town, i):
-        return self.towndata[town].getImageAndLabel(i)
-        
-    def getrandomtiles(self, nbtiles, tilesize, batchsize, mode = "PerImage"):
-        assert mode in ["PerImage","Pertown"]
-        
+            self.data[town] = SegSemDataset(self.root + town + "/" + flag + "/")
+            self.nbImages += self.data[town].nbImages
+
+        print(
+            "indexing miniworld (mode",
+            flag,
+            "):" + len(self.towns) + " towns found (",
+            self.towns,
+            ") with a total of",
+            self.nbImages,
+            "images",
+        )
+
+    def getrandomtiles(self, nbtiles, tilesize, batchsize, mode="PerImage"):
+        assert mode in ["PerImage", "PerTown"]
+
         XY = []
-        if mode=="PerImage":
-            nbtilesperimage = 1.*nbtiles/self.nbImages
-            
+        if mode == "PerImage":
+            nbtilesperimage = 1.0 * nbtiles / self.nbImages
+
             for town in self.towns:
-                XY += self.towndata[town].getrawrandomtiles(nbtilesperimage*self.towndata[town].nbImages, tilesize)
-                
-        if mode=="Pertown":
-            nbtilesperTown = 1.*nbtiles/len(self.towns)
-            
+                XY += self.data[town].getrawrandomtiles(
+                    nbtilesperimage * self.data[town].nbImages, tilesize
+                )
+
+        if mode == "PerTown":
+            nbtilesperTown = 1.0 * nbtiles / len(self.towns)
+
             for town in self.towns:
-                XY += self.towndata[town].getrawrandomtiles(nbtilesperTown, tilesize)
-                
+                XY += self.data[town].getrawrandomtiles(nbtilesperTown, tilesize)
+
         # pytorch
         X = torch.stack(
             [torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu() for x, y in XY]
@@ -209,7 +216,6 @@ class MiniWorld:
         )
 
         return dataloader
-        
 
 
 def largeforward(net, image, device, tilesize=128, stride=32):
@@ -232,5 +238,3 @@ def largeforward(net, image, device, tilesize=128, stride=32):
                 i += 1
 
     return pred
-
-
