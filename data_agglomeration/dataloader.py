@@ -25,6 +25,51 @@ from PIL import Image
 import torch
 
 
+def getindexeddata():
+    whereIam = os.uname()[1]
+
+    if whereIam == "super":
+        availabledata = ["toulouse", "potsdam"]
+        root = "/data/miniworld/"
+
+    if whereIam == "wdtim719z":
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "christchurch",
+        ]
+        root = "/data/miniworld/"
+
+    if whereIam == "ldtis706z":
+        availabledata = [
+            "toulouse",
+            "potsdam",
+            "bruges",
+            "austin",
+            "chicago",
+            "kitsap",
+            "tyrol-w",
+            "vienna",
+            "christchurch",
+        ]
+        root = "/media/achanhon/bigdata/data/miniworld/"
+
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        availabledata = [
+            "potsdam",
+            "austin",
+            "chicago",
+            "kitsap",
+            "tyrol-w",
+            "vienna",
+            "christchurch",
+        ]
+        root = "/scratch_ai4geo/miniworld/"
+
+    return root, availabledata
+
+
 class SegSemDataset:
     def __init__(self, pathTOdata):
         self.pathTOdata = pathTOdata
@@ -71,7 +116,7 @@ class SegSemDataset:
     ### get train usage
     def getrawrandomtiles(self, nbtiles, tilesize):
         XY = []
-        nbtilesperimage = nbtiles // self.nbImages + 1
+        nbtilesperimage = int(nbtiles / self.nbImages + 1)
 
         # crop
         for name in range(self.nbImages):
@@ -120,6 +165,53 @@ class SegSemDataset:
         return dataloader
 
 
+class MiniWorld:
+    def __init__(self,flag="train"):
+        assert flag in ["train","test"]
+        
+        self.root, self.towns = getindexeddata()
+        
+        self.towndata={}
+        self.nbImages = 0
+        for town in self.towns:
+            self.towndata[town] = SegSemDataset(self.root+town+"/"+flag)
+            self.nbImages += self.towndata[town].nbImages
+            
+        print("indexing miniworld for",flag,": towns",self.towns,"have been found with a total of",self.nbImages,"images")
+        
+    def getImageAndLabel(self, town, i):
+        return self.towndata[town].getImageAndLabel(i)
+        
+    def getrandomtiles(self, nbtiles, tilesize, batchsize, mode = "PerImage"):
+        assert mode in ["PerImage","Pertown"]
+        
+        XY = []
+        if mode=="PerImage":
+            nbtilesperimage = 1.*nbtiles/self.nbImages
+            
+            for town in self.towns:
+                XY += self.towndata[town].getrawrandomtiles(nbtilesperimage*self.towndata[town].nbImages, tilesize)
+                
+        if mode=="Pertown":
+            nbtilesperTown = 1.*nbtiles/len(self.towns)
+            
+            for town in self.towns:
+                XY += self.towndata[town].getrawrandomtiles(nbtilesperTown, tilesize)
+                
+        # pytorch
+        X = torch.stack(
+            [torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu() for x, y in XY]
+        )
+        Y = torch.stack([torch.from_numpy(y).long().cpu() for x, y in XY])
+        dataset = torch.utils.data.TensorDataset(X, Y)
+        dataloader = torch.utils.data.DataLoader(
+            dataset, batch_size=batchsize, shuffle=True, num_workers=2
+        )
+
+        return dataloader
+        
+
+
 def largeforward(net, image, device, tilesize=128, stride=32):
     pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cpu()
 
@@ -142,82 +234,3 @@ def largeforward(net, image, device, tilesize=128, stride=32):
     return pred
 
 
-def getindexeddata():
-    whereIam = os.uname()[1]
-
-    if whereIam == "super":
-        availabledata = ["toulouse", "potsdam"]
-        root = "/data/miniworld/"
-
-    if whereIam == "wdtim719z":
-        availabledata = [
-            "toulouse",
-            "potsdam",
-            "bruges",
-            "christchurch",
-        ]
-        root = "/data/miniworld/"
-
-    if whereIam == "ldtis706z":
-        availabledata = [
-            "toulouse",
-            "potsdam",
-            "bruges",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol",
-            "vienna",
-        ]
-        root = "/media/achanhon/bigdata/data/miniworld/"
-
-    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-        availabledata = [
-            "toulouse",
-            "potsdam",
-            "bruges",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol",
-            "vienna",
-            "Angers",
-            "Caen",
-            "Cherbourg",
-            "Lille_Arras_Lens_Douai_Henin",
-            "Marseille_Martigues",
-            "Nice",
-            "Rennes",
-            "Vannes",
-            "Brest",
-            "Calais_Dunkerque",
-            "Clermont-Ferrand",
-            "LeMans",
-            "Lorient",
-            "Nantes_Saint-Nazaire",
-            "Quimper",
-            "Saint-Brieuc",
-            "christchurch",
-        ]
-        root = "TODO"
-
-    weaklysupervised = [
-        "Angers",
-        "Caen",
-        "Cherbourg",
-        "Lille_Arras_Lens_Douai_Henin",
-        "Marseille_Martigues",
-        "Nice",
-        "Rennes",
-        "Vannes",
-        "Brest",
-        "Calais_Dunkerque",
-        "Clermont-Ferrand",
-        "LeMans",
-        "Lorient",
-        "Nantes_Saint-Nazaire",
-        "Quimper",
-        "Saint-Brieuc",
-    ]
-
-    return root, availabledata, weaklysupervised

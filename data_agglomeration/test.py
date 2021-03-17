@@ -36,7 +36,10 @@ if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    sys.path.append("TODO")
+    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
+    sys.path.append("/d/achanhon/github/pytorch-image-models")
+    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
+    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 import segmentation_models_pytorch
 
 with torch.no_grad():
@@ -48,8 +51,7 @@ with torch.no_grad():
 print("massif benchmark")
 import dataloader
 
-root, availabledata, weaklysupervised = dataloader.getindexeddata()
-
+miniworld = dataloader.MiniWorld("test")
 
 def accu(cm):
     return 100.0 * (cm[name][0][0] + cm[name][1][1]) / np.sum(cm[name])
@@ -63,10 +65,8 @@ def f1(cm):
 
 cm = {}
 with torch.no_grad():
-    for name in availabledata:
-        print("loading", name)
-        data = dataloader.SegSemDataset(root + name + "/test/")
-
+    for town in miniworld.towns:
+        print("town")
         cm[name] = np.zeros((2, 2), dtype=int)
         for i in range(data.nbImages):
             imageraw, label = data.getImageAndLabel(i)
@@ -89,14 +89,6 @@ with torch.no_grad():
 
             assert label.shape == pred.shape
 
-            ### for weakly labelled area
-            ### we do not want 1 in 0 area
-            ### but we may have 0 in 1 area
-            ### assuming they will be some 1 in 1 area
-            ### we offer to considered label*pred as label
-            if name in weaklysupervised:
-                label = label * pred
-
             cm[name] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
             if name in ["toulouse", "potsdam"]:
@@ -113,12 +105,13 @@ with torch.no_grad():
             f1(cm),
         )
 
-print("supervised results")
-for name in availabledata:
-    if name not in weaklysupervised:
-        print(name, f1(cm))
+print("-------- results ----------")
+for town in miniworld.towns:
+    print(town, f1(cm[town]))
+    
+globalcm = np.zeros((2, 2), dtype=int)
+for town in miniworld.towns:
+    globalcm+=cm[town]
+print("miniworld", f1(globalcm))    
+        
 
-print("weakly supervised results -- performance may be dramatically biased")
-for name in availabledata:
-    if name in weaklysupervised:
-        print(name, f1(cm))
