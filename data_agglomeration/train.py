@@ -58,7 +58,7 @@ net.train()
 print("load data")
 import dataloader
 
-miniworld = MiniWorld()
+miniworld = dataloader.MiniWorld()
 
 earlystopping = miniworld.getrandomtiles(1000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance]).to(device)
@@ -93,13 +93,13 @@ meanloss = collections.deque(maxlen=200)
 nbepoch = 400
 batchsize = 32
 if whereIam == "super":
-    nbepoch = 64
+    nbepoch = 2
     batchsize = 16
 
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
-    XY = miniworld.getrawrandomtiles(2000, 128)
+    XY = miniworld.getrandomtiles(2000, 128, batchsize)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
 
