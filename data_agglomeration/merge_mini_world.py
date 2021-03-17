@@ -21,7 +21,7 @@ def resizefile(root, XY, output, nativeresolution, outputresolution=50.0):
             )
             label = label.resize((image.size[0], image.size[1]), PIL.Image.NEAREST)
 
-        tmp = np.int(np.asarray(y))
+        tmp = np.int(np.asarray(label))
         if np.sum(tmp) != 0:
             image.save(output + "/" + str(i) + "_x.png")
             label.save(output + "/" + str(i) + "_y.png")
