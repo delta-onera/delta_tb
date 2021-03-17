@@ -173,10 +173,14 @@ class MiniWorld:
 
         self.data = {}
         self.nbImages = 0
+        self.nbbat, self.nbnonbat = 0, 0
         for town in self.towns:
             self.data[town] = SegSemDataset(self.root + town + "/" + flag + "/")
             self.nbImages += self.data[town].nbImages
+            self.nbbat += self.data[town].nbbat
+            self.nbnonbat += self.data[town].nbnonbat
 
+        self.balance = self.nbnonbat / self.nbbat
         print(
             "indexing miniworld (mode",
             flag,
