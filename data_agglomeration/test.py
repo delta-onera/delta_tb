@@ -67,7 +67,7 @@ def f1(cm):
 cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
-        print("town")
+        print(town)
         cm[town] = np.zeros((2, 2), dtype=int)
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
@@ -94,11 +94,11 @@ with torch.no_grad():
 
             if town in ["toulouse", "potsdam"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-                imageraw.save("build/" + name + "_" + str(i) + "_x.png")
+                imageraw.save("build/" + town + "_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
-                label.save("build/" + name + "_" + str(i) + "_y.png")
+                label.save("build/" + town + "_" + str(i) + "_y.png")
                 pred = PIL.Image.fromarray(np.uint8(pred) * 255)
-                pred.save("build/" + name + "_" + str(i) + "_z.png")
+                pred.save("build/" + town + "_" + str(i) + "_z.png")
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(

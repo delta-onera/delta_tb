@@ -52,7 +52,7 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
 whereIam = os.uname()[1]
 if whereIam == "super":
-    availabledata = ["semcity", "isprs"]
+    availabledata = ["isprs","semcity"]
     root = "/data/"
     rootminiworld = root + "/miniworld/"
 
