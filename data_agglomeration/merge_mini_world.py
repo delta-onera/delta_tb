@@ -21,9 +21,11 @@ def resizefile(root, XY, output, nativeresolution, outputresolution=50.0):
             )
             label = label.resize((image.size[0], image.size[1]), PIL.Image.NEAREST)
 
-        image.save(output + "/" + str(i) + "_x.png")
-        label.save(output + "/" + str(i) + "_y.png")
-        i += 1
+        tmp = np.int(np.asarray(y))
+        if np.sum(tmp) != 0:
+            image.save(output + "/" + str(i) + "_x.png")
+            label.save(output + "/" + str(i) + "_y.png")
+            i += 1
 
 
 def resizeram(XY, output, nativeresolution, outputresolution=50):
@@ -52,24 +54,28 @@ whereIam = os.uname()[1]
 if whereIam == "super":
     availabledata = ["semcity", "isprs"]
     root = "/data/"
+    rootminiworld = root + "/miniworld/"
 
 if whereIam == "wdtim719z":
     availabledata = ["semcity", "isprs", "airs", "dfc"]
     root = "/data/"
+    rootminiworld = root + "/miniworld/"
 
 if whereIam == "ldtis706z":
     availabledata = ["semcity", "isprs", "airs", "dfc", "inria"]
     root = "/media/achanhon/bigdata/data/"
+    rootminiworld = root + "/miniworld/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["semcity", "isprs", "airs", "dfc", "inria", "mini"]
-    root = "TODO"
+    availabledata = ["isprs", "airs", "inria"]
+    root = "/scratch_ai4geo/DATASETS/"
+    rootminiworld = "/scratch_ai4geo/miniworld/"
 
 
 def makepath(name):
-    os.makedirs(root + "miniworld/" + name)
-    os.makedirs(root + "miniworld/" + name + "/train")
-    os.makedirs(root + "miniworld/" + name + "/test")
+    os.makedirs(rootminiworld + name)
+    os.makedirs(rootminiworld + name + "/train")
+    os.makedirs(rootminiworld + name + "/test")
 
 
 if "inria" in availabledata:
@@ -87,7 +93,7 @@ if "inria" in availabledata:
         resizefile(
             root + "INRIA/AerialImageDataset/train/",
             XY,
-            root + "miniworld/" + town + "/train/",
+            rootminiworld + town + "/train/",
             30,
         )
 
@@ -100,7 +106,7 @@ if "inria" in availabledata:
         resizefile(
             root + "INRIA/AerialImageDataset/train/",
             XY,
-            root + "miniworld/" + town + "/test/",
+            rootminiworld + town + "/test/",
             30,
         )
 
@@ -108,18 +114,22 @@ if "airs" in availabledata:
     print("export airs")
     makepath("christchurch")
 
+    hack = ""
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        hack = "trainval/"
+
     for flag, flag2 in [("test", "val"), ("train", "train")]:
         XY = {}
-        allname = os.listdir(root + "AIRS/" + flag2 + "/image")
+        allname = os.listdir(root + "AIRS/" + hack + flag2 + "/image")
         for name in allname:
             XY[name] = (
                 "image/" + name[0:-4] + ".tif",
                 "label/" + name[0:-4] + "_vis.tif",
             )
         resizefile(
-            root + "AIRS/" + flag2,
+            root + "AIRS/" + hack + flag2,
             XY,
-            root + "miniworld/christchurch/" + flag + "/",
+            rootminiworld + "christchurch/" + flag + "/",
             7.5,
         )
 
@@ -154,7 +164,7 @@ if "dfc" in availabledata:
 
             XY[name] = (x, y)
 
-        resizeram(XY, root + "miniworld/bruges/" + flag, 5)
+        resizeram(XY, rootminiworld + +"bruges/" + flag, 5)
 
 if "isprs" in availabledata:
     print("export isprs potsdam")
@@ -221,7 +231,7 @@ if "isprs" in availabledata:
 
             XY[name] = (x, y)
 
-        resizeram(XY, root + "miniworld/potsdam/" + flag, 5)
+        resizeram(XY, rootminiworld + "potsdam/" + flag, 5)
 
 
 import rasterio
@@ -298,4 +308,4 @@ if "semcity" in availabledata:
 
             XY[name] = (x, y)
 
-        resizeram(XY, root + "miniworld/toulouse/" + flag, 50)
+        resizeram(XY, rootminiworld + "toulouse/" + flag, 50)
