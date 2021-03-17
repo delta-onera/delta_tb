@@ -55,13 +55,13 @@ miniworld = dataloader.MiniWorld("test")
 
 
 def accu(cm):
-    return 100.0 * (cm[town][0][0] + cm[town][1][1]) / np.sum(cm[town])
+    return 100.0 * (cm[0][0] + cm[1][1]) / np.sum(cm)
 
 
 def f1(cm):
-    return 50.0 * cm[town][0][0] / (
-        cm[town][0][0] + cm[town][1][0] + cm[town][0][1]
-    ) + 50.0 * cm[town][1][1] / (cm[town][1][1] + cm[town][1][0] + cm[town][0][1])
+    return 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1]) + 50.0 * cm[1][1] / (
+        cm[1][1] + cm[1][0] + cm[0][1]
+    )
 
 
 cm = {}
@@ -102,8 +102,8 @@ with torch.no_grad():
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
-            accu(cm),
-            f1(cm),
+            accu(cm[town]),
+            f1(cm[town]),
         )
 
 print("-------- results ----------")
