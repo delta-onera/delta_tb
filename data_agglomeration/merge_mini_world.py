@@ -1,13 +1,17 @@
 import os
 import numpy as np
+import json
 import PIL
 from PIL import Image
 import rasterio
 
 
 # for not uint8 image !
-def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1):
-    print("extracting pivot")
+def histogramnormalization(
+    im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1, verbose=True
+):
+    if verbose:
+        print("extracting pivot")
     if tile <= 0 or stride <= 0 or tile > stride:
         allvalues = list(im.flatten())
     else:
@@ -20,7 +24,8 @@ def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=
     if vmin < vmax:
         allvalues = [v for v in allvalues if vmin <= v and v <= vmax]
 
-    print("sorting pivot")
+    if verbose:
+        print("sorting pivot")
     allvalues = sorted(allvalues)
     n = len(allvalues)
     allvalues = allvalues[0 : int((100 - removecentiles) * n / 100)]
@@ -31,14 +36,16 @@ def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=
     pivot = [0] + [allvalues[i] for i in range(0, n, k)]
     assert len(pivot) >= 255
 
-    print("normalization")
+    if verbose:
+        print("normalization")
     out = np.uint8(np.zeros(im.shape, dtype=int))
     for i in range(1, 255):
-        if i % 10 == 0:
+        if i % 10 == 0 and verbose:
             print("normalization in progress", i, "/255")
         out = np.maximum(out, np.uint8(im > pivot[i]) * i)
 
-    print("normalization succeed")
+    if verbose:
+        print("normalization succeed")
     return np.uint8(out)
 
 
@@ -85,6 +92,41 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
 
         image.save(output + "/" + str(i) + "_x.png")
         label.save(output + "/" + str(i) + "_y.png")
+        i += 1
+
+
+def scratchfilespacenet2(root, XY, output):
+    i = 0
+    for name in XY:
+        x, y = XY[name]
+
+        with open(y, "r") as infile:
+            text = json.load(infile)
+        shapes = text["features"]
+
+        with rasterio.open(x) as src:
+            affine = src.transform
+            r = histogramnormalization(np.int16(src.read(1)), verbose=False)
+            g = histogramnormalization(np.int16(src.read(2)), verbose=False)
+            b = histogramnormalization(np.int16(src.read(3)), verbose=False)
+
+        mask = Image.new("RGB", (r.shape[0], r.shape[1]))
+
+        draw = ImageDraw.Draw(mask)
+        for shape in shapes:
+            polygonXYZ = shape["geometry"]["coordinates"][0]
+            polygon = [
+                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
+            ]
+            polygon = [(y, x) for x, y in polygon]
+            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
+
+        mask.save(output + str(i) + "_y.png")
+
+        x = np.stack([r, g, b], axis=2)
+        image = Image.fromarray(x)
+        image.save(output + str(i) + "_x.png")
+
         i += 1
 
 
