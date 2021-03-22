@@ -20,10 +20,10 @@ if whereIam == "ldtis706z":
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     root = "/scratch_ai4geo/"
 
-if os.path.exists(root + "miniworld"):
+if os.path.exists(root + "miniworldtmp"):
     print("it seems miniworld exists, please remove it by hand")
     quit()
-os.makedirs(root + "miniworld")
+os.makedirs(root + "miniworldtmp")
 
 if whereIam == "super":
     os.system("/data/anaconda3/envs/rahh/bin/python merge_mini_world.py ")

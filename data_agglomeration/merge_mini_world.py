@@ -100,11 +100,11 @@ def scratchfilespacenet2(root, XY, output):
     for name in XY:
         x, y = XY[name]
 
-        with open(y, "r") as infile:
+        with open(root+y, "r") as infile:
             text = json.load(infile)
         shapes = text["features"]
 
-        with rasterio.open(x) as src:
+        with rasterio.open(root+x) as src:
             affine = src.transform
             r = histogramnormalization(np.int16(src.read(1)), verbose=False)
             g = histogramnormalization(np.int16(src.read(2)), verbose=False)
