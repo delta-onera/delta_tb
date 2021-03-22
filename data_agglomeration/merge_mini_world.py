@@ -2,7 +2,7 @@ import os
 import numpy as np
 import json
 import PIL
-from PIL import Image
+from PIL import Image,ImageDraw
 import rasterio
 
 
@@ -182,8 +182,8 @@ if "spacenet2" in availabledata:
             XY = {}
             for name in names[flag]:
                 XY[name] = (
-                    "AOI_2_" + town + "_Train/RGB-PanSharpen/" + name + ".tif",
-                    "AOI_2_"
+                    "AOI_" + town + "_Train/RGB-PanSharpen/RGB-PanSharpen" + name + ".tif",
+                    "AOI_"
                     + town
                     + "_Train/geojson/buildings/buildings"
                     + name
