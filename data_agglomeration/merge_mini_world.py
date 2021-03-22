@@ -118,12 +118,12 @@ def makepath(name):
 
 if "spacenet2" in availabledata:
     print("export spacenet2")
-    towns = [("2_Vegas","vegas"), ("3_Paris","paris"), ("4_Shanghai", , "Khartoum"]
-    for town in towns:
-        makepath(town)
+    towns = [("2_Vegas","vegas"), ("3_Paris","paris"), ("4_Shanghai","shanghai") , ("5_Khartoum","khartoum")]
+    for town,out in towns:
+        makepath(out)
 
         allname = os.listdir(
-            root + "SPACENET2/train/AOI_2_" + town + "_Train/RGB-PanSharpen"
+            root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
         )
         allname = sorted([name[0:-4] for name in allname])
         split = int(len(allname) * 0.66)
@@ -141,7 +141,7 @@ if "spacenet2" in availabledata:
             scratchfilespacenet2(
                 root + "SPACENET2/train/",
                 XY,
-                rootminiworld + town.lower() + "/" + flag + "/",
+                rootminiworld + out + "/" + flag + "/",
             )
 
 if "inria" in availabledata:
