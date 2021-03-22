@@ -100,11 +100,11 @@ def scratchfilespacenet2(root, XY, output):
     for name in XY:
         x, y = XY[name]
 
-        with open(root+y, "r") as infile:
+        with open(root + y, "r") as infile:
             text = json.load(infile)
         shapes = text["features"]
 
-        with rasterio.open(root+x) as src:
+        with rasterio.open(root + x) as src:
             affine = src.transform
             r = histogramnormalization(np.int16(src.read(1)), verbose=False)
             g = histogramnormalization(np.int16(src.read(2)), verbose=False)
@@ -172,7 +172,7 @@ if "spacenet2" in availabledata:
         allname = os.listdir(
             root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
         )
-        allname = sorted([name[0:-4] for name in allname])
+        allname = sorted([name[14:-4] for name in allname])
         split = int(len(allname) * 0.66)
         names = {}
         names["train"] = allname[0:split]
@@ -183,7 +183,11 @@ if "spacenet2" in availabledata:
             for name in names[flag]:
                 XY[name] = (
                     "AOI_2_" + town + "_Train/RGB-PanSharpen/" + name + ".tif",
-                    "AOI_2_" + town + "_Train/geojson/building/" + name + ".geojson",
+                    "AOI_2_"
+                    + town
+                    + "_Train/geojson/buildings/buildings"
+                    + name
+                    + ".geojson",
                 )
             scratchfilespacenet2(
                 root + "SPACENET2/train/",
