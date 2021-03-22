@@ -115,6 +115,7 @@ def scratchfilespacenet2(root, XY, output):
         draw = ImageDraw.Draw(mask)
         for shape in shapes:
             polygonXYZ = shape["geometry"]["coordinates"][0]
+            print(polygonXYZ)
             polygon = [
                 rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
             ]
