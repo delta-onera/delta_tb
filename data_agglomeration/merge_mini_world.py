@@ -2,6 +2,44 @@ import os
 import numpy as np
 import PIL
 from PIL import Image
+import rasterio
+
+
+# for not uint8 image !
+def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1):
+    print("extracting pivot")
+    if tile <= 0 or stride <= 0 or tile > stride:
+        allvalues = list(im.flatten())
+    else:
+        allvalues = []
+        for row in range(0, im.shape[0] - tile, stride):
+            for col in range(0, im.shape[1] - tile, stride):
+                allvalues += list(im[row : row + tile, col : col + tile].flatten())
+
+    ## remove "no data"
+    if vmin < vmax:
+        allvalues = [v for v in allvalues if vmin <= v and v <= vmax]
+
+    print("sorting pivot")
+    allvalues = sorted(allvalues)
+    n = len(allvalues)
+    allvalues = allvalues[0 : int((100 - removecentiles) * n / 100)]
+    allvalues = allvalues[int(removecentiles * n / 100) :]
+
+    n = len(allvalues)
+    k = n // 255
+    pivot = [0] + [allvalues[i] for i in range(0, n, k)]
+    assert len(pivot) >= 255
+
+    print("normalization")
+    out = np.uint8(np.zeros(im.shape, dtype=int))
+    for i in range(1, 255):
+        if i % 10 == 0:
+            print("normalization in progress", i, "/255")
+        out = np.maximum(out, np.uint8(im > pivot[i]) * i)
+
+    print("normalization succeed")
+    return np.uint8(out)
 
 
 def resizefile(root, XY, output, nativeresolution, outputresolution=50.0):
@@ -67,9 +105,9 @@ if whereIam == "ldtis706z":
     rootminiworld = root + "/miniworld/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["isprs", "airs", "inria"]
+    availabledata = ["spacenet2", "isprs", "airs", "inria"]
     root = "/scratch_ai4geo/DATASETS/"
-    rootminiworld = "/scratch_ai4geo/miniworld/"
+    rootminiworld = "/scratch_ai4geo/miniworldtmp/"
 
 
 def makepath(name):
@@ -77,6 +115,34 @@ def makepath(name):
     os.makedirs(rootminiworld + name + "/train")
     os.makedirs(rootminiworld + name + "/test")
 
+
+if "spacenet2" in availabledata:
+    print("export spacenet2")
+    towns = [("2_Vegas","vegas"), ("3_Paris","paris"), ("4_Shanghai", , "Khartoum"]
+    for town in towns:
+        makepath(town)
+
+        allname = os.listdir(
+            root + "SPACENET2/train/AOI_2_" + town + "_Train/RGB-PanSharpen"
+        )
+        allname = sorted([name[0:-4] for name in allname])
+        split = int(len(allname) * 0.66)
+        names = {}
+        names["train"] = allname[0:split]
+        names["test"] = allname[split : len(allname)]
+
+        for flag in ["train", "test"]:
+            XY = {}
+            for name in names[flag]:
+                XY[name] = (
+                    "AOI_2_" + town + "_Train/RGB-PanSharpen/" + name + ".tif",
+                    "AOI_2_" + town + "_Train/geojson/building/" + name + ".geojson",
+                )
+            scratchfilespacenet2(
+                root + "SPACENET2/train/",
+                XY,
+                rootminiworld + town.lower() + "/" + flag + "/",
+            )
 
 if "inria" in availabledata:
     print("export inria")
@@ -232,45 +298,6 @@ if "isprs" in availabledata:
             XY[name] = (x, y)
 
         resizeram(XY, rootminiworld + "potsdam/" + flag, 5)
-
-
-import rasterio
-
-
-def histogramnormalization(im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1):
-    print("extracting pivot")
-    if tile <= 0 or stride <= 0 or tile > stride:
-        allvalues = list(im.flatten())
-    else:
-        allvalues = []
-        for row in range(0, im.shape[0] - tile, stride):
-            for col in range(0, im.shape[1] - tile, stride):
-                allvalues += list(im[row : row + tile, col : col + tile].flatten())
-
-    ## remove "no data"
-    if vmin < vmax:
-        allvalues = [v for v in allvalues if vmin <= v and v <= vmax]
-
-    print("sorting pivot")
-    allvalues = sorted(allvalues)
-    n = len(allvalues)
-    allvalues = allvalues[0 : int((100 - removecentiles) * n / 100)]
-    allvalues = allvalues[int(removecentiles * n / 100) :]
-
-    n = len(allvalues)
-    k = n // 255
-    pivot = [0] + [allvalues[i] for i in range(0, n, k)]
-    assert len(pivot) >= 255
-
-    print("normalization")
-    out = np.uint8(np.zeros(im.shape, dtype=int))
-    for i in range(1, 255):
-        if i % 10 == 0:
-            print("normalization in progress", i, "/255")
-        out = np.maximum(out, np.uint8(im > pivot[i]) * i)
-
-    print("normalization succeed")
-    return np.uint8(out)
 
 
 if "semcity" in availabledata:
