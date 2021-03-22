@@ -118,8 +118,13 @@ def makepath(name):
 
 if "spacenet2" in availabledata:
     print("export spacenet2")
-    towns = [("2_Vegas","vegas"), ("3_Paris","paris"), ("4_Shanghai","shanghai") , ("5_Khartoum","khartoum")]
-    for town,out in towns:
+    towns = [
+        ("2_Vegas", "vegas"),
+        ("3_Paris", "paris"),
+        ("4_Shanghai", "shanghai"),
+        ("5_Khartoum", "khartoum"),
+    ]
+    for town, out in towns:
         makepath(out)
 
         allname = os.listdir(
