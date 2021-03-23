@@ -186,7 +186,7 @@ if "spacenet2" in availabledata:
         allname = os.listdir(
             root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
         )
-        allname = [name for name in allname is name[-4 : len(name)] == ".tif"]
+        allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
         allname = sorted([name[14:-4] for name in allname])
         split = int(len(allname) * 0.66)
         names = {}
@@ -203,7 +203,7 @@ if "spacenet2" in availabledata:
                 + "SPACENET2/train/AOI_"
                 + town
                 + "_Train/RGB-PanSharpen/RGB-PanSharpen"
-                + tmp[i]
+                + names["train"][i]
                 + ".tif"
             ) as src:
                 r = np.int16(src.read(1))
@@ -215,9 +215,11 @@ if "spacenet2" in availabledata:
 
         print("compute global pivots for normalization")
         for c in ["r", "g", "b"]:
+            print(c,len(pivots[c]))
             pivots[c] = [v for v in pivots[c] if v >= 2]
             pivots[c] = sorted(pivots[c])
             n = len(pivots[c])
+            print(c,n)
             pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
             pivots[c] = pivots[c][int(4 * n / 100) :]
 
@@ -227,6 +229,8 @@ if "spacenet2" in availabledata:
             pivots[c] = [0] + [pivots[c][i] for i in range(0, n, k)]
 
             assert len(pivots[c]) >= 255
+
+        print("start file processing")
 
         names["test"] = allname[split : len(allname)]
 
