@@ -2,38 +2,42 @@ import os
 import numpy as np
 import json
 import PIL
-from PIL import Image,ImageDraw
+from PIL import Image, ImageDraw
 import rasterio
+import random
 
 
 # for not uint8 image !
 def histogramnormalization(
-    im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1, verbose=True
+    im, removecentiles=2, tile=0, stride=0, vmin=1, vmax=-1, verbose=True, pivot=None
 ):
-    if verbose:
-        print("extracting pivot")
-    if tile <= 0 or stride <= 0 or tile > stride:
-        allvalues = list(im.flatten())
-    else:
-        allvalues = []
-        for row in range(0, im.shape[0] - tile, stride):
-            for col in range(0, im.shape[1] - tile, stride):
-                allvalues += list(im[row : row + tile, col : col + tile].flatten())
+    if pivot is None:
+        if verbose:
+            print("extracting pivot")
+        if tile <= 0 or stride <= 0 or tile > stride:
+            allvalues = list(im.flatten())
+        else:
+            allvalues = []
+            for row in range(0, im.shape[0] - tile, stride):
+                for col in range(0, im.shape[1] - tile, stride):
+                    allvalues += list(im[row : row + tile, col : col + tile].flatten())
 
-    ## remove "no data"
-    if vmin < vmax:
-        allvalues = [v for v in allvalues if vmin <= v and v <= vmax]
+        ## remove "no data"
+        if vmin < vmax:
+            allvalues = [v for v in allvalues if vmin <= v and v <= vmax]
 
-    if verbose:
-        print("sorting pivot")
-    allvalues = sorted(allvalues)
-    n = len(allvalues)
-    allvalues = allvalues[0 : int((100 - removecentiles) * n / 100)]
-    allvalues = allvalues[int(removecentiles * n / 100) :]
+        if verbose:
+            print("sorting pivot")
+        allvalues = sorted(allvalues)
+        n = len(allvalues)
+        allvalues = allvalues[0 : int((100 - removecentiles) * n / 100)]
+        allvalues = allvalues[int(removecentiles * n / 100) :]
 
-    n = len(allvalues)
-    k = n // 255
-    pivot = [0] + [allvalues[i] for i in range(0, n, k)]
+        n = len(allvalues)
+        k = n // 255
+
+        pivot = [0] + [allvalues[i] for i in range(0, n, k)]
+
     assert len(pivot) >= 255
 
     if verbose:
@@ -95,7 +99,7 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
         i += 1
 
 
-def scratchfilespacenet2(root, XY, output):
+def scratchfilespacenet2(root, XY, output, pivots):
     i = 0
     for name in XY:
         x, y = XY[name]
@@ -106,18 +110,24 @@ def scratchfilespacenet2(root, XY, output):
 
         with rasterio.open(root + x) as src:
             affine = src.transform
-            r = histogramnormalization(np.int16(src.read(1)), verbose=False)
-            g = histogramnormalization(np.int16(src.read(2)), verbose=False)
-            b = histogramnormalization(np.int16(src.read(3)), verbose=False)
+            r = histogramnormalization(
+                np.int16(src.read(1)), verbose=False, pivot=pivots["r"]
+            )
+            g = histogramnormalization(
+                np.int16(src.read(2)), verbose=False, pivot=pivots["g"]
+            )
+            b = histogramnormalization(
+                np.int16(src.read(3)), verbose=False, pivot=pivots["b"]
+            )
 
         mask = Image.new("RGB", (r.shape[0], r.shape[1]))
 
         draw = ImageDraw.Draw(mask)
         for shape in shapes:
             polygonXYZ = shape["geometry"]["coordinates"][0]
-            if type(polygonXYZ)!=type([]):
+            if type(polygonXYZ) != type([]):
                 continue
-            if len(polygonXYZ)<3:
+            if len(polygonXYZ) < 3:
                 continue
             polygon = [
                 rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
@@ -176,17 +186,59 @@ if "spacenet2" in availabledata:
         allname = os.listdir(
             root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
         )
+        allname = [name for name in allname is name[-4 : len(name)] == ".tif"]
         allname = sorted([name[14:-4] for name in allname])
         split = int(len(allname) * 0.66)
         names = {}
         names["train"] = allname[0:split]
+
+        print("collect stats for normalization")
+        pivots = {}
+        for c in ["r", "g", "b"]:
+            pivots[c] = []
+
+        for i in range(0, len(names["train"]), 4):
+            with rasterio.open(
+                root
+                + "SPACENET2/train/AOI_"
+                + town
+                + "_Train/RGB-PanSharpen/RGB-PanSharpen"
+                + tmp[i]
+                + ".tif"
+            ) as src:
+                r = np.int16(src.read(1))
+                g = np.int16(src.read(2))
+                b = np.int16(src.read(3))
+                pivots["r"] += list(r.flatten())
+                pivots["g"] += list(g.flatten())
+                pivots["b"] += list(b.flatten())
+
+        print("compute global pivots for normalization")
+        for c in ["r", "g", "b"]:
+            pivots[c] = [v for v in pivots[c] if v >= 2]
+            pivots[c] = sorted(pivots[c])
+            n = len(pivots[c])
+            pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
+            pivots[c] = pivots[c][int(4 * n / 100) :]
+
+            n = len(pivots[c])
+            k = n // 255
+
+            pivots[c] = [0] + [pivots[c][i] for i in range(0, n, k)]
+
+            assert len(pivots[c]) >= 255
+
         names["test"] = allname[split : len(allname)]
 
         for flag in ["train", "test"]:
             XY = {}
             for name in names[flag]:
                 XY[name] = (
-                    "AOI_" + town + "_Train/RGB-PanSharpen/RGB-PanSharpen" + name + ".tif",
+                    "AOI_"
+                    + town
+                    + "_Train/RGB-PanSharpen/RGB-PanSharpen"
+                    + name
+                    + ".tif",
                     "AOI_"
                     + town
                     + "_Train/geojson/buildings/buildings"
@@ -197,6 +249,7 @@ if "spacenet2" in availabledata:
                 root + "SPACENET2/train/",
                 XY,
                 rootminiworld + out + "/" + flag + "/",
+                pivots,
             )
 
 if "inria" in availabledata:
