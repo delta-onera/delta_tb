@@ -170,7 +170,7 @@ if whereIam == "ldtis706z":
     rootminiworld = root + "/miniworld/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["spacenet2", "isprs", "airs", "inria"]
+    availabledata = ["spacenet2", "isprs", "airs", "inria", "semcity"]
     root = "/scratch_ai4geo/DATASETS/"
     rootminiworld = "/scratch_ai4geo/miniworldtmp/"
 
@@ -425,6 +425,10 @@ if "semcity" in availabledata:
     print("export toulouse")
     makepath("toulouse")
 
+    hack = ""
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        hack = "../"
+
     names = {}
     names["train"] = ["04", "08"]
     names["test"] = ["03", "07"]
@@ -434,7 +438,9 @@ if "semcity" in availabledata:
         for name in names[flag]:
 
             ###physical image which requires normalization
-            src = rasterio.open(root + "SEMCITY_TOULOUSE/TLS_BDSD_M_" + name + ".tif")
+            src = rasterio.open(
+                root + hack + "SEMCITY_TOULOUSE/TLS_BDSD_M_" + name + ".tif"
+            )
             r = histogramnormalization(np.int16(src.read(4)))
             g = histogramnormalization(np.int16(src.read(3)))
             b = histogramnormalization(np.int16(src.read(2)))
@@ -442,7 +448,9 @@ if "semcity" in availabledata:
             x = np.stack([r, g, b], axis=2)
 
             y = (
-                PIL.Image.open(root + "SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif")
+                PIL.Image.open(
+                    root + hack + +"SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif"
+                )
                 .convert("RGB")
                 .copy()
             )
