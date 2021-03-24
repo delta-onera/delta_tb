@@ -310,9 +310,7 @@ if "semcity" in availabledata:
             x = np.stack([r, g, b], axis=2)
 
             y = (
-                PIL.Image.open(
-                    root + hack + "SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif"
-                )
+                PIL.Image.open(root + hack + "SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif")
                 .convert("RGB")
                 .copy()
             )
@@ -371,11 +369,9 @@ if "spacenet2" in availabledata:
 
         print("compute global pivots for normalization")
         for c in ["r", "g", "b"]:
-            print(c, len(pivots[c]))
             pivots[c] = [v for v in pivots[c] if v >= 2]
             pivots[c] = sorted(pivots[c])
             n = len(pivots[c])
-            print(c, n)
             pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
             pivots[c] = pivots[c][int(4 * n / 100) :]
 
@@ -386,10 +382,9 @@ if "spacenet2" in availabledata:
 
             assert len(pivots[c]) >= 255
 
-        print("start file processing")
-
         names["test"] = allname[split : len(allname)]
-
+        
+        print("start file processing")
         for flag in ["train", "test"]:
             XY = {}
             for name in names[flag]:
