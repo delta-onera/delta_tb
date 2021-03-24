@@ -120,7 +120,7 @@ def scratchfilespacenet2(root, XY, output, pivots):
                 np.int16(src.read(3)), verbose=False, pivot=pivots["b"]
             )
 
-        mask = Image.new("RGB", (r.shape[0], r.shape[1]))
+        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
 
         draw = ImageDraw.Draw(mask)
         for shape in shapes:
@@ -135,10 +135,19 @@ def scratchfilespacenet2(root, XY, output, pivots):
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
+        mask = mask.resize(
+            (
+                int(mask.size[0] * 30.0 / 50),
+                int(mask.size[1] * 30.0 / 50),
+            ),
+            PIL.Image.NEAREST,
+        )
         mask.save(output + str(i) + "_y.png")
 
         x = np.stack([r, g, b], axis=2)
         image = Image.fromarray(x)
+        label = label.resize((mask.size[0], mask.size[1]), PIL.Image.BILINEAR)
+
         image.save(output + str(i) + "_x.png")
 
         i += 1
@@ -215,11 +224,11 @@ if "spacenet2" in availabledata:
 
         print("compute global pivots for normalization")
         for c in ["r", "g", "b"]:
-            print(c,len(pivots[c]))
+            print(c, len(pivots[c]))
             pivots[c] = [v for v in pivots[c] if v >= 2]
             pivots[c] = sorted(pivots[c])
             n = len(pivots[c])
-            print(c,n)
+            print(c, n)
             pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
             pivots[c] = pivots[c][int(4 * n / 100) :]
 
