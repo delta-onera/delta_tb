@@ -165,9 +165,9 @@ if whereIam == "wdtim719z":
     rootminiworld = root + "/miniworld/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["spacenet2", "isprs", "airs", "inria", "semcity", "dfc"]
+    availabledata = ["semcity", "dfc", "spacenet2", "isprs", "airs", "inria"]
     root = "/scratch_ai4geo/DATASETS/"
-    rootminiworld = "/scratch_ai4geo/miniworldtmp/"
+    rootminiworld = "/scratch_ai4geo/miniworld/"
 
 
 def makepath(name):
