@@ -193,13 +193,13 @@ if "dfc" in availabledata:
         for name in names[flag]:
             x = (
                 PIL.Image.open(
-                    root + "hack" + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif"
+                    root + hack + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif"
                 )
                 .convert("RGB")
                 .copy()
             )
             y = (
-                PIL.Image.open(root + "hack" + "DFC2015/" + "label_" + name + ".tif")
+                PIL.Image.open(root + hack + "DFC2015/" + "label_" + name + ".tif")
                 .convert("RGB")
                 .copy()
             )
@@ -311,7 +311,7 @@ if "semcity" in availabledata:
 
             y = (
                 PIL.Image.open(
-                    root + hack + +"SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif"
+                    root + hack + "SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif"
                 )
                 .convert("RGB")
                 .copy()
