@@ -176,145 +176,6 @@ def makepath(name):
     os.makedirs(rootminiworld + name + "/test")
 
 
-if "spacenet2" in availabledata:
-    print("export spacenet2")
-    towns = [
-        ("2_Vegas", "vegas"),
-        ("3_Paris", "paris"),
-        ("4_Shanghai", "shanghai"),
-        ("5_Khartoum", "khartoum"),
-    ]
-    for town, out in towns:
-        makepath(out)
-
-        allname = os.listdir(
-            root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
-        )
-        allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
-        allname = sorted([name[14:-4] for name in allname])
-        split = int(len(allname) * 0.66)
-        names = {}
-        names["train"] = allname[0:split]
-
-        print("collect stats for normalization")
-        pivots = {}
-        for c in ["r", "g", "b"]:
-            pivots[c] = []
-
-        for i in range(0, len(names["train"]), 4):
-            with rasterio.open(
-                root
-                + "SPACENET2/train/AOI_"
-                + town
-                + "_Train/RGB-PanSharpen/RGB-PanSharpen"
-                + names["train"][i]
-                + ".tif"
-            ) as src:
-                r = np.int16(src.read(1))
-                g = np.int16(src.read(2))
-                b = np.int16(src.read(3))
-                pivots["r"] += list(r.flatten())
-                pivots["g"] += list(g.flatten())
-                pivots["b"] += list(b.flatten())
-
-        print("compute global pivots for normalization")
-        for c in ["r", "g", "b"]:
-            print(c, len(pivots[c]))
-            pivots[c] = [v for v in pivots[c] if v >= 2]
-            pivots[c] = sorted(pivots[c])
-            n = len(pivots[c])
-            print(c, n)
-            pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
-            pivots[c] = pivots[c][int(4 * n / 100) :]
-
-            n = len(pivots[c])
-            k = n // 255
-
-            pivots[c] = [0] + [pivots[c][i] for i in range(0, n, k)]
-
-            assert len(pivots[c]) >= 255
-
-        print("start file processing")
-
-        names["test"] = allname[split : len(allname)]
-
-        for flag in ["train", "test"]:
-            XY = {}
-            for name in names[flag]:
-                XY[name] = (
-                    "AOI_"
-                    + town
-                    + "_Train/RGB-PanSharpen/RGB-PanSharpen"
-                    + name
-                    + ".tif",
-                    "AOI_"
-                    + town
-                    + "_Train/geojson/buildings/buildings"
-                    + name
-                    + ".geojson",
-                )
-            scratchfilespacenet2(
-                root + "SPACENET2/train/",
-                XY,
-                rootminiworld + out + "/" + flag + "/",
-                pivots,
-            )
-
-if "inria" in availabledata:
-    print("export inria")
-    towns = ["austin", "chicago", "kitsap", "tyrol-w", "vienna"]
-    for town in towns:
-        makepath(town)
-
-        XY = {}
-        for i in range(20):
-            XY[i] = (
-                "images/" + town + str(1 + i) + ".tif",
-                "gt/" + town + str(1 + i) + ".tif",
-            )
-        resizefile(
-            root + "INRIA/AerialImageDataset/train/",
-            XY,
-            rootminiworld + town + "/train/",
-            30,
-        )
-
-        XY = {}
-        for i in range(15):
-            XY[i] = (
-                "images/" + town + str(21 + i) + ".tif",
-                "gt/" + town + str(21 + i) + ".tif",
-            )
-        resizefile(
-            root + "INRIA/AerialImageDataset/train/",
-            XY,
-            rootminiworld + town + "/test/",
-            30,
-        )
-
-if "airs" in availabledata:
-    print("export airs")
-    makepath("christchurch")
-
-    hack = ""
-    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-        hack = "trainval/"
-
-    for flag, flag2 in [("test", "val"), ("train", "train")]:
-        XY = {}
-        allname = os.listdir(root + "AIRS/" + hack + flag2 + "/image")
-        for name in allname:
-            XY[name] = (
-                "image/" + name[0:-4] + ".tif",
-                "label/" + name[0:-4] + "_vis.tif",
-            )
-        resizefile(
-            root + "AIRS/" + hack + flag2,
-            XY,
-            rootminiworld + "christchurch/" + flag + "/",
-            7.5,
-        )
-
 if "dfc" in availabledata:
     print("export dfc 2015 bruges")
     makepath("bruges")
@@ -466,3 +327,142 @@ if "semcity" in availabledata:
             XY[name] = (x, y)
 
         resizeram(XY, rootminiworld + "toulouse/" + flag, 50)
+
+if "spacenet2" in availabledata:
+    print("export spacenet2")
+    towns = [
+        ("2_Vegas", "vegas"),
+        ("3_Paris", "paris"),
+        ("4_Shanghai", "shanghai"),
+        ("5_Khartoum", "khartoum"),
+    ]
+    for town, out in towns:
+        makepath(out)
+
+        allname = os.listdir(
+            root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
+        )
+        allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
+        allname = sorted([name[14:-4] for name in allname])
+        split = int(len(allname) * 0.66)
+        names = {}
+        names["train"] = allname[0:split]
+
+        print("collect stats for normalization")
+        pivots = {}
+        for c in ["r", "g", "b"]:
+            pivots[c] = []
+
+        for i in range(0, len(names["train"]), 4):
+            with rasterio.open(
+                root
+                + "SPACENET2/train/AOI_"
+                + town
+                + "_Train/RGB-PanSharpen/RGB-PanSharpen"
+                + names["train"][i]
+                + ".tif"
+            ) as src:
+                r = np.int16(src.read(1))
+                g = np.int16(src.read(2))
+                b = np.int16(src.read(3))
+                pivots["r"] += list(r.flatten())
+                pivots["g"] += list(g.flatten())
+                pivots["b"] += list(b.flatten())
+
+        print("compute global pivots for normalization")
+        for c in ["r", "g", "b"]:
+            print(c, len(pivots[c]))
+            pivots[c] = [v for v in pivots[c] if v >= 2]
+            pivots[c] = sorted(pivots[c])
+            n = len(pivots[c])
+            print(c, n)
+            pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
+            pivots[c] = pivots[c][int(4 * n / 100) :]
+
+            n = len(pivots[c])
+            k = n // 255
+
+            pivots[c] = [0] + [pivots[c][i] for i in range(0, n, k)]
+
+            assert len(pivots[c]) >= 255
+
+        print("start file processing")
+
+        names["test"] = allname[split : len(allname)]
+
+        for flag in ["train", "test"]:
+            XY = {}
+            for name in names[flag]:
+                XY[name] = (
+                    "AOI_"
+                    + town
+                    + "_Train/RGB-PanSharpen/RGB-PanSharpen"
+                    + name
+                    + ".tif",
+                    "AOI_"
+                    + town
+                    + "_Train/geojson/buildings/buildings"
+                    + name
+                    + ".geojson",
+                )
+            scratchfilespacenet2(
+                root + "SPACENET2/train/",
+                XY,
+                rootminiworld + out + "/" + flag + "/",
+                pivots,
+            )
+
+if "inria" in availabledata:
+    print("export inria")
+    towns = ["austin", "chicago", "kitsap", "tyrol-w", "vienna"]
+    for town in towns:
+        makepath(town)
+
+        XY = {}
+        for i in range(20):
+            XY[i] = (
+                "images/" + town + str(1 + i) + ".tif",
+                "gt/" + town + str(1 + i) + ".tif",
+            )
+        resizefile(
+            root + "INRIA/AerialImageDataset/train/",
+            XY,
+            rootminiworld + town + "/train/",
+            30,
+        )
+
+        XY = {}
+        for i in range(15):
+            XY[i] = (
+                "images/" + town + str(21 + i) + ".tif",
+                "gt/" + town + str(21 + i) + ".tif",
+            )
+        resizefile(
+            root + "INRIA/AerialImageDataset/train/",
+            XY,
+            rootminiworld + town + "/test/",
+            30,
+        )
+
+if "airs" in availabledata:
+    print("export airs")
+    makepath("christchurch")
+
+    hack = ""
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        hack = "trainval/"
+
+    for flag, flag2 in [("test", "val"), ("train", "train")]:
+        XY = {}
+        allname = os.listdir(root + "AIRS/" + hack + flag2 + "/image")
+        for name in allname:
+            XY[name] = (
+                "image/" + name[0:-4] + ".tif",
+                "label/" + name[0:-4] + "_vis.tif",
+            )
+        resizefile(
+            root + "AIRS/" + hack + flag2,
+            XY,
+            rootminiworld + "christchurch/" + flag + "/",
+            7.5,
+        )
