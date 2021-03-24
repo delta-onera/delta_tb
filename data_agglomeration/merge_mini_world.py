@@ -164,13 +164,8 @@ if whereIam == "wdtim719z":
     root = "/data/"
     rootminiworld = root + "/miniworld/"
 
-if whereIam == "ldtis706z":
-    availabledata = ["semcity", "isprs", "airs", "dfc", "inria"]
-    root = "/media/achanhon/bigdata/data/"
-    rootminiworld = root + "/miniworld/"
-
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["spacenet2", "isprs", "airs", "inria", "semcity"]
+    availabledata = ["spacenet2", "isprs", "airs", "inria", "semcity", "dfc"]
     root = "/scratch_ai4geo/DATASETS/"
     rootminiworld = "/scratch_ai4geo/miniworldtmp/"
 

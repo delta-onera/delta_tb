@@ -41,20 +41,6 @@ def getindexeddata():
         ]
         root = "/data/miniworld/"
 
-    if whereIam == "ldtis706z":
-        availabledata = [
-            "toulouse",
-            "potsdam",
-            "bruges",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol-w",
-            "vienna",
-            "christchurch",
-        ]
-        root = "/media/achanhon/bigdata/data/miniworld/"
-
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
         availabledata = [
             "potsdam",

@@ -5,7 +5,6 @@ whereIam = os.uname()[1]
 assert whereIam in [
     "super",
     "wdtim719z",
-    "ldtis706z",
     "calculon",
     "astroboy",
     "flexo",
@@ -14,8 +13,6 @@ assert whereIam in [
 
 if whereIam in ["super", "wdtim719z"]:
     root = "/data/"
-if whereIam == "ldtis706z":
-    root = "/media/achanhon/bigdata/data/"
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     root = "/scratch_ai4geo/"
 
@@ -30,7 +27,7 @@ os.makedirs("build")
 if whereIam == "super":
     os.system("/data/anaconda3/bin/python train.py ")
     os.system("/data/anaconda3/bin/python test.py ")
-if whereIam in ["ldtis706z", "wdtim719z"]:
+if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py ")
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py ")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
