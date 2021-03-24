@@ -146,7 +146,7 @@ def scratchfilespacenet2(root, XY, output, pivots):
 
         x = np.stack([r, g, b], axis=2)
         image = Image.fromarray(x)
-        label = label.resize((mask.size[0], mask.size[1]), PIL.Image.BILINEAR)
+        image = image.resize((mask.size[0], mask.size[1]), PIL.Image.BILINEAR)
 
         image.save(output + str(i) + "_x.png")
 
