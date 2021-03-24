@@ -328,16 +328,22 @@ if "dfc" in availabledata:
     names["train"] = ["315130_56865", "315130_56870", "315135_56870", "315140_56865"]
     names["test"] = ["315135_56865", "315145_56865"]
 
+    hack = ""
+    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        hack = "../"
+
     for flag in ["train", "test"]:
         XY = {}
         for name in names[flag]:
             x = (
-                PIL.Image.open(root + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif")
+                PIL.Image.open(
+                    root + "hack" + "DFC2015/" + "BE_ORTHO_27032011_" + name + ".tif"
+                )
                 .convert("RGB")
                 .copy()
             )
             y = (
-                PIL.Image.open(root + "DFC2015/" + "label_" + name + ".tif")
+                PIL.Image.open(root + "hack" + "DFC2015/" + "label_" + name + ".tif")
                 .convert("RGB")
                 .copy()
             )
@@ -351,7 +357,7 @@ if "dfc" in availabledata:
 
             XY[name] = (x, y)
 
-        resizeram(XY, rootminiworld + +"bruges/" + flag, 5)
+        resizeram(XY, rootminiworld + "bruges/" + flag, 5)
 
 if "isprs" in availabledata:
     print("export isprs potsdam")
