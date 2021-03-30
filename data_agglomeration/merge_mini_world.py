@@ -200,10 +200,17 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
             if line[0] == "Image_Name":
                 continue
 
-            nbpoint = int(line[2])-2
-            polygon = [
-                (int(float(line[2 + 2 * i])), int(float(line[2 + 2 * i + 1]))) for i in range(nbpoint)
-            ]
+            polygon = []
+            i = 3
+            while True:
+                x = int(float(line[i]))
+                i += 1
+                y = int(float(line[i]))
+                i += 1
+                if x != "" and x != "Nan" and y != "" and y != "Nan":
+                    polygon.append((x, y))
+                else:
+                    break
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
     image.save(out)
