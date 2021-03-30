@@ -16,6 +16,15 @@ if device == "cuda":
 whereIam = os.uname()[1]
 
 print("define model")
+if whereIam == "super":
+    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
+    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
+    )
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
+    )
 if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
@@ -52,7 +61,9 @@ net.train()
 print("load data")
 import dataloader
 
-miniworld = dataloader.MiniWorld()
+miniworld = dataloader.MiniWorld(
+    flag="custom", custom=["potsdam/train", "toulouse/test"]
+)
 
 earlystopping = miniworld.getrandomtiles(1000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance]).to(device)
@@ -84,13 +95,12 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 400
-batchsize = 32
+batchsize = 16
 
-for epoch in range(nbepoch):
-    print("epoch=", epoch, "/", nbepoch)
+for epoch in ["PerImage", "PerTown", "PerPixel"]:
+    print("epoch=", epoch)
 
-    XY = miniworld.getrandomtiles(2000, 128, batchsize)
+    XY = miniworld.getrandomtiles(2000, 128, batchsize, mode=epoch)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
 
