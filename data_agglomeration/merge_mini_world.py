@@ -110,15 +110,7 @@ def scratchfilespacenet1(root, XY, output):
 
         with rasterio.open(root + x) as src:
             affine = src.transform
-            r = histogramnormalization(
-                np.int16(src.read(1)), verbose=False, pivot=pivots["r"]
-            )
-            g = histogramnormalization(
-                np.int16(src.read(2)), verbose=False, pivot=pivots["g"]
-            )
-            b = histogramnormalization(
-                np.int16(src.read(3)), verbose=False, pivot=pivots["b"]
-            )
+            r = np.int16(src.read(1))
 
         mask = Image.new("RGB", (r.shape[1], r.shape[0]))
 
