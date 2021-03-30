@@ -51,6 +51,12 @@ def getindexeddata():
             "tyrol-w",
             "vienna",
             "christchurch",
+            "vegas",
+            "paris",
+            "shanghai",
+            "khartoum",
+            "toulouse",
+            "bruges",
         ]
         root = "/scratch_ai4geo/miniworld/"
 
