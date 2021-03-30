@@ -23,6 +23,7 @@ import PIL
 from PIL import Image
 
 import torch
+import random
 
 
 def getindexeddata():
@@ -106,6 +107,13 @@ class SegSemDataset:
 
         # crop
         for name in range(self.nbImages):
+            # nbtilesperimage*probaOnImage==nbtiles
+            if (
+                nbtiles < self.nbImages
+                and random.randint(0, int(nbtiles + 1)) > nbtilesperimage
+            ):
+                continue
+
             image, label = self.getImageAndLabel(name)
 
             row = np.random.randint(
@@ -165,8 +173,8 @@ class MiniWorld:
             "images",
         )
 
-    def getrandomtiles(self, nbtiles, tilesize, batchsize, mode="PerImage"):
-        assert mode in ["PerImage", "PerTown"]
+    def getrandomtiles(self, nbtiles, tilesize, batchsize, mode="PerTown"):
+        assert mode in ["PerImage", "PerTown", "PerPixel"]
 
         XY = []
         if mode == "PerImage":
@@ -182,6 +190,15 @@ class MiniWorld:
 
             for town in self.towns:
                 XY += self.data[town].getrawrandomtiles(nbtilesperTown, tilesize)
+
+        if mode == "PerPixel":
+            nbtilesperPixel = 1.0 * nbtiles / (self.nbnonbat + self.nbbat)
+
+            for town in self.towns:
+                nbpixelintown = self.data[town].nbnonbat + self.data[town].nbbat
+                XY += self.data[town].getrawrandomtiles(
+                    nbpixelintown * nbtilesperPixel, tilesize
+                )
 
         # pytorch
         X = torch.stack(
