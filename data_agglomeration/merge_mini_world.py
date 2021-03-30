@@ -214,16 +214,9 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
     mask.save(out)
 
 
-read_BRADBURY_BUILDING_HEIGHT_csv(
-    "/home/achanhon/Bureau/tmp2/Norfolk_01_buildingCoord.csv",
-    "/home/achanhon/Bureau/tmp2/Norfolk_01_y.png",
-)
-quit()
-
-
 whereIam = os.uname()[1]
 if whereIam == "super":
-    availabledata = ["isprs", "semcity"]
+    availabledata = ["isprs", "dfc", "semcity"]
     root = "/data/"
     rootminiworld = root + "/miniworld/"
 
