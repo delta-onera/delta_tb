@@ -190,21 +190,21 @@ def scratchfilespacenet2(root, XY, output, pivots):
         i += 1
 
 
-def read_BRADBURY_BUILDING_HEIGHT_csv(csv, out, imsize=5000):
+def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
     mask = Image.new("RGB", (imsize, imsize))
 
     draw = ImageDraw.Draw(mask)
-    with open(csv, newline="") as csvfile:
+    with open(csvpath, newline="") as csvfile:
         csvlines = csv.reader(csvfile, delimiter=",")
-    for line in lines:
-        if line[0] == "Image_Name":
-            continue
+        for line in csvlines:
+            if line[0] == "Image_Name":
+                continue
 
-        nbpoint = int(line[2])
-        polygon = [
-            (int(line[2 + 2 * i]), int(line[2 + 2 * i + 1])) for i in range(nbpoint)
-        ]
-        draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
+            nbpoint = int(line[2])-2
+            polygon = [
+                (int(float(line[2 + 2 * i])), int(float(line[2 + 2 * i + 1]))) for i in range(nbpoint)
+            ]
+            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
     image.save(out)
 
