@@ -99,6 +99,50 @@ def resizeram(XY, output, nativeresolution, outputresolution=50):
         i += 1
 
 
+def scratchfilespacenet1(root, XY, output):
+    i = 0
+    for name in XY:
+        x, y = XY[name]
+
+        with open(root + y, "r") as infile:
+            text = json.load(infile)
+        shapes = text["features"]
+
+        with rasterio.open(root + x) as src:
+            affine = src.transform
+            r = histogramnormalization(
+                np.int16(src.read(1)), verbose=False, pivot=pivots["r"]
+            )
+            g = histogramnormalization(
+                np.int16(src.read(2)), verbose=False, pivot=pivots["g"]
+            )
+            b = histogramnormalization(
+                np.int16(src.read(3)), verbose=False, pivot=pivots["b"]
+            )
+
+        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
+
+        draw = ImageDraw.Draw(mask)
+        for shape in shapes:
+            polygonXYZ = shape["geometry"]["coordinates"][0]
+            if type(polygonXYZ) != type([]):
+                continue
+            if len(polygonXYZ) < 3:
+                continue
+            polygon = [
+                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
+            ]
+            polygon = [(y, x) for x, y in polygon]
+            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
+
+        mask.save(output + str(i) + "_y.png")
+
+        image = PIL.Image.fromarray(np.uint8(x))
+        image.save(output + "/" + str(i) + "_x.png")
+
+        i += 1
+
+
 def scratchfilespacenet2(root, XY, output, pivots):
     i = 0
     for name in XY:
@@ -165,7 +209,15 @@ if whereIam == "wdtim719z":
     rootminiworld = root + "/miniworld/"
 
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    availabledata = ["semcity", "dfc", "spacenet2", "isprs", "airs", "inria"]
+    availabledata = [
+        "semcity",
+        "dfc",
+        "spacenet1",
+        "spacenet2",
+        "isprs",
+        "airs",
+        "inria",
+    ]
     root = "/scratch_ai4geo/DATASETS/"
     rootminiworld = "/scratch_ai4geo/miniworld/"
 
@@ -174,6 +226,32 @@ def makepath(name):
     os.makedirs(rootminiworld + name)
     os.makedirs(rootminiworld + name + "/train")
     os.makedirs(rootminiworld + name + "/test")
+
+
+if "spacenet1" in availabledata:
+    print("export spacenet1")
+
+    makepath("rio")
+
+    allname = os.listdir(root + "SPACENET1/train/3band")
+    allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
+    allname = sorted([name[5:-4] for name in allname])
+    split = int(len(allname) * 0.66)
+    names = {}
+    names["train"] = allname[0:split]
+    names["test"] = allname[split : len(allname)]
+
+    print("start file processing")
+    for flag in ["train", "test"]:
+        XY = {}
+        for name in names[flag]:
+            XY[name] = (
+                "3band/3band" + name + ".tif",
+                "geojson/GEO" + name + ".geojson",
+            )
+        scratchfilespacenet1(
+            root + "SPACENET1/train/", XY, rootminiworld + "rio/" + flag + "/"
+        )
 
 
 if "dfc" in availabledata:
