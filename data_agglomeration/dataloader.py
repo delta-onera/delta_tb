@@ -147,9 +147,9 @@ class MiniWorld:
 
         self.root, self.towns = getindexeddata()
         if flag == "custom":
-            self.town = custom
+            self.towns = custom
         else:
-            self.town = [town + "/" + flag for town in self.towns]
+            self.towns = [town + "/" + flag for town in self.towns]
 
         self.data = {}
         self.nbImages = 0

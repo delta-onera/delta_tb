@@ -62,7 +62,7 @@ print("load data")
 import dataloader
 
 miniworld = dataloader.MiniWorld(
-    flag="custom", custom=["potsdam/train", "toulouse/test"]
+    flag="custom", custom=["potsdam/train", "bruges/train", "toulouse/test"]
 )
 
 earlystopping = miniworld.getrandomtiles(1000, 128, 32)
@@ -107,11 +107,6 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         preds = net(x)
         loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
-
-        if epoch > 30:
-            loss = loss * 0.5
-        if epoch > 60:
-            loss = loss * 0.5
 
         optimizer.zero_grad()
         loss.backward()
