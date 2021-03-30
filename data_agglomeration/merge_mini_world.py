@@ -247,7 +247,7 @@ if "spacenet1" in availabledata:
         for name in names[flag]:
             XY[name] = (
                 "3band/3band" + name + ".tif",
-                "geojson/GEO" + name + ".geojson",
+                "geojson/Geo" + name + ".geojson",
             )
         scratchfilespacenet1(
             root + "SPACENET1/train/", XY, rootminiworld + "rio/" + flag + "/"
