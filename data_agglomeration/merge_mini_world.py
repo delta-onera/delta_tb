@@ -5,6 +5,7 @@ import PIL
 from PIL import Image, ImageDraw
 import rasterio
 import random
+import csv
 
 
 # for not uint8 image !
@@ -187,6 +188,32 @@ def scratchfilespacenet2(root, XY, output, pivots):
         image.save(output + str(i) + "_x.png")
 
         i += 1
+
+
+def read_BRADBURY_BUILDING_HEIGHT_csv(csv, out, imsize=5000):
+    mask = Image.new("RGB", (imsize, imsize))
+
+    draw = ImageDraw.Draw(mask)
+    with open(csv, newline="") as csvfile:
+        csvlines = csv.reader(csvfile, delimiter=",")
+    for line in lines:
+        if line[0] == "Image_Name":
+            continue
+
+        nbpoint = int(line[2])
+        polygon = [
+            (int(line[2 + 2 * i]), int(line[2 + 2 * i + 1])) for i in range(nbpoint)
+        ]
+        draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
+
+    image.save(out)
+
+
+read_BRADBURY_BUILDING_HEIGHT_csv(
+    "/home/achanhon/Bureau/tmp2/Norfolk_01_buildingCoord.csv",
+    "/home/achanhon/Bureau/tmp2/Norfolk_01_y.png",
+)
+quit()
 
 
 whereIam = os.uname()[1]
