@@ -383,7 +383,7 @@ if "spacenet2" in availabledata:
             assert len(pivots[c]) >= 255
 
         names["test"] = allname[split : len(allname)]
-        
+
         print("start file processing")
         for flag in ["train", "test"]:
             XY = {}

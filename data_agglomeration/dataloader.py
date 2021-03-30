@@ -132,36 +132,22 @@ class SegSemDataset:
         ]
         return XY
 
-    ###
-    ### get randomcrops + symetrie
-    ### get train usage with a single dataset
-    def getrandomtiles(self, nbtiles, tilesize, batchsize):
-        XY = self.getrawrandomtiles(nbtiles, tilesize)
-
-        # pytorch
-        X = torch.stack(
-            [torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu() for x, y in XY]
-        )
-        Y = torch.stack([torch.from_numpy(y).long().cpu() for x, y in XY])
-        dataset = torch.utils.data.TensorDataset(X, Y)
-        dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=batchsize, shuffle=True, num_workers=2
-        )
-
-        return dataloader
-
 
 class MiniWorld:
-    def __init__(self, flag="train"):
-        assert flag in ["train", "test"]
+    def __init__(self, flag="train", custom=None):
+        assert flag in ["train", "test", "custom"]
 
         self.root, self.towns = getindexeddata()
+        if flag == "custom":
+            self.town = custom
+        else:
+            self.town = [town + "/" + flag for town in self.towns]
 
         self.data = {}
         self.nbImages = 0
         self.nbbat, self.nbnonbat = 0, 0
         for town in self.towns:
-            self.data[town] = SegSemDataset(self.root + town + "/" + flag + "/")
+            self.data[town] = SegSemDataset(self.root + town + "/")
             self.nbImages += self.data[town].nbImages
             self.nbbat += self.data[town].nbbat
             self.nbnonbat += self.data[town].nbnonbat
