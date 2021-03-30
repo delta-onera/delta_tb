@@ -202,7 +202,7 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
 
             polygon = []
             i = 3
-            while line[i] != "" and line[i] != "Nan":
+            while line[i] != "" and line[i] != "NaN":
                 x = int(float(line[i]))
                 i += 1
                 y = int(float(line[i]))
@@ -211,7 +211,7 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
 
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-    image.save(out)
+    mask.save(out)
 
 
 read_BRADBURY_BUILDING_HEIGHT_csv(
