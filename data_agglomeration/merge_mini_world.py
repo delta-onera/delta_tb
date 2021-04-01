@@ -234,6 +234,7 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
         "isprs",
         "airs",
         "inria",
+        "bradbery",
     ]
     root = "/scratch_ai4geo/DATASETS/"
     rootminiworld = "/scratch_ai4geo/miniworld/"
@@ -243,6 +244,79 @@ def makepath(name):
     os.makedirs(rootminiworld + name)
     os.makedirs(rootminiworld + name + "/train")
     os.makedirs(rootminiworld + name + "/test")
+
+
+if "bradbery" in availabledata:
+    print("export bradbery")
+    towns = [
+        "Arlington",
+        "Austin",
+        "DC",
+        "NewYork",
+        "SanFrancisco",
+        "Atlanta",
+        "NewHaven",
+        "Norfolk",
+        "Seekonk",
+    ]
+
+    for town in towns:
+        makepath(town)
+
+        split = {}
+        split["train"] = [1, 2]
+        split["test"] = [3]
+        if town in ["DC", "NewHaven"]:
+            split["train"] = [1]
+            split["test"] = [2]
+
+        for flag in ["train", "test"]:
+            for i in split[flag]:
+                image = (
+                    PIL.Image.open(
+                        root
+                        + "BRADBURY_BUILDING_HEIGHT/"
+                        + town
+                        + "/"
+                        + town
+                        + "_0"
+                        + str(i)
+                        + ".tif"
+                    )
+                    .convert("RGB")
+                    .copy()
+                )
+
+                if flag == "test":
+                    read_BRADBURY_BUILDING_HEIGHT_csv(
+                        root
+                        + "BRADBURY_BUILDING_HEIGHT/"
+                        + town
+                        + "/"
+                        + town
+                        + "_0"
+                        + str(i)
+                        + "_buildingCoord.csv",
+                        rootminiworld + town + "/" + flag + "/0_y.png",
+                        image.size[0],
+                    )
+                    image.save(rootminiworld + town + "/" + flag + "/0_x.png")
+                else:
+                    read_BRADBURY_BUILDING_HEIGHT_csv(
+                        root
+                        + "BRADBURY_BUILDING_HEIGHT/"
+                        + town
+                        + "/"
+                        + town
+                        + "_0"
+                        + str(i)
+                        + "_buildingCoord.csv",
+                        rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_y.png",
+                        image.size[0],
+                    )
+                    image.save(
+                        rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_x.png"
+                    )
 
 
 if "spacenet1" in availabledata:
