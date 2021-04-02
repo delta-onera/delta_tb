@@ -124,3 +124,29 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         print("training stops after reaching high training accuracy")
         quit()
 print("training stops after reaching time limit")
+
+# test after debug
+# potsdam/test 76.03397522580403
+# austin/test 63.38183209720267
+# chicago/test 61.7307326868583
+# kitsap/test 65.1367514910424
+# tyrol-w/test 69.7892193296274
+# vienna/test 59.49396033466258
+# christchurch/test 68.45079703223041
+# vegas/test 66.19719213905618
+# paris/test 64.39131104772663
+# shanghai/test 61.75666008100488
+# khartoum/test 59.21783463541323
+# toulouse/test 74.10066257585707
+# bruges/test 70.67426870275182
+# rio/test 66.96492822713938
+# Arlington/test 57.76920544937232
+# Austin/test 63.09189427565662
+# DC/test 64.11312851085287
+# NewYork/test 29.875100532417548
+# SanFrancisco/test 50.8024765477915
+# Atlanta/test 63.526100818877836
+# NewHaven/test 53.45669738519585
+# Norfolk/test 52.80609826576918
+# Seekonk/test 62.137192840943726
+# miniworld 66.23998148114374
