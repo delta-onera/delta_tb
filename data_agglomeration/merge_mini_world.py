@@ -190,7 +190,7 @@ def scratchfilespacenet2(root, XY, output, pivots):
         i += 1
 
 
-def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize):
+def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize, sizeout):
     ####hack degeu mais j'ai pas compris ce truc
     if (
         csvpath
@@ -218,6 +218,7 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize):
 
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
+    mask.resize(sizeout, PIL.Image.NEAREST)
     mask.save(out)
 
 
@@ -267,6 +268,17 @@ if "bradbery" in availabledata:
         "Seekonk",
     ]
 
+    resolution = {}
+    resolution["Arlington"] = 0.3
+    resolution["Austin"] = 0.5 * 0.3
+    resolution["DC"] = 0.16
+    resolution["Atlanta"] = 0.5 * 0.3
+    resolution["NewHaven"] = 0.3
+    resolution["NewYork"] = 0.5 * 0.3
+    resolution["Norfolk"] = 0.5 * 0.3
+    resolution["SanFrancisco"] = 0.3
+    resolution["Seekonk"] = 0.3
+
     for town in towns:
         makepath(town)
 
@@ -293,8 +305,19 @@ if "bradbery" in availabledata:
                     .convert("RGB")
                     .copy()
                 )
+                sizein = image.size
+
+                image = image.resize(
+                    (
+                        int(image.size[0] * resolution[town] / 0.5),
+                        int(image.size[1] * resolution[town] / 0.5),
+                    ),
+                    PIL.Image.BILINEAR,
+                )
 
                 if flag == "test":
+                    image.save(rootminiworld + town + "/" + flag + "/0_x.png")
+
                     read_BRADBURY_BUILDING_HEIGHT_csv(
                         root
                         + "BRADBURY_BUILDING_HEIGHT/"
@@ -305,10 +328,14 @@ if "bradbery" in availabledata:
                         + str(i)
                         + "_buildingCoord.csv",
                         rootminiworld + town + "/" + flag + "/0_y.png",
+                        sizein,
                         image.size,
                     )
-                    image.save(rootminiworld + town + "/" + flag + "/0_x.png")
+
                 else:
+                    image.save(
+                        rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_x.png"
+                    )
                     read_BRADBURY_BUILDING_HEIGHT_csv(
                         root
                         + "BRADBURY_BUILDING_HEIGHT/"
@@ -319,10 +346,8 @@ if "bradbery" in availabledata:
                         + str(i)
                         + "_buildingCoord.csv",
                         rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_y.png",
+                        sizein,
                         image.size,
-                    )
-                    image.save(
-                        rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_x.png"
                     )
 
 
