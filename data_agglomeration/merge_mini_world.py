@@ -190,7 +190,7 @@ def scratchfilespacenet2(root, XY, output, pivots):
         i += 1
 
 
-def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
+def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize):
     ####hack degeu mais j'ai pas compris ce truc
     if (
         csvpath
@@ -198,7 +198,7 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
     ):
         csvpath = "/scratch_ai4geo/DATASETS/BRADBURY_BUILDING_HEIGHT/Atlanta/Atlanta_01buildingCoord.csv"
 
-    mask = Image.new("RGB", (imsize, imsize))
+    mask = Image.new("RGB", (imsize[0], imsize[1]))
 
     draw = ImageDraw.Draw(mask)
     with open(csvpath, newline="") as csvfile:
@@ -305,7 +305,7 @@ if "bradbery" in availabledata:
                         + str(i)
                         + "_buildingCoord.csv",
                         rootminiworld + town + "/" + flag + "/0_y.png",
-                        image.size[0],
+                        image.size,
                     )
                     image.save(rootminiworld + town + "/" + flag + "/0_x.png")
                 else:
