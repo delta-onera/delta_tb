@@ -29,7 +29,7 @@ import random
 def getindexeddata():
     whereIam = os.uname()[1]
 
-    if whereIam == "wdtim719z":
+    if whereIam in ["super", "wdtim719z"]:
         root = "/data/miniworld/"
 
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
