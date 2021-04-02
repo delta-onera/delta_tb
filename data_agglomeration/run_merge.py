@@ -33,3 +33,7 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 
 
 print("miniworld has been successfully created")
+
+print(
+    "WARNING -- there is an issue with norfolk building file -- remove the test file, put train/1_*.png instead"
+)
