@@ -218,7 +218,7 @@ def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize, sizeout):
 
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-    mask.resize(sizeout, PIL.Image.NEAREST)
+    mask = mask.resize(sizeout, PIL.Image.NEAREST)
     mask.save(out)
 
 
