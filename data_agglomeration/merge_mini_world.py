@@ -319,7 +319,7 @@ if "bradbery" in availabledata:
                         + str(i)
                         + "_buildingCoord.csv",
                         rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_y.png",
-                        image.size[0],
+                        image.size,
                     )
                     image.save(
                         rootminiworld + town + "/" + flag + "/" + str(i - 1) + "_x.png"
