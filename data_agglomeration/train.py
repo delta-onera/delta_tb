@@ -22,18 +22,10 @@ if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    sys.path.append(
-        "/d/achanhon/github/EfficientNet-PyTorch"
-    )  # https://github.com/lukemelas/EfficientNet-PyTorch
-    sys.path.append(
-        "/d/achanhon/github/pytorch-image-models"
-    )  # https://github.com/rwightman/pytorch-image-models
-    sys.path.append(
-        "/d/achanhon/github/pretrained-models.pytorch"
-    )  # https://github.com/Cadene/pretrained-models.pytorch
-    sys.path.append(
-        "/d/achanhon/github/segmentation_models.pytorch"
-    )  # https://github.com/qubvel/segmentation_models.pytorch
+    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
+    sys.path.append("/d/achanhon/github/pytorch-image-models")
+    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
+    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
 import collections
@@ -54,7 +46,7 @@ import dataloader
 
 miniworld = dataloader.MiniWorld()
 
-earlystopping = miniworld.getrandomtiles(1000, 128, 32)
+earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 
@@ -84,13 +76,13 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 400
+nbepoch = 100
 batchsize = 32
 
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
-    XY = miniworld.getrandomtiles(2000, 128, batchsize)
+    XY = miniworld.getrandomtiles(10000, 128, batchsize)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
 

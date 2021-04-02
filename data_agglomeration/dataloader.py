@@ -29,46 +29,37 @@ import random
 def getindexeddata():
     whereIam = os.uname()[1]
 
-    if whereIam == "super":
-        availabledata = ["potsdam", "toulouse"]
-        root = "/data/miniworld/"
-
     if whereIam == "wdtim719z":
-        availabledata = [
-            "toulouse",
-            "potsdam",
-            "bruges",
-            "christchurch",
-        ]
         root = "/data/miniworld/"
 
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-        availabledata = [
-            "potsdam",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol-w",
-            "vienna",
-            "christchurch",
-            "vegas",
-            "paris",
-            "shanghai",
-            "khartoum",
-            "toulouse",
-            "bruges",
-            "rio",
-            "Arlington",
-            "Austin",
-            "DC",
-            "NewYork",
-            "SanFrancisco",
-            "Atlanta",
-            "NewHaven",
-            "Norfolk",
-            "Seekonk",
-        ]
         root = "/scratch_ai4geo/miniworld/"
+
+    availabledata = [
+        "potsdam",
+        "austin",
+        "chicago",
+        "kitsap",
+        "tyrol-w",
+        "vienna",
+        "christchurch",
+        "vegas",
+        "paris",
+        "shanghai",
+        "khartoum",
+        "toulouse",
+        "bruges",
+        "rio",
+        "Arlington",
+        "Austin",
+        "DC",
+        "NewYork",
+        "SanFrancisco",
+        "Atlanta",
+        "NewHaven",
+        "Norfolk",
+        "Seekonk",
+    ]
 
     return root, availabledata
 
@@ -244,7 +235,7 @@ def largeforward(net, image, device, tilesize=128, stride=32):
                 ).cpu()
                 pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
 
-                if i % 500 == 49:
+                if i % 500 == 499:
                     print("forward in progress", row, image.shape[2])
                 i += 1
 
