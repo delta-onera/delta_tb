@@ -57,6 +57,16 @@ def getindexeddata():
             "khartoum",
             "toulouse",
             "bruges",
+            "rio",
+            "Arlington",
+            "Austin",
+            "DC",
+            "NewYork",
+            "SanFrancisco",
+            "Atlanta",
+            "NewHaven",
+            "Norfolk",
+            "Seekonk",
         ]
         root = "/scratch_ai4geo/miniworld/"
 

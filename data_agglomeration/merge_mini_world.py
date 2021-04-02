@@ -275,7 +275,7 @@ if "bradbery" in availabledata:
     resolution["Atlanta"] = 0.5 * 0.3
     resolution["NewHaven"] = 0.3
     resolution["NewYork"] = 0.5 * 0.3
-    resolution["Norfolk"] = 0.5 * 0.3
+    resolution["Norfolk"] = 0.3
     resolution["SanFrancisco"] = 0.3
     resolution["Seekonk"] = 0.3
 
