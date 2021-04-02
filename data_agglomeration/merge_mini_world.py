@@ -191,6 +191,13 @@ def scratchfilespacenet2(root, XY, output, pivots):
 
 
 def read_BRADBURY_BUILDING_HEIGHT_csv(csvpath, out, imsize=5000):
+    ####hack degeu mais j'ai pas compris ce truc
+    if (
+        csvpath
+        == "/scratch_ai4geo/DATASETS/BRADBURY_BUILDING_HEIGHT/Atlanta/Atlanta_01_buildingCoord.csv"
+    ):
+        csvpath = "/scratch_ai4geo/DATASETS/BRADBURY_BUILDING_HEIGHT/Atlanta/Atlanta_01buildingCoord.csv"
+
     mask = Image.new("RGB", (imsize, imsize))
 
     draw = ImageDraw.Draw(mask)
