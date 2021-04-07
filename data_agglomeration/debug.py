@@ -25,6 +25,8 @@ if whereIam == "super":
     sys.path.append(
         "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
     )
+    sys.path.append("/home/achanhon/github/segmentation_models/albumentations")
+    sys.path.append("/home/achanhon/github/segmentation_models/imgaug")
 if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
@@ -97,12 +99,50 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 batchsize = 16
 
+import albumentations as A
+
+transform = A.Compose(
+    [
+        A.OneOf(
+            [
+                A.ChannelDropout(),
+                A.ChannelShuffle(),
+                A.ColorJitter(),
+                A.GaussNoise(),
+                A.GaussianBlur(),
+                A.HueSaturationValue(),
+                A.RandomBrightnessContrast(),
+                A.RandomFog(),
+                A.RandomGamma(),
+                A.RandomRain(),
+                A.RandomSnow(),
+                A.RandomSunFlare(),
+            ]
+        )
+    ]
+)
+
+
+def augmentbatch(inputs):
+    tmp = inputs.cpu().data.numpy()
+    tmp = np.transpose(tmp, axes=(0, 2, 3, 1))
+    l = []
+    for i in range(tmp.shape[0]):
+        l.append(transform(image=tmp[i])["image"])
+    tmp = np.stack(l)
+    tmp = np.transpose(tmp, axes=(0, 3, 1, 2))
+    return torch.Tensor(tmp).to(device)
+
+
 for epoch in ["PerImage", "PerTown", "PerPixel"]:
     print("epoch=", epoch)
 
     XY = miniworld.getrandomtiles(2000, 128, batchsize, mode=epoch)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
+
+        if random.randint(0, 10) == 0:
+            x = augmentbatch(x)
 
         preds = net(x)
         loss = criterion(preds, y)
@@ -125,7 +165,7 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         quit()
 print("training stops after reaching time limit")
 
-# test after debug
+# test after debug without augmentation
 # potsdam/test 76.03397522580403
 # austin/test 63.38183209720267
 # chicago/test 61.7307326868583
