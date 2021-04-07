@@ -59,26 +59,29 @@ def gray(x, device="cuda"):
 
 
 def augment(x, device="cuda"):
-    for i in range(x.shape[0] // 2):
-        if random.randint(0, 10) == 0:
-            # large data augment
-            if random.randint(0, 1) == 0:
-                x[i : i + 1] = dropchannel(x[i : i + 1], device=device)
+    with torch.no_grad():
+        for i in range(x.shape[0] // 2):
+            if random.randint(0, 10) == 0:
+                # large data augment
+                if random.randint(0, 1) == 0:
+                    x[i : i + 1] = dropchannel(x[i : i + 1], device=device)
+                else:
+                    x[i : i + 1] = gray(x[i : i + 1], device=device)
             else:
-                x[i : i + 1] = gray(x[i : i + 1], device=device)
-        else:
-            # small data augment
-            i = random.randint(0, 5)
-            if i == 0:
-                x[i : i + 1] = pepperandsalt(x[i : i + 1], device=device)
-            if i == 1:
-                x[i : i + 1] = shift(x[i : i + 1], device=device)
-            if i == 2:
-                x[i : i + 1] = blur(x[i : i + 1], device=device)
-            if i == 3:
-                x[i : i + 1] = gaussian(x[i : i + 1], device=device)
-            if i == 4:
-                x[i : i + 1] = uniform(x[i : i + 1], device=device)
-            if i == 5:
-                x[i : i + 1] = cutout(x[i : i + 1], device=device)
+                # small data augment
+                i = random.randint(0, 5)
+                if i == 0:
+                    x[i : i + 1] = pepperandsalt(x[i : i + 1], device=device)
+                if i == 1:
+                    x[i : i + 1] = shift(x[i : i + 1], device=device)
+                if i == 2:
+                    x[i : i + 1] = blur(x[i : i + 1], device=device)
+                if i == 3:
+                    x[i : i + 1] = gaussian(x[i : i + 1], device=device)
+                if i == 4:
+                    x[i : i + 1] = uniform(x[i : i + 1], device=device)
+                if i == 5:
+                    x[i : i + 1] = cutout(x[i : i + 1], device=device)
+
+    x = torch.Tensor(x.cpu().numpy(), requires_grad=true)
     return x
