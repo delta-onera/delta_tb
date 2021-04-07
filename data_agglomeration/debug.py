@@ -176,3 +176,29 @@ print("training stops after reaching time limit")
 # Norfolk/test 80.65416990456862
 # Seekonk/test 79.3562899942964
 # miniworld 77.79130455198577
+#
+# test after 400 epoch of naive training
+# potsdam/test 87.40174729472406
+# austin/test 83.68989319229452
+# chicago/test 79.11536825304486
+# kitsap/test 79.61154186157935
+# tyrol-w/test 86.24986425135876
+# vienna/test 82.82616916237626
+# christchurch/test 79.35125759839107
+# vegas/test 80.9132266781993
+# paris/test 75.41170459774713
+# shanghai/test 72.76385834440983
+# khartoum/test 70.06249857404349
+# toulouse/test 83.93509259795016
+# bruges/test 81.18311937839039
+# rio/test 73.78848362293215
+# Arlington/test 79.12604796796012
+# Austin/test 85.19335374644257
+# DC/test 75.87286061465227
+# NewYork/test 80.60562818214026
+# SanFrancisco/test 78.63391935221355
+# Atlanta/test 82.73527932112401
+# NewHaven/test 75.0707352818674
+# Norfolk/test 82.17366323770783
+# Seekonk/test 81.41157294893094
+# miniworld 79.68348226834726
