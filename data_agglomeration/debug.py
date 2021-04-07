@@ -25,8 +25,6 @@ if whereIam == "super":
     sys.path.append(
         "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
     )
-    sys.path.append("/home/achanhon/github/segmentation_models/albumentations")
-    sys.path.append("/home/achanhon/github/segmentation_models/imgaug")
 if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
@@ -45,10 +43,6 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append(
         "/d/achanhon/github/segmentation_models.pytorch"
     )  # https://github.com/qubvel/segmentation_models.pytorch
-    sys.path.append("/d/achanhon/github/imgaug")  # https://github.com/aleju/imgaug
-    sys.path.append(
-        "/d/achanhon/github/albumentations"
-    )  # https://github.com/albumentations-team/albumentations
 
 import segmentation_models_pytorch as smp
 import collections
@@ -103,29 +97,6 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 batchsize = 16
 
-import albumentations as A
-
-transform = A.Compose(
-    [
-        A.OneOf(
-            [
-                A.ChannelDropout(),
-                A.ChannelShuffle(),
-                A.ColorJitter(),
-                A.GaussNoise(),
-                A.GaussianBlur(),
-                A.HueSaturationValue(),
-                A.RandomBrightnessContrast(),
-                A.RandomFog(),
-                A.RandomGamma(),
-                A.RandomRain(),
-                A.RandomSnow(),
-                A.RandomSunFlare(),
-            ]
-        )
-    ]
-)
-
 
 def augmentbatch(inputs):
     tmp = inputs.cpu().data.numpy()
@@ -144,9 +115,6 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
     XY = miniworld.getrandomtiles(2000, 128, batchsize, mode=epoch)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
-
-        if random.randint(0, 10) == 0:
-            x = augmentbatch(x)
 
         preds = net(x)
         loss = criterion(preds, y)
@@ -169,7 +137,7 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         quit()
 print("training stops after reaching time limit")
 
-# test after debug without augmentation
+# test after debug
 # potsdam/test 76.03397522580403
 # austin/test 63.38183209720267
 # chicago/test 61.7307326868583
@@ -247,7 +215,7 @@ print("training stops after reaching time limit")
 # Seekonk/test 81.41157294893094
 # miniworld 79.68348226834726
 #
-# apres acceleration du test
+# 400 epoch of naive training after test acceleration
 # potsdam/test 87.20429982300551
 # austin/test 83.343100341497
 # chicago/test 78.61021983508546
