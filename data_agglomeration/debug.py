@@ -128,7 +128,7 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/model.pth")
+    torch.save(net, "build/debug.pth")
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 

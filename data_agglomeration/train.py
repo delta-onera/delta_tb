@@ -103,7 +103,7 @@ for epoch in range(nbepoch):
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/model.pth")
+    torch.save(net, "build/naive.pth")
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 

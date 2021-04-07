@@ -29,7 +29,10 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 import segmentation_models_pytorch
 
 with torch.no_grad():
-    net = torch.load("build/model.pth")
+    if len(sys.argv) > 1:
+        net = torch.load("build/" + sys.argv[1])
+    else:
+        net = torch.load("build/model.pth")
     net = net.to(device)
     net.eval()
 
