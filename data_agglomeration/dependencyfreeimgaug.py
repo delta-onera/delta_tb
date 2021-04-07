@@ -67,6 +67,7 @@ def augment(x, device="cuda"):
             else:
                 x[i : i + 1] = gray(x[i : i + 1], device=device)
         else:
+            # small data augment
             i = random.randint(0, 5)
             if i == 0:
                 x[i : i + 1] = pepperandsalt(x[i : i + 1], device=device)
