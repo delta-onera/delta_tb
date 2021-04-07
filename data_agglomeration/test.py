@@ -61,7 +61,7 @@ with torch.no_grad():
             image = torch.Tensor(np.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
             globalresize = torch.nn.AdaptiveAvgPool2d((image.shape[2], image.shape[3]))
             power2resize = torch.nn.AdaptiveAvgPool2d(
-                ((image.shape[2] // 32) * 32, (image.shape[3] // 32) * 32)
+                ((image.shape[2] // 64) * 64, (image.shape[3] // 64) * 64)
             )
             image = power2resize(image)
 
