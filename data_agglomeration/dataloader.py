@@ -149,13 +149,15 @@ class SegSemDataset:
 
 
 class MiniWorld:
-    def __init__(self, flag="train", custom=None):
+    def __init__(self, flag="train", custom=None, without=None):
         assert flag in ["train", "test", "custom"]
 
         self.root, self.towns = getindexeddata()
         if flag == "custom":
             self.towns = custom
         else:
+            if without is not None:
+                self.towns = [town for town in self.towns if town not in without]
             self.towns = [town + "/" + flag for town in self.towns]
 
         self.data = {}
