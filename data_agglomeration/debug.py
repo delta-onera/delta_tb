@@ -45,6 +45,8 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append(
         "/d/achanhon/github/segmentation_models.pytorch"
     )  # https://github.com/qubvel/segmentation_models.pytorch
+    sys.path.append("/d/achanhon/github/imgaug")
+    sys.path.append("/d/achanhon/github/albumentations")
 
 import segmentation_models_pytorch as smp
 import collections
