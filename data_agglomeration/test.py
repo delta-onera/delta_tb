@@ -81,7 +81,7 @@ with torch.no_grad():
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            if town in ["toulouse", "potsdam"]:
+            if town in ["toulouse", "potsdam"] and False:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + town + "_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
