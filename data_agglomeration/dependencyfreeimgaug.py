@@ -66,7 +66,7 @@ def augment(x, device="cuda"):
                     shift(i, x, device=device)
                 if j == 2:
                     x[i : i + 1] = torch.nn.functional.max_pool2d(
-                        x[i : i + 1], kernel_size=2 * level + 1, padding=level, stride=1
+                        x[i : i + 1], kernel_size=7, padding=3, stride=1
                     )
                 if j == 3:
                     gaussian(i, x, device=device)
