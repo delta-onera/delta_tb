@@ -20,7 +20,7 @@ def pepperandsalt(k, x, nbpixel=30, device="cuda"):
 
 def shift(k, x, level=30, device="cuda"):
     for j in range(3):
-        x[k, j, :, :] += (torch.rand().to(device) * 2 - 1) * level / 255
+        x[k, j, :, :] += ((torch.rand() * 2 - 1) * level / 255).to(device)
 
 
 def gaussian(k, x, level=5, device="cuda"):
