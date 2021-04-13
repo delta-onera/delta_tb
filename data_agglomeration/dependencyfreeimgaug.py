@@ -15,7 +15,9 @@ def augment(x, device="cuda"):
             if random.randint(0, 10) == 0:
                 # large data augment
                 if random.randint(0, 1) == 0:
-                    x[i, random.randint(0, 2), :, :] = float(random.randint(0, 1))
+                    tmp = random.randint(0, 2)
+                    x[i, tmp] *= 0.0
+                    x[i, tmp] += float(random.randint(0, 1))
                 else:
                     tmp = 0.333 * (x[i, 0, :, :] + x[i, 1, :, :] + x[i, 2, :, :])
                     x[i, 0, :, :] = tmp
@@ -37,9 +39,8 @@ def augment(x, device="cuda"):
                 if j == 1:
                     level = 30.0
                     for j in range(3):
-                        x[i, j, :, :] += (
-                            (torch.rand() * 2.0 - 1.0) * level / 255.0
-                        ).to(device)
+                        tmp = ((torch.rand() * 2.0 - 1.0) * level / 255.0).to(device)
+                        x[i, j] += tmp
                 if j == 2:
                     x[i : i + 1] = torch.nn.functional.max_pool2d(
                         x[i : i + 1], kernel_size=7, padding=3, stride=1
