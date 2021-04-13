@@ -19,9 +19,8 @@ if not os.path.exists(root + "miniworld"):
     print("run merge before")
     quit()
 
-if os.path.exists("build"):
-    os.system("rm -rf build")
-os.makedirs("build")
+if not os.path.exists("build"):
+    os.makedirs("build")
 
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py")
