@@ -9,7 +9,7 @@ def ensureimage(x, device="cuda"):
     )
 
 
-def pepperandsalt(k, x, nbpixel=30, device="cuda"):
+def pepperandsalt(k, x, nbpixel=30.0, device="cuda"):
     row = np.random.randint(0, x.shape[2], size=nbpixel)
     col = np.random.randint(0, x.shape[3], size=nbpixel)
     pepperorsalt = np.random.randint(0, 2, size=nbpixel)
@@ -18,17 +18,17 @@ def pepperandsalt(k, x, nbpixel=30, device="cuda"):
             x[k, j, row[i], col[i]] = torch.ones(1).to(device) * float(pepperorsalt[i])
 
 
-def shift(k, x, level=30, device="cuda"):
+def shift(k, x, level=30.0, device="cuda"):
     for j in range(3):
-        x[k, j, :, :] += ((torch.rand() * 2 - 1) * level / 255).to(device)
+        x[k, j, :, :] += ((torch.rand() * 2.0 - 1.0) * level / 255.0).to(device)
 
 
-def gaussian(k, x, level=5, device="cuda"):
-    x[k] += (torch.randn(x[k].shape) * level / 255).to(device)
+def gaussian(k, x, level=5.0, device="cuda"):
+    x[k] += (torch.randn(x[k].shape) * level / 255.0).to(device)
 
 
-def uniform(k, x, level=10, device="cuda"):
-    x[k] += ((torch.rand(x[k].shape) * 2 - 1) * level / 255).to(device)
+def uniform(k, x, level=10.0, device="cuda"):
+    x[k] += ((torch.rand(x[k].shape) * 2.0 - 1.0) * level / 255.0).to(device)
 
 
 def cutout(k, x, level=5, device="cuda"):
