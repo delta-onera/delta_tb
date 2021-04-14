@@ -61,5 +61,5 @@ def augment(x, device="cuda"):
                         random.randint(0, 1)
                     )
 
-    x = torch.Tensor(ensureimage(x).cpu().numpy(), requires_grad=true)
+    x = torch.Tensor(ensureimage(x).cpu().numpy(), requires_grad=True)
     return x
