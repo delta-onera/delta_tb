@@ -23,8 +23,8 @@ if not os.path.exists("build"):
     os.makedirs("build")
 
 if whereIam == "wdtim719z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python train.py")
+    os.system("/data/anaconda3/envs/pytorch/bin/python RAHH.py")
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py rahh.pth")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("/d/jcastillo/anaconda3/bin/python train.py")
+    os.system("/d/jcastillo/anaconda3/bin/python RAHH.py")
     os.system("/d/jcastillo/anaconda3/bin/python test.py rahh.pth")
