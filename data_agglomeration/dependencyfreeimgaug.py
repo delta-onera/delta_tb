@@ -39,8 +39,8 @@ def augment(x, device="cuda"):
                 if j == 1:
                     level = 30.0
                     for j in range(3):
-                        tmp = ((torch.rand() * 2.0 - 1.0) * level / 255.0).to(device)
-                        x[i, j] += tmp
+                        tmp = (np.random.rand(1)[0] * 2.0 - 1.0) * level / 255.0
+                        x[i, j] += float(tmp)
                 if j == 2:
                     x[i : i + 1] = torch.nn.functional.max_pool2d(
                         x[i : i + 1], kernel_size=7, padding=3, stride=1
