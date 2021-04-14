@@ -32,9 +32,9 @@ def augment(x, device="cuda"):
                     col = np.random.randint(0, x.shape[3], size=level)
                     pepperorsalt = np.random.randint(0, 2, size=level)
                     for j in range(3):
-                        for i in range(level):
-                            x[i, j, row[i], col[i]] = (
-                                torch.ones(1) * float(pepperorsalt[i])
+                        for k in range(level):
+                            x[i, j, row[k], col[k]] = (
+                                torch.ones(1) * float(pepperorsalt[k])
                             ).to(device)
                 if j == 1:
                     level = 30.0
