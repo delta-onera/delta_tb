@@ -37,14 +37,12 @@ import collections
 import random
 
 tmp = smp.Unet(
-    encoder_name="efficientnet-b5",
+    encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2000,
 )
-net = torch.nn.Sequential(
-    torch.nn.tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(2000, 2, 1)
-)
+net = torch.nn.Sequential(tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(2000, 2, 1))
 net = net.cuda()
 net.train()
 
