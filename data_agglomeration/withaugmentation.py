@@ -40,9 +40,9 @@ tmp = smp.Unet(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
-    classes=256,
+    classes=128,
 )
-net = torch.nn.Sequential(tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(256, 2, 1))
+net = torch.nn.Sequential(tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(128, 2, 1))
 net = net.cuda()
 net.train()
 
