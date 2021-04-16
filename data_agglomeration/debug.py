@@ -112,11 +112,6 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
 
-        if epoch > 100:
-            loss = loss * 0.5
-        if epoch > 200:
-            loss = loss * 0.5
-
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
