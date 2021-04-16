@@ -1,0 +1,1078 @@
+import os
+import sys
+import numpy as np
+import PIL
+from PIL import Image
+from sklearn.metrics import confusion_matrix
+
+import torch
+import torch.backends.cudnn as cudnn
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+if device == "cuda":
+    torch.cuda.empty_cache()
+    cudnn.benchmark = True
+
+outputname = "model.pth"
+if len(sys.argv) > 1:
+    outputname = sys.argv[1]
+os.system("cat withaugmentation.py")
+
+whereIam = os.uname()[1]
+
+print("define model")
+if whereIam == "wdtim719z":
+    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
+    sys.path.append("/home/optimom/github/pytorch-image-models")
+    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
+    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
+if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
+    sys.path.append("/d/achanhon/github/pytorch-image-models")
+    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
+    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
+
+import segmentation_models_pytorch as smp
+import collections
+import random
+
+tmp = smp.Unet(
+    encoder_name="efficientnet-b7",
+    encoder_weights="imagenet",
+    in_channels=3,
+    classes=128,
+)
+net = torch.nn.Sequential(tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(128, 2, 1))
+net = net.cuda()
+net.train()
+
+
+print("load data")
+import dataloader
+
+miniworld = dataloader.MiniWorld()
+
+earlystopping = miniworld.getrandomtiles(5000, 128, 32)
+weights = torch.Tensor([1, miniworld.balance]).to(device)
+criterion = torch.nn.CrossEntropyLoss(weight=weights)
+
+print("train")
+
+
+def accu(cm):
+    return 100.0 * (cm[0][0] + cm[1][1]) / np.sum(cm)
+
+
+def trainaccuracy():
+    cm = np.zeros((2, 2), dtype=int)
+    net.eval()
+    with torch.no_grad():
+        for inputs, targets in earlystopping:
+            inputs = inputs.to(device)
+            outputs = net(inputs)
+            _, pred = outputs.max(1)
+            for i in range(pred.shape[0]):
+                cm += confusion_matrix(
+                    pred[i].cpu().numpy().flatten(),
+                    targets[i].cpu().numpy().flatten(),
+                    labels=[0, 1],
+                )
+    return cm
+
+
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+meanloss = collections.deque(maxlen=200)
+nbepoch = 800
+batchsize = 32
+
+import dependencyfreeimgaug
+
+for epoch in range(nbepoch):
+    print("epoch=", epoch, "/", nbepoch)
+
+    XY = miniworld.getrandomtiles(10000, 128, batchsize)
+    for x, y in XY:
+        x, y = x.to(device), y.to(device)
+
+        # x = dependencyfreeimgaug.augment(x)
+
+        preds = net(x)
+        loss = criterion(preds, y)
+        meanloss.append(loss.cpu().data.numpy())
+
+        if epoch > 100:
+            loss = loss * 0.5
+        if epoch > 200:
+            loss = loss * 0.5
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        if random.randint(0, 30) == 0:
+            print("loss=", (sum(meanloss) / len(meanloss)))
+
+    print("backup model")
+    torch.save(net, "build/" + outputname)
+    cm = trainaccuracy()
+    print("accuracy", accu(cm))
+
+    if accu(cm) > 98:
+        print("training stops after reaching high training accuracy")
+        quit()
+print("training stops after reaching time limit")
+define model
+load data
+indexing miniworld (mode train ): 23 towns found ( ['potsdam/train', 'christchurch/train', 'toulouse/train', 'paris/train', 'austin/train', 'chicago/train', 'kitsap/train', 'tyrol-w/train', 'vienna/train', 'vegas/train', 'shanghai/train', 'khartoum/train', 'bruges/train', 'rio/train', 'Arlington/train', 'Austin/train', 'DC/train', 'NewYork/train', 'SanFrancisco/train', 'Atlanta/train', 'NewHaven/train', 'Norfolk/train', 'Seekonk/train'] ) with a total of 12434 images
+train
+epoch= 0 / 800
+loss= 0.6683961811818575
+loss= 0.6656904935836792
+loss= 0.6167613011459971
+loss= 0.6119044509198931
+loss= 0.5486538880977078
+loss= 0.528976983451224
+loss= 0.4959771918489578
+loss= 0.48829480222981386
+loss= 0.4073171114780494
+loss= 0.4046282093365525
+loss= 0.3582201761752367
+loss= 0.334717720746994
+backup model
+accuracy 89.9484230654083
+epoch= 1 / 800
+loss= 0.3102367793023586
+loss= 0.3008133791387081
+loss= 0.27610548682510855
+loss= 0.27313674688339235
+loss= 0.2666666527837515
+loss= 0.26635638147592544
+loss= 0.2646456015110016
+loss= 0.26411684669554236
+loss= 0.25984758347272874
+loss= 0.25864423491060734
+backup model
+accuracy 87.22211819868515
+epoch= 2 / 800
+loss= 0.23428168520331383
+loss= 0.23304915845394134
+loss= 0.23124721370637416
+loss= 0.2290567009150982
+loss= 0.22563499346375465
+loss= 0.22329125694930554
+backup model
+accuracy 87.52033285353802
+epoch= 3 / 800
+loss= 0.21870889328420162
+loss= 0.2152936338633299
+loss= 0.21344365581870078
+loss= 0.2112412825971842
+loss= 0.20954729907214642
+loss= 0.21113400429487228
+loss= 0.210757277905941
+loss= 0.20543133400380612
+backup model
+accuracy 88.94358645887644
+epoch= 4 / 800
+loss= 0.20092239156365393
+loss= 0.20152884520590306
+loss= 0.2012547154724598
+loss= 0.20462837286293506
+loss= 0.2026815803349018
+loss= 0.2026596812903881
+loss= 0.20145903155207634
+loss= 0.20195225156843663
+loss= 0.20181174643337726
+loss= 0.20186653718352318
+loss= 0.20129629835486412
+backup model
+accuracy 89.92344097499429
+epoch= 5 / 800
+loss= 0.20422017052769662
+loss= 0.19693189550191165
+loss= 0.19679345805197954
+loss= 0.19652362789958716
+loss= 0.19513746205717325
+loss= 0.19545675929635764
+loss= 0.19550126615911723
+backup model
+accuracy 90.59407986987992
+epoch= 6 / 800
+loss= 0.19365905217826365
+loss= 0.192670618519187
+loss= 0.19071747686713933
+loss= 0.19066226925700902
+loss= 0.18901127371937038
+loss= 0.18541977867484094
+backup model
+accuracy 90.91099489468603
+epoch= 7 / 800
+loss= 0.18456782896071672
+loss= 0.18475601535290478
+loss= 0.18508570026606322
+loss= 0.18513110425323248
+loss= 0.18347617384046316
+loss= 0.1840458334609866
+loss= 0.1885566210001707
+loss= 0.19134386792778968
+loss= 0.1914541157335043
+backup model
+accuracy 90.81558848073759
+epoch= 8 / 800
+loss= 0.18244570296257734
+loss= 0.18204491835087538
+loss= 0.180700947009027
+loss= 0.1809715513512492
+loss= 0.18070440527051687
+loss= 0.1806282093003392
+loss= 0.17781013827770947
+loss= 0.17777001660317182
+loss= 0.1776633735373616
+backup model
+accuracy 90.6063139500782
+epoch= 9 / 800
+loss= 0.17568524654954673
+loss= 0.1719699677452445
+loss= 0.1711608050391078
+loss= 0.1698973398283124
+loss= 0.17016560319811105
+loss= 0.1682667140290141
+loss= 0.16880639147013426
+backup model
+accuracy 92.39164795940188
+epoch= 10 / 800
+loss= 0.16828145753592252
+loss= 0.16870335396379232
+loss= 0.16881268586963416
+loss= 0.16874894995242357
+loss= 0.1700624155625701
+loss= 0.1694192760437727
+loss= 0.17080985497683288
+loss= 0.1681832192465663
+loss= 0.168053528778255
+backup model
+accuracy 90.79410366022549
+epoch= 11 / 800
+loss= 0.16816796731203795
+loss= 0.16935408305376767
+loss= 0.168822846673429
+loss= 0.1681558543816209
+loss= 0.16758604623377324
+loss= 0.1667012521997094
+loss= 0.16661508236080408
+loss= 0.16710253097116948
+loss= 0.16849327363073827
+backup model
+accuracy 92.93758324711614
+epoch= 12 / 800
+loss= 0.16831397790461777
+loss= 0.1675497130677104
+loss= 0.16766736965626478
+loss= 0.1651369034126401
+loss= 0.1645116689056158
+loss= 0.1632623938471079
+loss= 0.16355095602571965
+loss= 0.16382115356624127
+loss= 0.16257658183574678
+backup model
+accuracy 90.85992648032212
+epoch= 13 / 800
+loss= 0.16530166942626237
+loss= 0.16246549885720016
+loss= 0.16150867253541945
+loss= 0.16200631134212018
+backup model
+accuracy 92.1615123251556
+epoch= 14 / 800
+loss= 0.15577056806534528
+loss= 0.15481993410736322
+loss= 0.15441465139389038
+loss= 0.15468159798532724
+loss= 0.15627965550869705
+loss= 0.15654239792376756
+backup model
+accuracy 89.77839178536806
+epoch= 15 / 800
+loss= 0.16309176631271838
+loss= 0.1669031884521246
+loss= 0.16722655519843102
+loss= 0.17045626156032084
+loss= 0.17127833373844623
+loss= 0.1714129052683711
+loss= 0.16279990043491124
+backup model
+accuracy 91.6131728632731
+epoch= 16 / 800
+loss= 0.16102349288761617
+loss= 0.15896359637379645
+loss= 0.15840045128017663
+loss= 0.15585791103541852
+loss= 0.15783736303448678
+loss= 0.1568881032988429
+backup model
+accuracy 91.63005777146198
+epoch= 17 / 800
+loss= 0.15608104929327965
+loss= 0.15461792208254338
+loss= 0.1544710822403431
+loss= 0.15431497160345317
+loss= 0.15412131126970052
+loss= 0.15300610594451428
+loss= 0.15351358689367772
+loss= 0.15307538025081158
+loss= 0.15306287489831447
+loss= 0.15278687492012977
+backup model
+accuracy 93.27536573996758
+epoch= 18 / 800
+loss= 0.15311278950423002
+loss= 0.1534411571547389
+loss= 0.15326320353895426
+loss= 0.1530898404493928
+loss= 0.1533608064800501
+loss= 0.1540312310680747
+loss= 0.15419125489890576
+loss= 0.15411002952605485
+loss= 0.1560984430462122
+loss= 0.15561828047037124
+loss= 0.15610861647874116
+loss= 0.15571900989860296
+backup model
+accuracy 92.02208454342903
+epoch= 19 / 800
+loss= 0.15400553960353136
+loss= 0.1552259174361825
+loss= 0.16179349694401027
+loss= 0.16218237359076737
+loss= 0.1624137981981039
+loss= 0.16297037091106176
+loss= 0.163291954472661
+loss= 0.1636698777601123
+loss= 0.1643463721871376
+loss= 0.16514511175453664
+loss= 0.16589755836874245
+loss= 0.16562360897660255
+loss= 0.1649139726907015
+backup model
+accuracy 92.14830448281901
+epoch= 20 / 800
+loss= 0.16120610143989325
+loss= 0.16212016459554435
+loss= 0.16291548162698746
+loss= 0.16208854496479033
+loss= 0.15854682464152575
+backup model
+accuracy 91.06167981224338
+epoch= 21 / 800
+loss= 0.15321015939116478
+loss= 0.15272362150251864
+loss= 0.15184396289288998
+loss= 0.1522554299980402
+loss= 0.15020760845392941
+loss= 0.15018179427832365
+loss= 0.15124138545244933
+loss= 0.15224005460739135
+backup model
+accuracy 91.38125358955455
+epoch= 22 / 800
+loss= 0.15384781908243894
+loss= 0.15393802259117365
+loss= 0.15399865444749594
+loss= 0.15384566452354193
+loss= 0.15418585177510977
+loss= 0.1557078390195966
+backup model
+accuracy 91.85902552758814
+epoch= 23 / 800
+loss= 0.15048363123089076
+loss= 0.15002201575785876
+loss= 0.15025875404477118
+loss= 0.1511221643537283
+loss= 0.15152907241135835
+loss= 0.1521239111199975
+loss= 0.15215151432901622
+loss= 0.15384215988218786
+loss= 0.15350083593279124
+backup model
+accuracy 92.76131957116789
+epoch= 24 / 800
+loss= 0.15150105584412812
+loss= 0.15171953525394202
+loss= 0.15149435203522443
+loss= 0.1510133770853281
+loss= 0.14840145718306302
+loss= 0.14840397123247384
+loss= 0.14841457720845938
+backup model
+accuracy 93.22782005333926
+epoch= 25 / 800
+loss= 0.14790922045707702
+loss= 0.14791966710239648
+loss= 0.14786896716803313
+loss= 0.1484099242091179
+loss= 0.1489723961800337
+loss= 0.14787942484021188
+backup model
+accuracy 92.32740193387887
+epoch= 26 / 800
+loss= 0.14684885952621698
+loss= 0.14734132822602988
+loss= 0.14700540103018284
+loss= 0.14696710254997014
+loss= 0.14636306203901767
+loss= 0.1458794880285859
+loss= 0.14563499953597783
+loss= 0.14638762529939414
+loss= 0.14804458681493998
+backup model
+accuracy 92.3318745570337
+epoch= 27 / 800
+loss= 0.14588872563093902
+loss= 0.14628228701651097
+loss= 0.14655905663967134
+loss= 0.14570483289659023
+loss= 0.1459815600514412
+loss= 0.1429387903213501
+loss= 0.142916556969285
+loss= 0.1425987484306097
+loss= 0.1422342102229595
+loss= 0.14206118948757648
+loss= 0.14096161354333162
+loss= 0.13946270059794189
+loss= 0.13905177559703588
+loss= 0.13911700420081616
+backup model
+accuracy 92.44871010248306
+epoch= 28 / 800
+loss= 0.13756894290447236
+loss= 0.1398902341350913
+loss= 0.14101058591157198
+loss= 0.14342491928488016
+loss= 0.14352497410029172
+backup model
+accuracy 91.84395289893443
+epoch= 29 / 800
+loss= 0.14428444284945727
+loss= 0.14456942528486252
+loss= 0.1447574843093753
+loss= 0.14360428277403117
+loss= 0.1416329974681139
+loss= 0.14238523211330176
+loss= 0.1420585924759507
+loss= 0.14505068231374024
+loss= 0.14561400186270476
+backup model
+accuracy 90.98719973758065
+epoch= 30 / 800
+loss= 0.146470231898129
+loss= 0.14807135071605443
+loss= 0.14855317763984202
+loss= 0.1467934476211667
+loss= 0.14608297444880008
+loss= 0.14562458205968143
+loss= 0.141653641872108
+backup model
+accuracy 92.68397389910145
+epoch= 31 / 800
+loss= 0.14152098648250103
+loss= 0.1415533487871289
+loss= 0.14184732485562562
+loss= 0.14088125489652156
+loss= 0.1410452590882778
+loss= 0.14270614497363568
+loss= 0.14315703440457583
+loss= 0.14408876057714223
+backup model
+accuracy 93.44594118120276
+epoch= 32 / 800
+loss= 0.148230324909091
+loss= 0.148064089640975
+loss= 0.1470747471228242
+loss= 0.1473061065748334
+loss= 0.14272052526474
+loss= 0.143218882009387
+loss= 0.14314057443290948
+backup model
+accuracy 92.58317519775645
+epoch= 33 / 800
+loss= 0.142297547981143
+loss= 0.14037729069590568
+loss= 0.13869419012218714
+loss= 0.13811115715652705
+loss= 0.1385530499741435
+loss= 0.13836087204515934
+loss= 0.13674749739468098
+backup model
+accuracy 92.4929908219418
+epoch= 34 / 800
+loss= 0.13613602843135594
+loss= 0.13596633862704038
+loss= 0.13577855736017228
+loss= 0.13678743567317725
+loss= 0.1363582759350538
+backup model
+accuracy 92.80254694169952
+epoch= 35 / 800
+loss= 0.13920436643064021
+loss= 0.1406177155673504
+loss= 0.1404318604245782
+loss= 0.1388448467105627
+loss= 0.13975625224411486
+loss= 0.1412242678552866
+backup model
+accuracy 92.79634318585441
+epoch= 36 / 800
+loss= 0.1407673056051135
+loss= 0.14059217177331448
+loss= 0.14075228948146104
+loss= 0.135800772793591
+loss= 0.13633159313350915
+loss= 0.13565036926418542
+loss= 0.1377823669090867
+backup model
+accuracy 92.3007937243385
+epoch= 37 / 800
+loss= 0.13805992357432842
+loss= 0.1407256865501404
+loss= 0.1400062869116664
+loss= 0.14015657536685466
+loss= 0.13832553192973138
+loss= 0.138222620151937
+backup model
+accuracy 92.54330345686832
+epoch= 38 / 800
+loss= 0.13811308965086938
+loss= 0.13705203730612994
+loss= 0.13673455864191056
+loss= 0.13652390003204345
+loss= 0.13691777482628822
+loss= 0.13807933129370212
+loss= 0.1377447034791112
+loss= 0.13849430821835995
+loss= 0.14064628452062608
+backup model
+accuracy 92.63586177567372
+epoch= 39 / 800
+loss= 0.13934842798858882
+loss= 0.13968610193580389
+loss= 0.1404261852428317
+loss= 0.1387562048062682
+loss= 0.13737808469682933
+loss= 0.13515961449593306
+backup model
+accuracy 91.23244300500195
+epoch= 40 / 800
+loss= 0.136861265078187
+loss= 0.13691692918539047
+loss= 0.13672989662736654
+loss= 0.13654292784631253
+loss= 0.1364441227540374
+loss= 0.13625301361083986
+loss= 0.13671203579753638
+loss= 0.1390915720164776
+loss= 0.13889290172606705
+loss= 0.13792116675525903
+backup model
+accuracy 92.6547976305885
+epoch= 41 / 800
+loss= 0.13430589005351068
+loss= 0.13527729000896216
+loss= 0.1355681999027729
+loss= 0.1368278030306101
+loss= 0.1360278221592307
+loss= 0.13493876948952674
+loss= 0.1356145115196705
+loss= 0.13646809119731187
+loss= 0.13686515655368567
+loss= 0.13637266173958779
+backup model
+accuracy 92.02866698455016
+epoch= 42 / 800
+loss= 0.13541109189391137
+loss= 0.13255854934453964
+loss= 0.13262472167611122
+loss= 0.1331807890534401
+loss= 0.1321396440640092
+loss= 0.13279567696154118
+loss= 0.13192715514451264
+loss= 0.131942259632051
+loss= 0.13246051855385305
+backup model
+accuracy 93.1773705825567
+epoch= 43 / 800
+loss= 0.1326593479141593
+loss= 0.13444134272634983
+loss= 0.1347209483757615
+loss= 0.13493939075618983
+loss= 0.13495155867189168
+loss= 0.13422451604157687
+loss= 0.13410628743469716
+loss= 0.13483755968511105
+loss= 0.1329234105348587
+Traceback (most recent call last):
+  File "withaugmentation.py", line 109, in <module>
+    loss.backward()
+  File "/d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/tensor.py", line 198, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph)
+  File "/d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/autograd/__init__.py", line 100, in backward
+    allow_unreachable=True)  # allow_unreachable flag
+RuntimeError: CUDA out of memory. Tried to allocate 2.05 GiB (GPU 0; 10.76 GiB total capacity; 6.20 GiB already allocated; 2.05 GiB free; 7.87 GiB reserved in total by PyTorch) (malloc at /opt/conda/conda-bld/pytorch_1591914855613/work/c10/cuda/CUDACachingAllocator.cpp:289)
+frame #0: c10::Error::Error(c10::SourceLocation, std::string const&) + 0x4e (0x7f949c454b5e in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x1f39d (0x7f949c6a039d in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libc10_cuda.so)
+frame #2: c10::cuda::CUDACachingAllocator::raw_alloc(unsigned long) + 0x5b (0x7f949c69a98b in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libc10_cuda.so)
+frame #3: <unknown function> + 0xd667e6 (0x7f949d6147e6 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: <unknown function> + 0xd6a12d (0x7f949d61812d in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd5d4ba (0x7f949d60b4ba in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #6: <unknown function> + 0xd5e1d1 (0x7f949d60c1d1 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #7: <unknown function> + 0xd6220b (0x7f949d61020b in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #8: at::native::cudnn_convolution_backward_input(c10::ArrayRef<long>, at::Tensor const&, at::Tensor const&, c10::ArrayRef<long>, c10::ArrayRef<long>, c10::ArrayRef<long>, long, bool, bool) + 0xb2 (0x7f949d610762 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #9: <unknown function> + 0xdc9280 (0x7f949d677280 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #10: <unknown function> + 0xe0db18 (0x7f949d6bbb18 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #11: at::native::cudnn_convolution_backward(at::Tensor const&, at::Tensor const&, at::Tensor const&, c10::ArrayRef<long>, c10::ArrayRef<long>, c10::ArrayRef<long>, long, bool, bool, std::array<bool, 2ul>) + 0x4fa (0x7f949d611dfa in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #12: <unknown function> + 0xdc95ab (0x7f949d6775ab in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #13: <unknown function> + 0xe0db74 (0x7f949d6bbb74 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cuda.so)
+frame #14: <unknown function> + 0x29dee26 (0x7f94ca1d7e26 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #15: <unknown function> + 0x2a2e634 (0x7f94ca227634 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #16: torch::autograd::generated::CudnnConvolutionBackward::apply(std::vector<at::Tensor, std::allocator<at::Tensor> >&&) + 0x378 (0x7f94c9defff8 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #17: <unknown function> + 0x2ae7df5 (0x7f94ca2e0df5 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #18: torch::autograd::Engine::evaluate_function(std::shared_ptr<torch::autograd::GraphTask>&, torch::autograd::Node*, torch::autograd::InputBuffer&) + 0x16f3 (0x7f94ca2de0f3 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #19: torch::autograd::Engine::thread_main(std::shared_ptr<torch::autograd::GraphTask> const&, bool) + 0x3d2 (0x7f94ca2deed2 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #20: torch::autograd::Engine::thread_init(int) + 0x39 (0x7f94ca2d7549 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_cpu.so)
+frame #21: torch::autograd::python::PythonEngine::thread_init(int) + 0x38 (0x7f94cd827638 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/torch/lib/libtorch_python.so)
+frame #22: <unknown function> + 0xb8408 (0x7f94e5c56408 in /d/jcastillo/anaconda3/lib/python3.7/site-packages/scipy/sparse/../../../../libstdc++.so.6)
+frame #23: <unknown function> + 0x9609 (0x7f94f45e9609 in /lib/x86_64-linux-gnu/libpthread.so.0)
+frame #24: clone + 0x43 (0x7f94f4510293 in /lib/x86_64-linux-gnu/libc.so.6)
+
+/opt/conda/conda-bld/pytorch_1591914855613/work/torch/csrc/utils/tensor_numpy.cpp:141: UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program.
+load model
+massif benchmark
+indexing miniworld (mode test ): 23 towns found ( ['potsdam/test', 'christchurch/test', 'toulouse/test', 'paris/test', 'austin/test', 'chicago/test', 'kitsap/test', 'tyrol-w/test', 'vienna/test', 'vegas/test', 'shanghai/test', 'khartoum/test', 'bruges/test', 'rio/test', 'Arlington/test', 'Austin/test', 'DC/test', 'NewYork/test', 'SanFrancisco/test', 'Atlanta/test', 'NewHaven/test', 'Norfolk/test', 'Seekonk/test'] ) with a total of 6135 images
+potsdam/test
+2345382 118404 87651 1048563
+94.27625 87.75011932791537
+christchurch/test
+140515762 7397567 591557 14210614
+95.090127246636 79.31641288072235
+toulouse/test
+forward in progress 576 3392
+forward in progress 1152 3392
+forward in progress 1792 3392
+forward in progress 2368 3392
+forward in progress 3008 3392
+forward in progress 576 3392
+forward in progress 1152 3392
+forward in progress 1792 3392
+forward in progress 2368 3392
+forward in progress 3008 3392
+18124801 1539973 262496 4264346
+92.54919968967761 80.62223047632057
+paris/test
+51186872 3864931 271308 4147989
+93.04495965267164 71.29720297635141
+austin/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+109910340 6022160 1231742 17835758
+94.62673925925925 82.44842828436157
+chicago/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+88731095 10707222 3361197 32200486
+89.57894888888889 77.95446406667756
+kitsap/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+124269365 2890030 1151580 6689025
+97.00621481481481 79.59296224603315
+tyrol-w/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+122623490 2785112 568078 9023320
+97.51615555555556 85.12253326303986
+vienna/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+89229263 10840588 1571489 33358660
+90.8058688888889 80.33521315248008
+vegas/test
+147337901 16489741 1874560 33548798
+90.78333308239357 76.77110236951387
+shanghai/test
+195774184 15281295 5325246 20591075
+91.30422227454912 70.22897505038739
+khartoum/test
+41397412 3342685 2018320 5716083
+89.78359965316487 70.06871632522889
+bruges/test
+1632011 96093 20567 251329
+94.167 80.81330664930567
+rio/test
+385812132 9121169 8412781 17230684
+95.83097512333812 72.60835339931435
+Arlington/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+7651358 456508 53274 838860
+94.33575555555555 77.9769454771929
+Austin/test
+forward in progress 640 3456
+forward in progress 1344 3456
+forward in progress 2048 3456
+forward in progress 2752 3456
+8276740 438251 151053 1857519
+94.50458770093485 84.6343959373833
+DC/test
+forward in progress 1280 1600
+1356044 366972 24494 812490
+84.708359375 72.54183236039476
+NewYork/test
+1573242 170446 41602 464710
+90.57564444444445 78.39478810902958
+SanFrancisco/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+4672527 838525 236681 3252267
+88.05326666666667 78.22367118335586
+Atlanta/test
+1642457 110661 28084 378798
+93.57662037037036 82.70109832611178
+NewHaven/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+7065892 552419 268694 1112995
+90.87652222222222 73.56734406783032
+Norfolk/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+7505888 416706 69330 1008076
+94.5996 80.69415959161121
+Seekonk/test
+forward in progress 704 2944
+forward in progress 1408 2944
+forward in progress 2112 2944
+forward in progress 2816 2944
+8377679 208707 28352 385262
+97.3660111111111 79.57774757622711
+-------- results ----------
+potsdam/test 87.75011932791537
+christchurch/test 79.31641288072235
+toulouse/test 80.62223047632057
+paris/test 71.29720297635141
+austin/test 82.44842828436157
+chicago/test 77.95446406667756
+kitsap/test 79.59296224603315
+tyrol-w/test 85.12253326303986
+vienna/test 80.33521315248008
+vegas/test 76.77110236951387
+shanghai/test 70.22897505038739
+khartoum/test 70.06871632522889
+bruges/test 80.81330664930567
+rio/test 72.60835339931435
+Arlington/test 77.9769454771929
+Austin/test 84.6343959373833
+DC/test 72.54183236039476
+NewYork/test 78.39478810902958
+SanFrancisco/test 78.22367118335586
+Atlanta/test 82.70109832611178
+NewHaven/test 73.56734406783032
+Norfolk/test 80.69415959161121
+Seekonk/test 79.57774757622711
+miniworld 78.06358235646078
