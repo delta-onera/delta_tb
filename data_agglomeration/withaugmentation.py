@@ -13,6 +13,11 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
+outputname = "model.pth"
+if len(sys.argv) > 1:
+    outputname = sys.argv[1]
+os.system("cat withaugmentation.py")
+
 whereIam = os.uname()[1]
 
 print("define model")
@@ -31,11 +36,14 @@ import segmentation_models_pytorch as smp
 import collections
 import random
 
-net = smp.Unet(
-    encoder_name="efficientnet-b0",
+tmp = smp.Unet(
+    encoder_name="efficientnet-b5",
     encoder_weights="imagenet",
     in_channels=3,
-    classes=2,
+    classes=2000,
+)
+net = torch.nn.Sequential(
+    torch.nn.tmp, torch.nn.LeakyReLU(), torch.nn.Conv2d(2000, 2, 1)
 )
 net = net.cuda()
 net.train()
@@ -76,7 +84,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 400
+nbepoch = 800
 batchsize = 32
 
 import dependencyfreeimgaug
@@ -88,7 +96,7 @@ for epoch in range(nbepoch):
     for x, y in XY:
         x, y = x.to(device), y.to(device)
 
-        x = dependencyfreeimgaug.augment(x)
+        # x = dependencyfreeimgaug.augment(x)
 
         preds = net(x)
         loss = criterion(preds, y)
@@ -107,7 +115,7 @@ for epoch in range(nbepoch):
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/augmented.pth")
+    torch.save(net, "build/" + outputname)
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
