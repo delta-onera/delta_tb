@@ -27,5 +27,7 @@ if whereIam == "super":
     os.system("/data/anaconda3/bin/python debug.py")
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python")
+    os.system("/data/anaconda3/envs/pytorch/bin/python test.py")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     os.system("/d/jcastillo/anaconda3/bin/python debug.py")
+    os.system("/d/jcastillo/anaconda3/bin/python test.py")
