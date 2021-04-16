@@ -1,5 +1,7 @@
 import os
 import sys
+import datetime
+import random
 
 whereIam = os.uname()[1]
 assert whereIam in [
@@ -22,9 +24,13 @@ if not os.path.exists(root + "miniworld"):
 if not os.path.exists("build"):
     os.makedirs("build")
 
+today = datetime.date.today()
+tmp = random.randint(0, 1000)
+myhash = str(today) + "_" + str(tmp)
+
 if whereIam == "wdtim719z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python train.py")
-    os.system("/data/anaconda3/envs/pytorch/bin/python test.py naive.pth")
+    os.system("/data/anaconda3/envs/pytorch/bin/python train.py " + myhash)
+    os.system("/data/anaconda3/envs/pytorch/bin/python test.py " + myhash)
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("/d/jcastillo/anaconda3/bin/python train.py")
-    os.system("/d/jcastillo/anaconda3/bin/python test.py naive.pth")
+    os.system("/d/jcastillo/anaconda3/bin/python train.py " + myhash)
+    os.system("/d/jcastillo/anaconda3/bin/python test.py " + myhash)

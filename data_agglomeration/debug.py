@@ -13,6 +13,10 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
+outputname = "debug.pth"
+if len(sys.argv) > 1:
+    outputname = sys.argv[1]
+
 whereIam = os.uname()[1]
 
 print("define model")
@@ -97,18 +101,6 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 batchsize = 16
 
-
-def augmentbatch(inputs):
-    tmp = inputs.cpu().data.numpy()
-    tmp = np.transpose(tmp, axes=(0, 2, 3, 1))
-    l = []
-    for i in range(tmp.shape[0]):
-        l.append(transform(image=tmp[i])["image"])
-    tmp = np.stack(l)
-    tmp = np.transpose(tmp, axes=(0, 3, 1, 2))
-    return torch.Tensor(tmp).to(device)
-
-
 for epoch in ["PerImage", "PerTown", "PerPixel"]:
     print("epoch=", epoch)
 
@@ -120,6 +112,11 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
         loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
 
+        if epoch > 100:
+            loss = loss * 0.5
+        if epoch > 200:
+            loss = loss * 0.5
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -128,7 +125,7 @@ for epoch in ["PerImage", "PerTown", "PerPixel"]:
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/debug.pth")
+    torch.save(net, "build/" + outputname)
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 

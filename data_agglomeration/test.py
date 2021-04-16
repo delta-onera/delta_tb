@@ -32,7 +32,7 @@ with torch.no_grad():
     if len(sys.argv) > 1:
         net = torch.load("build/" + sys.argv[1])
     else:
-        net = torch.load("build/model.pth")
+        net = torch.load("build/debug.pth")
     net = net.to(device)
     net.eval()
 

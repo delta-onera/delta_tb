@@ -13,6 +13,11 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
+outputname = "model.pth"
+if len(sys.argv) > 1:
+    outputname = sys.argv[1]
+os.system("cat train.py")
+
 whereIam = os.uname()[1]
 
 print("define model")
@@ -32,7 +37,7 @@ import collections
 import random
 
 net = smp.Unet(
-    encoder_name="efficientnet-b0",
+    encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
@@ -76,7 +81,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 400
+nbepoch = 800
 batchsize = 32
 
 for epoch in range(nbepoch):
@@ -103,7 +108,7 @@ for epoch in range(nbepoch):
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/naive.pth")
+    torch.save(net, "build/" + outputname)
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
