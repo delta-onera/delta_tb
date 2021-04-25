@@ -41,3 +41,15 @@ import segmentation_models_pytorch as smp
 
 net = torch.load(sys.argv[1])
 torch.save(net.state_dict(), "rahhhhwtftorchload.pth")
+
+quit()
+
+net = smp.Unet(
+    encoder_name="efficientnet-b7",
+    encoder_weights="imagenet",
+    in_channels=3,
+    classes=2,
+)
+tmp = torch.load("rahhhhwtftorchload.pth")
+net.load_state_dict(tmp)
+torch.save(net, "converted.pth")
