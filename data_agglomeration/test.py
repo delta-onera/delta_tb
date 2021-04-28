@@ -91,14 +91,6 @@ with torch.no_grad():
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
 
-            ##### MODIFYING POSITIVELY BORDER (unfair - just for debug)
-            if False:
-                label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
-                innerpixel = dataloader.getinnerT(label_)
-                innerpixel = innerpixel[0].cpu().numpy()
-                label = np.uint8(label * innerpixel + pred * (1 - innerpixel))
-            #####
-
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
@@ -120,6 +112,12 @@ with torch.no_grad():
                 label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
                 innerpixel = dataloader.getinnerT(label_)
                 innerpixel = innerpixel[0].cpu().numpy()
+                print(
+                    np.sum(innerpixel)
+                    * 100.0
+                    / innerpixel.shape[0]
+                    / innerpixel.shape[1]
+                )
                 label = np.uint8(label * innerpixel + 2 * (1 - innerpixel))
 
                 tmp = confusion_matrix(
