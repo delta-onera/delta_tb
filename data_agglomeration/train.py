@@ -92,6 +92,11 @@ for epoch in range(nbepoch):
         x, y = x.to(device), y.to(device)
 
         preds = net(x)
+        
+        mask = pred.cpu().numpy() 
+        mask = mask[:,1,:,:]-mask[:,0,:,:]
+        mask = np.uint8(mask>0)
+        
         loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
 

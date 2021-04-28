@@ -263,20 +263,17 @@ def largeforwardCPU(net, image, device, tilesize=128, stride=32):
     return pred
 
 
-def removeborder(y):
+def getborder(y):
     y_plus = torch.Tensor(1.0 * y).cuda()
     y_plus = torch.nn.functional.max_pool2d(y_plus, kernel_size=3, stride=1, padding=1)
     y_plus = yplus.cpu().numpy()
 
-    y_moins = 1 - torch.Tensor(1.0 * y).cuda()
-    y_moins = 1 - torch.nn.functional.max_pool2d(
-        y_moins, kernel_size=3, stride=1, padding=1
+    y_less = 1 - torch.Tensor(1.0 * y).cuda()
+    y_less = torch.nn.functional.max_pool2d(
+        y_less, kernel_size=3, stride=1, padding=1
     )
-    y_moins = y_moins.cpu().numpy()
+    y_less = (1 - y_less).cpu().numpy()
 
-    y0 = np.uint8(y == 0) * np.uint8(y == y_plus) * np.uint8(y == y_moins)
-    y1 = np.uint8(y == 1) * np.uint8(y == y_plus) * np.uint8(y == y_moins)
-    z = np.ones(y.shape) * 2
-    z -= 2 * y0
-    z -= y1
-    return np.uint8(y)
+    z = np.uint8(y != y_plus) + np.uint8(y != y_less)
+    z = np.uint8(z != 0)
+    return z
