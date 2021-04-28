@@ -112,12 +112,13 @@ with torch.no_grad():
                 label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
                 innerpixel = dataloader.getinnerT(label_)
                 innerpixel = innerpixel[0].cpu().numpy()
-                print(
-                    np.sum(innerpixel)
-                    * 100.0
-                    / innerpixel.shape[0]
-                    / innerpixel.shape[1]
-                )
+                if False:
+                    print(
+                        np.sum(innerpixel)
+                        * 100.0
+                        / innerpixel.shape[0]
+                        / innerpixel.shape[1]
+                    )
                 label = np.uint8(label * innerpixel + 2 * (1 - innerpixel))
 
                 tmp = confusion_matrix(
