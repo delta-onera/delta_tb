@@ -52,7 +52,7 @@ import dataloader
 miniworld = dataloader.MiniWorld()
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
-weights = torch.Tensor([1, miniworld.balance]).to(device)
+weights = torch.Tensor([1, miniworld.balance / 2]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 
 print("train")
