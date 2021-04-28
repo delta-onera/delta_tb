@@ -77,6 +77,12 @@ with torch.no_grad():
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
 
+            ##### REMOVING INFLUENCE OF BORDER IN IOU
+            if True:
+                innerpixel = dataloader.getinnerT(label)
+                label = label * innerpixel + pred * (1 - innerpixel)
+            #####
+
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
