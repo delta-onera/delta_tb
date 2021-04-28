@@ -91,25 +91,42 @@ with torch.no_grad():
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
 
-            ##### REMOVING INFLUENCE OF BORDER IN IOU
+            ##### MODIFYING POSITIVELY BORDER (unfair - just for debug)
             if False:
                 label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
                 innerpixel = dataloader.getinnerT(label_)
                 innerpixel = innerpixel[0].cpu().numpy()
-                label = label * innerpixel + pred * (1 - innerpixel)
+                label = np.uint8(label * innerpixel + pred * (1 - innerpixel))
             #####
 
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            if town in ["potsdam/test"]:
+            if town in ["potsdam/test"] and False:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + "potsdam_test_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
                 label.save("build/" + "potsdam_test_" + str(i) + "_y.png")
                 pred = PIL.Image.fromarray(np.uint8(pred) * 255)
                 pred.save("build/" + "potsdam_test_" + str(i) + "_z.png")
+
+            ##### REMOVING BORDER (quite fair)
+            if True:
+                cm[town] -= confusion_matrix(
+                    label.flatten(), pred.flatten(), labels=[0, 1]
+                )
+
+                label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
+                innerpixel = dataloader.getinnerT(label_)
+                innerpixel = innerpixel[0].cpu().numpy()
+                label = np.uint8(label * innerpixel + 2 * (1 - innerpixel))
+
+                tmp = confusion_matrix(
+                    label.flatten(), pred.flatten(), labels=[0, 1, 2]
+                )
+                cm[town] += tmp[0:2, 0:2]
+            #####
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(

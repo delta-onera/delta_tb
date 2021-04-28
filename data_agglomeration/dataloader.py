@@ -264,12 +264,6 @@ def largeforwardCPU(net, image, device, tilesize=128, stride=32):
 
 
 def getinnerT(y):
-    y_plus = y
-    y_plus = torch.nn.functional.max_pool2d(y_plus, kernel_size=3, stride=1, padding=1)
-
-    y_less = 1 - y
-    y_less = torch.nn.functional.max_pool2d(y_less, kernel_size=3, stride=1, padding=1)
-    y_less = 1 - y_less
-
-    z = (y == y_plus).long() * (y == y_less).long()
+    y_ = torch.nn.functional.avg_pool2d(1.0 * y, kernel_size=3, stride=1, padding=1)
+    z = (y == y_).long()
     return z
