@@ -272,8 +272,4 @@ def getinnerT(y):
 
     z = (y == y_plus).long() * (y == y_less).long()
     return z
-
-
-def getinnerNP(y):
-    z = getinnerT(torch.Tensor(1.0 * y)).cuda()
-    return z.cpu().numpy()
+    

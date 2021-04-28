@@ -93,7 +93,9 @@ with torch.no_grad():
 
             ##### REMOVING INFLUENCE OF BORDER IN IOU
             if True:
-                innerpixel = dataloader.getinnerT(label)
+                label_ = torch.Tensor(1.0*label).cuda().unsqueeze(0)
+                innerpixel = dataloader.getinnerT(label_)
+                innerpixel = innerpixel[0].cpu().numpy()
                 label = label * innerpixel + pred * (1 - innerpixel)
             #####
 
