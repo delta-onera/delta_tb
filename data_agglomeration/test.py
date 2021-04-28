@@ -92,8 +92,8 @@ with torch.no_grad():
             pred = pred.cpu().numpy()
 
             ##### REMOVING INFLUENCE OF BORDER IN IOU
-            if True:
-                label_ = torch.Tensor(1.0*label).cuda().unsqueeze(0)
+            if False:
+                label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
                 innerpixel = dataloader.getinnerT(label_)
                 innerpixel = innerpixel[0].cpu().numpy()
                 label = label * innerpixel + pred * (1 - innerpixel)
@@ -103,13 +103,13 @@ with torch.no_grad():
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            if town in ["toulouse", "potsdam"] and False:
+            if town in ["potsdam/test"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-                imageraw.save("build/" + town + "_" + str(i) + "_x.png")
+                imageraw.save("build/" + "potsdam_test_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
-                label.save("build/" + town + "_" + str(i) + "_y.png")
+                label.save("build/" + "potsdam_test_" + str(i) + "_y.png")
                 pred = PIL.Image.fromarray(np.uint8(pred) * 255)
-                pred.save("build/" + town + "_" + str(i) + "_z.png")
+                pred.save("build/" + "potsdam_test_" + str(i) + "_z.png")
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(

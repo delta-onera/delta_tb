@@ -269,7 +269,7 @@ def getinnerT(y):
 
     y_less = 1 - y
     y_less = torch.nn.functional.max_pool2d(y_less, kernel_size=3, stride=1, padding=1)
+    y_less = 1 - y_less
 
     z = (y == y_plus).long() * (y == y_less).long()
     return z
-    
