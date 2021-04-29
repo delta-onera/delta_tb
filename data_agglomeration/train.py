@@ -95,13 +95,13 @@ for epoch in range(nbepoch):
 
         ##### REMOVING INFLUENCE OF BORDER IN LOSS
         if True:
-            innerpixel = dataloader.getinnerT(y)
+            with torch.no_grad():
+                innerpixel = dataloader.getinnerT(y)
 
-            mask = preds.cpu().detach().numpy()
-            mask = mask[:, 1, :, :] - mask[:, 0, :, :]
-            mask = (mask > 0).long()
+                mask = preds[:, 1, :, :] - preds[:, 0, :, :]
+                mask = (mask > 0).long()
 
-            yy = y * innerpixel + mask * (1 - innerpixel)
+                yy = y * innerpixel + mask * (1 - innerpixel)
 
             loss = criterion(preds, yy)
         #####
