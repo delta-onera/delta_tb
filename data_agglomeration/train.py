@@ -97,7 +97,7 @@ for epoch in range(nbepoch):
         if True:
             innerpixel = dataloader.getinnerT(y)
 
-            mask = pred.cpu().numpy()
+            mask = preds.cpu().numpy()
             mask = mask[:, 1, :, :] - mask[:, 0, :, :]
             mask = (mask > 0).long()
 
