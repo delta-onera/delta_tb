@@ -106,7 +106,7 @@ for epoch in range(nbepoch):
             #add virtual third class probability map
             tmp = torch.zeros(preds.shape[0],1,preds.shape[2],preds.shape[3])
             tmp = tmp.to(device)
-            preds = torch.cat([pred,tmp],dim=1)
+            preds = torch.cat([preds,tmp],dim=1)
             with torch.no_grad():
                 innerpixel = dataloader.getinnerT(y)
                 yy = y * innerpixel + 2 * (1 - innerpixel)
