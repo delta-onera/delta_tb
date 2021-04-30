@@ -104,7 +104,7 @@ with torch.no_grad():
                 predim.save("build/" + "potsdam_test_" + str(i) + "_z.png")
 
             ##### REMOVING BORDER (quite fair)
-            if True:
+            if False:
                 cm[town] -= confusion_matrix(
                     label.flatten(), pred.flatten(), labels=[0, 1]
                 )

@@ -36,13 +36,13 @@ import segmentation_models_pytorch as smp
 import collections
 import random
 
-net = smp.FPN(
+net = smp.Unet(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
 )
-net.segmentation_head = smp.base.SegmentationHead(48 + 80 + 224 + 640, 2, kernel_size=1)
+# net.segmentation_head = smp.base.SegmentationHead(48 + 80 + 224 + 640, 2, kernel_size=1)
 net = net.cuda()
 net.train()
 
@@ -88,9 +88,9 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 800
+nbepoch = 200
 batchsize = 16
 
 for epoch in range(nbepoch):
@@ -119,9 +119,11 @@ for epoch in range(nbepoch):
         # loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
 
-        if epoch > 100:
+        if epoch > 30:
             loss = loss * 0.5
-        if epoch > 200:
+        if epoch > 60:
+            loss = loss * 0.5
+        if epoch > 90:
             loss = loss * 0.5
 
         optimizer.zero_grad()
