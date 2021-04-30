@@ -100,8 +100,8 @@ with torch.no_grad():
                 imageraw.save("build/" + "potsdam_test_" + str(i) + "_x.png")
                 label = PIL.Image.fromarray(np.uint8(label) * 255)
                 label.save("build/" + "potsdam_test_" + str(i) + "_y.png")
-                pred = PIL.Image.fromarray(np.uint8(pred) * 255)
-                pred.save("build/" + "potsdam_test_" + str(i) + "_z.png")
+                predim = PIL.Image.fromarray(np.uint8(pred) * 255)
+                predim.save("build/" + "potsdam_test_" + str(i) + "_z.png")
 
             ##### REMOVING BORDER (quite fair)
             if True:
