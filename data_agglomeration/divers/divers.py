@@ -35,29 +35,78 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 
 import segmentation_models_pytorch as smp
 
+
+def wtf(*features):
+    c2, c3, c4, c5 = features[-4:]
+    print(c2.shape)
+    print(c3.shape)
+    print(c4.shape)
+    print(c5.shape)
+
+
 net = smp.Unet(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
 )
-net.eval()
+with torch.no_grad():
+    net.eval()
 
-x = torch.zeros(1, 3, 128, 128)
-feature = net.encoder(x)
-print("##############################")
-for z in feature:
-    print(z.shape)
+    x = torch.zeros(1, 3, 128, 128)
+    feature = net.encoder(x)
+    print("##############################")
+    for z in feature:
+        print(z.shape)
 
-print("##############################")
+    print("##############################")
+    wtf(*feature)
 
+    feature = net.decoder(*feature)
+    print(feature.shape)
 
-def wtf(*features):
-    c2, c3, c4, c5 = features[-4:]
-    print(c5.shape)
+net = smp.FPN(
+    encoder_name="efficientnet-b7",
+    encoder_weights="imagenet",
+    in_channels=3,
+    classes=2,
+)
+net.head = smp.base.SegmentationHead(16, 2, kernel_size=1)
+with torch.no_grad():
+    net.eval()
 
+    x = torch.zeros(1, 3, 128, 128)
+    feature = net.encoder(x)
+    print("##############################")
+    for z in feature:
+        print(z.shape)
 
-wtf(*feature)
+    print("##############################")
 
-feature = net.decoder(*feature)
-print(feature.shape)
+    wtf(*feature)
+
+    feature = net.decoder(*feature)
+    print(feature.shape)
+
+net = smp.FPN(
+    encoder_name="efficientnet-b7",
+    encoder_weights="imagenet",
+    in_channels=3,
+    classes=2,
+)
+net.head = smp.base.SegmentationHead(16, 2, kernel_size=1)
+with torch.no_grad():
+    net.eval()
+
+    x = torch.zeros(1, 3, 128, 128)
+    feature = net.encoder(x)
+    print("##############################")
+    for z in feature:
+        print(z.shape)
+
+    print("##############################")
+
+    wtf(*feature)
+
+    feature = net.decoder(*feature)
+    print(feature.shape)
