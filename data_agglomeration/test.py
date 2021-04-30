@@ -98,8 +98,8 @@ with torch.no_grad():
             if town in ["potsdam/test"] and True:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + "potsdam_test_" + str(i) + "_x.png")
-                label = PIL.Image.fromarray(np.uint8(label) * 255)
-                label.save("build/" + "potsdam_test_" + str(i) + "_y.png")
+                labelim = PIL.Image.fromarray(np.uint8(label) * 255)
+                labelim.save("build/" + "potsdam_test_" + str(i) + "_y.png")
                 predim = PIL.Image.fromarray(np.uint8(pred) * 255)
                 predim.save("build/" + "potsdam_test_" + str(i) + "_z.png")
 
