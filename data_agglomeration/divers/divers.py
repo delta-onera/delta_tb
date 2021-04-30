@@ -44,6 +44,7 @@ def wtf(*features):
     print(c5.shape)
 
 
+print("##############################")
 net = smp.Unet(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
@@ -55,58 +56,33 @@ with torch.no_grad():
 
     x = torch.zeros(1, 3, 128, 128)
     feature = net.encoder(x)
-    print("##############################")
     for z in feature:
         print(z.shape)
 
-    print("##############################")
-    wtf(*feature)
+    # wtf(*feature)
 
     feature = net.decoder(*feature)
     print(feature.shape)
+    print(net(x).shape)
 
+print("##############################")
 net = smp.FPN(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
 )
-net.head = smp.base.SegmentationHead(16, 2, kernel_size=1)
+net.segmentation_head = smp.base.SegmentationHead(48 + 80 + 224 + 640, 2, kernel_size=1)
 with torch.no_grad():
     net.eval()
 
     x = torch.zeros(1, 3, 128, 128)
     feature = net.encoder(x)
-    print("##############################")
     for z in feature:
         print(z.shape)
 
-    print("##############################")
-
-    wtf(*feature)
+    # wtf(*feature)
 
     feature = net.decoder(*feature)
     print(feature.shape)
-
-net = smp.FPN(
-    encoder_name="efficientnet-b7",
-    encoder_weights="imagenet",
-    in_channels=3,
-    classes=2,
-)
-net.head = smp.base.SegmentationHead(16, 2, kernel_size=1)
-with torch.no_grad():
-    net.eval()
-
-    x = torch.zeros(1, 3, 128, 128)
-    feature = net.encoder(x)
-    print("##############################")
-    for z in feature:
-        print(z.shape)
-
-    print("##############################")
-
-    wtf(*feature)
-
-    feature = net.decoder(*feature)
-    print(feature.shape)
+    print(net(x).shape)
