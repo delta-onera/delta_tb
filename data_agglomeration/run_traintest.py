@@ -27,6 +27,7 @@ if not os.path.exists("build"):
 today = datetime.date.today()
 tmp = random.randint(0, 1000)
 myhash = str(today) + "_" + str(tmp)
+print(myhash)
 
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py " + myhash)
