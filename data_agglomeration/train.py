@@ -36,12 +36,13 @@ import segmentation_models_pytorch as smp
 import collections
 import random
 
-net = smp.Unet(
+net = smp.FPN(
     encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
 )
+net.segmentation_head = smp.base.SegmentationHead(48 + 80 + 224 + 640, 2, kernel_size=1)
 net = net.cuda()
 net.train()
 
@@ -53,7 +54,7 @@ miniworld = dataloader.MiniWorld()
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 # weights = torch.Tensor([1, miniworld.balance]).to(device)
-weights = torch.Tensor([1, miniworld.balance / 2, 0]).to(device)
+weights = torch.Tensor([1, miniworld.balance, 0]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 
 print("train")
