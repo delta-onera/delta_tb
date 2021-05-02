@@ -264,11 +264,11 @@ def largeforwardCPU(net, image, device, tilesize=128, stride=32):
 
 
 def getinnerT(y):
-    rahhh = y[:, :, 1:-1, 1:-1]
+    rahhh = y[:, :, 1:-1, 1:-1].clone()
     rahhh_ = torch.nn.functional.avg_pool2d(
         1.0 * rahhh, kernel_size=3, stride=1, padding=1
     )
     y_ = y.clone()
-    y_[:, :, 1:-1, 1:-1] = rahhh_
+    y_[:, :, 1:-1, 1:-1] = rahhh_.clone()
     z = (y == y_).long()
     return z
