@@ -103,7 +103,7 @@ for epoch in range(nbepoch):
         preds = net(x)
 
         ##### REMOVING INFLUENCE OF BORDER IN LOSS
-        if True and random.randint(0, 3) != 0:
+        if False and random.randint(0, 3) != 0:
             # add virtual third class probability map
             tmp = torch.zeros(preds.shape[0], 1, preds.shape[2], preds.shape[3])
             tmp = tmp.to(device)
@@ -118,6 +118,7 @@ for epoch in range(nbepoch):
 
         else:
             loss = criterion(preds, y)
+
         meanloss.append(loss.cpu().data.numpy())
 
         if epoch > 30:
