@@ -116,7 +116,8 @@ for epoch in range(nbepoch):
             loss = criterion(preds, yy)
         #####
 
-        # loss = criterion(preds, y)
+        else:
+            loss = criterion(preds, y)
         meanloss.append(loss.cpu().data.numpy())
 
         if epoch > 30:
