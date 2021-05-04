@@ -90,7 +90,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 400
+nbepoch = 800
 batchsize = 16
 
 for epoch in range(nbepoch):
@@ -127,6 +127,8 @@ for epoch in range(nbepoch):
         if epoch > 90:
             loss = loss * 0.5
         if epoch > 160:
+            loss = loss * 0.5
+        if epoch > 400:
             loss = loss * 0.5
 
         optimizer.zero_grad()
