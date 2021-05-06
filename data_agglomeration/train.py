@@ -133,6 +133,7 @@ for epoch in range(nbepoch):
 
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 3)
         optimizer.step()
 
         if random.randint(0, 30) == 0:
