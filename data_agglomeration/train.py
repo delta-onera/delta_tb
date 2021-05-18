@@ -95,7 +95,7 @@ for epoch in range(nbepoch):
         x, y = x.to(device), y.to(device)
 
         preds = net(x)
-        loss = criterion(preds, y) * 0.5 + criterionbis(preds, y)
+        loss = criterion(preds, y) * 0.5  # + criterionbis(preds, y)
 
         meanloss.append(loss.cpu().data.numpy())
 
