@@ -55,7 +55,7 @@ earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 
-criterionbis = smp.utils.losses.DiceLoss()
+criterionbis = smp.losses.dice.DiceLoss()
 
 print("train")
 
@@ -95,7 +95,7 @@ for epoch in range(nbepoch):
         x, y = x.to(device), y.to(device)
 
         preds = net(x)
-        loss = criterion(preds, y) * 0.5  # + criterionbis(preds, y)
+        loss = criterion(preds, y) * 0.1 + criterionbis(preds, y)
 
         meanloss.append(loss.cpu().data.numpy())
 
