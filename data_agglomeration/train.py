@@ -121,7 +121,7 @@ for epoch in range(nbepoch):
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
-    if accu(cm) > 99:
+    if accu(cm) > 97:
         print("training stops after reaching high training accuracy")
         quit()
 print("training stops after reaching time limit")
