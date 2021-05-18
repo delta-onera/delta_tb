@@ -103,30 +103,6 @@ with torch.no_grad():
                 predim = PIL.Image.fromarray(np.uint8(pred) * 255)
                 predim.save("build/" + "potsdam_test_" + str(i) + "_z.png")
 
-            ##### REMOVING BORDER (quite fair)
-            if False:
-                cm[town] -= confusion_matrix(
-                    label.flatten(), pred.flatten(), labels=[0, 1]
-                )
-
-                label_ = torch.Tensor(1.0 * label).cuda().unsqueeze(0)
-                innerpixel = dataloader.getinnerT(label_)
-                innerpixel = innerpixel[0].cpu().numpy()
-                if False:
-                    print(
-                        np.sum(innerpixel)
-                        * 100.0
-                        / innerpixel.shape[0]
-                        / innerpixel.shape[1]
-                    )
-                label = np.uint8(label * innerpixel + 2 * (1 - innerpixel))
-
-                tmp = confusion_matrix(
-                    label.flatten(), pred.flatten(), labels=[0, 1, 2]
-                )
-                cm[town] += tmp[0:2, 0:2]
-            #####
-
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
             accu(cm[town]),
@@ -135,9 +111,9 @@ with torch.no_grad():
 
 print("-------- results ----------")
 for town in miniworld.towns:
-    print(town, f1(cm[town]))
+    print(town, accu(cm[town]), f1(cm[town]))
 
 globalcm = np.zeros((2, 2), dtype=int)
 for town in miniworld.towns:
     globalcm += cm[town]
-print("miniworld", f1(globalcm))
+print("miniworld", accu(globalcm), f1(globalcm))

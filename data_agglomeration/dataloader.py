@@ -234,8 +234,8 @@ def largeforward(net, image, device, tilesize=128, stride=64):
                 tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
                 pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
 
-                if i % 500 == 499:
-                    print("forward in progress", row, image.shape[2])
+                # if i % 500 == 499:
+                #    print("forward in progress", row, image.shape[2])
                 i += 1
 
     return pred
