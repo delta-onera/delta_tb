@@ -53,8 +53,6 @@ def f1(cm):
     )
 
 
-iii = 0
-
 cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
@@ -84,12 +82,11 @@ with torch.no_grad():
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
             imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-            imageraw.save("build/" + str(iii) + "_x.png")
-            label = PIL.Image.fromarray(np.uint8(label) * 255)
-            label.save("build/" + str(iii) + "_y.png")
-            pred = PIL.Image.fromarray(np.uint8(pred) * 255)
-            pred.save("build/" + str(iii) + "_z.png")
-            iii += 1
+            imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
+            labelim = PIL.Image.fromarray(np.uint8(label) * 255)
+            labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
+            predim = PIL.Image.fromarray(np.uint8(pred) * 255)
+            predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
