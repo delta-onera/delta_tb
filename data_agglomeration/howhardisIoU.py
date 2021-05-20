@@ -16,9 +16,12 @@ if device == "cuda":
 print("load data")
 import dataloader
 
-miniworld = dataloader.MiniWorld(
-    flag="custom", custom=["potsdam/test", "bruges/test", "toulouse/test"]
-)
+if whereIam == "super":
+    miniworld = dataloader.MiniWorld(
+        flag="custom", custom=["potsdam/test", "bruges/test"]
+    )
+else:
+    miniworld = dataloader.MiniWorld("test")
 
 
 def accu(cm):
@@ -39,9 +42,9 @@ with torch.no_grad():
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            pred = torch.Tensor(label).cuda().unsqueeze(0).float()
-            pred = -torch.nn.functional.max_pool2d(
-                -pred, kernel_size=3, stride=1, padding=1
+            pred = 1.0 - torch.Tensor(label).cuda().unsqueeze(0).float()
+            pred = 1.0 - torch.nn.functional.max_pool2d(
+                pred, kernel_size=3, stride=1, padding=1
             )
             pred = np.uint8(pred[0].cpu().numpy())
 
