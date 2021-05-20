@@ -16,6 +16,8 @@ if device == "cuda":
 print("load data")
 import dataloader
 
+whereIam = os.uname()[1]
+
 if whereIam == "super":
     miniworld = dataloader.MiniWorld(
         flag="custom", custom=["potsdam/test", "bruges/test"]
