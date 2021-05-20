@@ -56,6 +56,9 @@ with torch.no_grad():
             imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
             labelim = PIL.Image.fromarray(np.uint8(label) * 255)
             labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
+            
+            pred += 125*np.uint8(pred!=label)
+            
             predim = PIL.Image.fromarray(np.uint8(pred) * 255)
             predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
