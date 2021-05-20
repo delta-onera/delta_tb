@@ -39,11 +39,11 @@ with torch.no_grad():
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            pred = torch.Tensor(label).cuda()
+            pred = torch.Tensor(label).cuda().unsqueeze(0).float()
             pred = torch.nn.functional.max_pool2d(
                 pred, kernel_size=3, stride=1, padding=1
             )
-            pred = np.uint8(pred.cpu().numpy())
+            pred = np.uint8(pred[0].cpu().numpy())
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
