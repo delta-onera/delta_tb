@@ -53,11 +53,11 @@ with torch.no_grad():
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
             imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-            imageraw.save("build/" + "potsdam_test_" + str(i) + "_x.png")
+            imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
             labelim = PIL.Image.fromarray(np.uint8(label) * 255)
-            labelim.save("build/" + "potsdam_test_" + str(i) + "_y.png")
+            labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
             predim = PIL.Image.fromarray(np.uint8(pred) * 255)
-            predim.save("build/" + "potsdam_test_" + str(i) + "_z.png")
+            predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
