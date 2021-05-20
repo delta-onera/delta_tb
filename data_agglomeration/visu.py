@@ -16,6 +16,15 @@ if device == "cuda":
 whereIam = os.uname()[1]
 
 print("load model")
+if whereIam == "super":
+    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
+    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
+    )
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
+    )
 if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
@@ -40,7 +49,12 @@ with torch.no_grad():
 print("massif benchmark")
 import dataloader
 
-miniworld = dataloader.MiniWorld("test")
+if whereIam == "super":
+    miniworld = dataloader.MiniWorld(
+        flag="custom", custom=["potsdam/test", "bruges/test"]
+    )
+else:
+    miniworld = dataloader.MiniWorld("test")
 
 
 def accu(cm):
@@ -81,12 +95,13 @@ with torch.no_grad():
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-            imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
-            labelim = PIL.Image.fromarray(np.uint8(label) * 255)
-            labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
-            predim = PIL.Image.fromarray(np.uint8(pred) * 255)
-            predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
+            if True:
+                imageraw = PIL.Image.fromarray(np.uint8(imageraw))
+                imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
+                labelim = PIL.Image.fromarray(np.uint8(label) * 255)
+                labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
+                predim = PIL.Image.fromarray(np.uint8(pred) * 255)
+                predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
@@ -96,9 +111,9 @@ with torch.no_grad():
 
 print("-------- results ----------")
 for town in miniworld.towns:
-    print(town, f1(cm[town]))
+    print(town, accu(cm[town]), f1(cm[town]))
 
 globalcm = np.zeros((2, 2), dtype=int)
 for town in miniworld.towns:
     globalcm += cm[town]
-print("miniworld", f1(globalcm))
+print("miniworld", accu(globalcm), f1(globalcm))
