@@ -263,12 +263,17 @@ def largeforwardCPU(net, image, device, tilesize=128, stride=32):
     return pred
 
 
-def getinnerT(y):
-    rahhh = y[:, 1:-1, 1:-1].clone()
-    rahhh_ = torch.nn.functional.avg_pool2d(
-        1.0 * rahhh, kernel_size=3, stride=1, padding=1
-    )
-    y_ = y.clone()
-    y_[:, 1:-1, 1:-1] = rahhh_.clone()
-    z = (y == y_).long()
-    return z
+def convertIn3class(y):
+    yy = 1.0 - y  # inverse background and building
+    yy = torch.nn.functional.max_pool2d(
+        yy, kernel_size=3, stride=1, padding=1
+    )  # expand background
+    yy = 1.0 - yy  # restore 0 - 1
+    yy = yy.long()
+    yy += 2 * (yy == y).long()  # work because we have extended only the background
+    return yy
+
+
+def convertIn3classNP(y):
+    yy = convertIn3class(torch.Tensor(y).cuda().unsqueeze(0))
+    return np.uint8(yy[0].cpu().numpy())
