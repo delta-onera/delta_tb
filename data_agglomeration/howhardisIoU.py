@@ -45,7 +45,9 @@ with torch.no_grad():
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            pred = dataloader.convertIn3classNP(label)
+            pred = dataloader.convertIn3classNP(label).astype(int)
+            pred = np.abs(pred-1)
+            pred = np.uint8(np.abs(1-pred))
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(
