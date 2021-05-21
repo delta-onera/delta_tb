@@ -42,7 +42,6 @@ net = smp.Unet(
     in_channels=3,
     classes=2,
 )
-# net.segmentation_head = smp.base.SegmentationHead(48 + 80 + 224 + 640, 2, kernel_size=1)
 net = net.cuda()
 net.train()
 
@@ -53,9 +52,10 @@ import dataloader
 miniworld = dataloader.MiniWorld()
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
-# weights = torch.Tensor([1, miniworld.balance]).to(device)
-weights = torch.Tensor([1, miniworld.balance, 0]).to(device)
+weights = torch.Tensor([1, miniworld.balance, 0.001]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
+
+criterionbis = smp.losses.dice.DiceLoss(mode="multiclass", classes=[0, 1])
 
 print("train")
 
@@ -65,17 +65,11 @@ def accu(cm):
 
 
 def trainaccuracy():
-    cm = np.zeros((3, 3), dtype=int)
+    cm = np.zeros((2, 2), dtype=int)
     net.eval()
     with torch.no_grad():
         for inputs, targets in earlystopping:
             inputs, targets = inputs.to(device), targets.to(device)
-
-            ##### REMOVING INFLUENCE OF BORDER IN ACCURACY
-            innerpixel = dataloader.getinnerT(targets)
-            targets = targets * innerpixel + 2 * (1 - innerpixel)
-            targets = targets.long()
-            ##### REMOVING INFLUENCE OF BORDER IN ACCURACY
 
             outputs = net(inputs)
             _, pred = outputs.max(1)
@@ -83,9 +77,9 @@ def trainaccuracy():
                 cm += confusion_matrix(
                     pred[i].cpu().numpy().flatten(),
                     targets[i].cpu().numpy().flatten(),
-                    labels=[0, 1, 2],
+                    labels=[0, 1],
                 )
-    return cm[0:2, 0:2]
+    return cm
 
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
@@ -101,24 +95,13 @@ for epoch in range(nbepoch):
         x, y = x.to(device), y.to(device)
 
         preds = net(x)
-
-        ##### REMOVING INFLUENCE OF BORDER IN LOSS
-        # add virtual third class probability map
         tmp = torch.zeros(preds.shape[0], 1, preds.shape[2], preds.shape[3])
         tmp = tmp.to(device)
         preds = torch.cat([preds, tmp], dim=1)
 
-        if False and random.randint(0, 3) != 0:
-            with torch.no_grad():
-                innerpixel = dataloader.getinnerT(y)
-                yy = y * innerpixel + 2 * (1 - innerpixel)
-                yy = yy.long()
+        yy = dataloader.convertIn3class(y)
 
-            loss = criterion(preds, yy)
-        #####
-
-        else:
-            loss = criterion(preds, y)
+        loss = criterion(preds, yy) * 0.1 + criterionbis(preds, yy)
 
         meanloss.append(loss.cpu().data.numpy())
 
@@ -144,7 +127,7 @@ for epoch in range(nbepoch):
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
-    if accu(cm) > 99:
+    if accu(cm) > 98:
         print("training stops after reaching high training accuracy")
         quit()
 print("training stops after reaching time limit")
