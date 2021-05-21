@@ -91,7 +91,7 @@ with torch.no_grad():
             _, pred = torch.max(pred[0], 0)
             pred = pred.cpu().numpy()
 
-            label = convertIn3classNP(label)
+            label = dataloader.convertIn3classNP(label)
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(
