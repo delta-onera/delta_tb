@@ -13,10 +13,11 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-print("load data")
-import dataloader
-
 whereIam = os.uname()[1]
+
+
+print("massif benchmark")
+import dataloader
 
 if whereIam == "super":
     miniworld = dataloader.MiniWorld(
@@ -40,35 +41,33 @@ cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
         print(town)
-        cm[town] = np.zeros((2, 2), dtype=int)
+        cm[town] = np.zeros((3, 3), dtype=int)
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            pred = 1.0 - torch.Tensor(label).cuda().unsqueeze(0).float()
-            pred = 1.0 - torch.nn.functional.max_pool2d(
-                pred, kernel_size=3, stride=1, padding=1
+            pred = dataloader.convertIn3classNP(label)
+            assert label.shape == pred.shape
+
+            cm[town] += confusion_matrix(
+                label.flatten(), pred.flatten(), labels=[0, 1, 2]
             )
-            pred = np.uint8(pred[0].cpu().numpy())
 
-            cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
+            if True:
+                imageraw = PIL.Image.fromarray(np.uint8(imageraw))
+                imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
+                labelim = PIL.Image.fromarray(np.uint8(label) * 125)
+                labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
+                predim = PIL.Image.fromarray(np.uint8(pred) * 125)
+                predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
-            imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-            imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
-            labelim = PIL.Image.fromarray(np.uint8(label) * 255)
-            labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
-
-            pred += 125 * np.uint8(pred != label)
-
-            predim = PIL.Image.fromarray(np.uint8(pred) * 255)
-            predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
-
+        cm[town] = cm[town][0:2, 0:2]
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(
             accu(cm[town]),
             f1(cm[town]),
         )
 
-print("-------- oracle results ----------")
+print("-------- results ----------")
 for town in miniworld.towns:
     print(town, accu(cm[town]), f1(cm[town]))
 
