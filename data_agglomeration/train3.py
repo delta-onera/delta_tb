@@ -52,7 +52,7 @@ import dataloader
 miniworld = dataloader.MiniWorld()
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
-weights = torch.Tensor([1, miniworld.balance, 0.001]).to(device)
+weights = torch.Tensor([1, miniworld.balance, 0.00001]).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 
 criterionbis = smp.losses.dice.DiceLoss(mode="multiclass", ignore_index=[2])
