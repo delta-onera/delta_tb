@@ -46,23 +46,23 @@ with torch.no_grad():
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
             if False:
-                #100%
+                # 100%
                 pred = label.copy()
                 label = dataloader.convertIn3classNP(label)
-                
+
             if False:
-                #100%
+                # 100%
                 pred = dataloader.convertIn3classNP(label).astype(int)
-                pred = np.abs(pred-1)
-                pred = np.uint8(np.abs(1-pred))
+                pred = np.abs(pred - 1)
+                pred = np.uint8(np.abs(1 - pred))
                 label = dataloader.convertIn3classNP(label)
-                
+
             if True:
-                #ONLY AROUND 90%
+                # ONLY AROUND 90%
                 pred = dataloader.convertIn3classNP(label).astype(int)
-                pred = np.abs(pred-1)
-                pred = np.uint8(np.abs(1-pred))
-            
+                pred = np.abs(pred - 1)
+                pred = np.uint8(np.abs(1 - pred))
+
             assert label.shape == pred.shape
 
             cm[town] += confusion_matrix(
