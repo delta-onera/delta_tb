@@ -65,11 +65,13 @@ def accu(cm):
 
 
 def trainaccuracy():
-    cm = np.zeros((2, 2), dtype=int)
+    cm = np.zeros((3, 3), dtype=int)
     net.eval()
     with torch.no_grad():
         for inputs, targets in earlystopping:
             inputs, targets = inputs.to(device), targets.to(device)
+
+            targets = dataloader.convertIn3class(targets)
 
             outputs = net(inputs)
             _, pred = outputs.max(1)
@@ -77,9 +79,9 @@ def trainaccuracy():
                 cm += confusion_matrix(
                     pred[i].cpu().numpy().flatten(),
                     targets[i].cpu().numpy().flatten(),
-                    labels=[0, 1],
+                    labels=[0, 1, 2],
                 )
-    return cm
+    return cm[0:2, 0:2]
 
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
