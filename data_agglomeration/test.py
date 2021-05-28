@@ -67,6 +67,7 @@ def f1(cm):
     )
 
 
+cmforlogging = []
 cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
@@ -95,7 +96,7 @@ with torch.no_grad():
 
             cm[town] += confusion_matrix(label.flatten(), pred.flatten(), labels=[0, 1])
 
-            if town in ["potsdam/test"]:
+            if town in ["austin/test"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
                 labelim = PIL.Image.fromarray(np.uint8(label) * 255)
@@ -108,6 +109,9 @@ with torch.no_grad():
             accu(cm[town]),
             f1(cm[town]),
         )
+        cmforlogging.append(f1(cm[town]))
+        tmp = np.asarray(cmforlogging)
+        np.savetxt("build/logtest.txt", tmp)
 
 print("-------- results ----------")
 for town in miniworld.towns:
