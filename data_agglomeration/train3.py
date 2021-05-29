@@ -86,7 +86,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 800  ###should be stopped around 300 epochs !
+nbepoch = 300
 batchsize = 16
 
 for epoch in range(nbepoch):
@@ -129,7 +129,7 @@ for epoch in range(nbepoch):
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
-    if accu(cm) > 98:
+    if accu(cm) > 98 and False:
         print("training stops after reaching high training accuracy")
         quit()
 print("training stops after reaching time limit")
