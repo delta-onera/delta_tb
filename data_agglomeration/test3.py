@@ -83,8 +83,9 @@ with torch.no_grad():
             )
             image = power2resize(image)
 
-            if image.shape[2] < 512 and image.shape[3] < 512:
-                pred = net(image.to(device))
+            if image.shape[2] < 128 and image.shape[3] < 128:
+                print("can not handle such small image")
+                quit()
             else:
                 pred = dataloader.largeforward(net, image, device)
 
