@@ -161,7 +161,7 @@ class UNET(nn.Module):
         x2 = F.interpolate(x2, size=x1.shape[2:4], mode="nearest")
         x1 = torch.cat((x2, x1, x), 1)
 
-        x = F.absactivation(self.final1(x1))
+        x = self.absactivation(self.final1(x1))
         x = self.final2(x)
         return x
 
