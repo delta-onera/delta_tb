@@ -168,7 +168,7 @@ class UNET(nn.Module):
     def normalize(self):
         with torch.no_grad():
             for layer in self._modules:
-                if layer in ["minmax","absactivation"]:
+                if layer in ["minmax", "absactivation"]:
                     continue
                 denom = self._modules[layer].weight.norm(2).clamp_min(0.00000001)
                 self._modules[layer].weight *= 1.0 / denom
@@ -190,5 +190,5 @@ if __name__ == "__main__":
     print(net.conv41d.weight[1][1][0:10, 0:10])
     print(net.final1.weight[1][1][0:10, 0:10])
 
-    tmp = torch.rand(4,3,128,128)
+    tmp = torch.rand(4, 3, 128, 128)
     print(net(tmp).shape)

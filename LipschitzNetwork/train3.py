@@ -13,7 +13,7 @@ if device == "cuda":
     torch.cuda.empty_cache()
     cudnn.benchmark = True
 
-outputname = "model.pth"
+outputname = "build/model.pth"
 if len(sys.argv) > 1:
     outputname = sys.argv[1]
 os.system("cat train3.py")
@@ -21,27 +21,11 @@ os.system("cat train3.py")
 whereIam = os.uname()[1]
 
 print("define model")
-if whereIam == "wdtim719z":
-    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
-    sys.path.append("/home/optimom/github/pytorch-image-models")
-    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
-    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/d/achanhon/github/pytorch-image-models")
-    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
-
-import segmentation_models_pytorch as smp
 import collections
 import random
+import lipschitz_unet
 
-net = smp.Unet(
-    encoder_name="efficientnet-b7",
-    encoder_weights="imagenet",
-    in_channels=3,
-    classes=2,
-)
+net = lipschitz_unet.UNET()
 net = net.cuda()
 net.train()
 
@@ -49,7 +33,7 @@ net.train()
 print("load data")
 import dataloader
 
-miniworld = dataloader.MiniWorld()
+miniworld = dataloader.MiniWorld(flag="custom", custom=["postdam/train"])
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance, 0.00001]).to(device)
@@ -86,7 +70,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 300
+nbepoch = 30
 batchsize = 16
 
 for epoch in range(nbepoch):
@@ -125,7 +109,7 @@ for epoch in range(nbepoch):
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/" + outputname)
+    torch.save(net, outputname)
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 

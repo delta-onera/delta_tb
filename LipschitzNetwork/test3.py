@@ -16,32 +16,12 @@ if device == "cuda":
 whereIam = os.uname()[1]
 
 print("load model")
-if whereIam == "super":
-    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
-    )
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
-    )
-if whereIam == "wdtim719z":
-    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
-    sys.path.append("/home/optimom/github/pytorch-image-models")
-    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
-    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/d/achanhon/github/pytorch-image-models")
-    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
-import segmentation_models_pytorch
 
 with torch.no_grad():
     if len(sys.argv) > 1:
-        net = torch.load("build/" + sys.argv[1])
+        net = torch.load(sys.argv[1])
     else:
-        net = torch.load("build/debug.pth")
+        net = torch.load("build/model.pth")
     net = net.to(device)
     net.eval()
 
@@ -49,12 +29,7 @@ with torch.no_grad():
 print("massif benchmark")
 import dataloader
 
-if whereIam == "super":
-    miniworld = dataloader.MiniWorld(
-        flag="custom", custom=["potsdam/test", "bruges/test"]
-    )
-else:
-    miniworld = dataloader.MiniWorld("test")
+miniworld = dataloader.MiniWorld(flag="custom", custom=["postdam/test"])
 
 
 def accu(cm):
