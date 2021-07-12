@@ -116,8 +116,8 @@ class UNET(nn.Module):
             loadpretrained(self, correspondance, pretrained)
 
     def forward(self, x):
-        x = F.leaky_relu(self.conv11(x)) * 2
-        x1 = F.leaky_relu(self.conv12(x)) * 2
+        x = self.absactivation(self.conv11(x))
+        x1 = self.minmax(self.conv12(x))
 
         x = F.max_pool2d(x1, kernel_size=2, stride=2)
         x = self.minmax(self.conv21(x))
@@ -125,17 +125,17 @@ class UNET(nn.Module):
 
         x = F.max_pool2d(x2, kernel_size=2, stride=2)
         x = self.minmax(self.conv31(x))
-        x = self.absactivation(self.conv32(x))
+        x = self.minmax(self.conv32(x))
         x3 = self.minmax(self.conv33(x))
 
         x = F.max_pool2d(x3, kernel_size=2, stride=2)
         x = self.minmax(self.conv41(x))
-        x = self.absactivation(self.conv42(x))
+        x = self.minmax(self.conv42(x))
         x4 = self.minmax(self.conv43(x))
 
         x = F.max_pool2d(x4, kernel_size=2, stride=2)
         x = self.minmax(self.conv51(x))
-        x = self.absactivation(self.conv52(x))
+        x = self.minmax(self.conv52(x))
         x5 = self.minmax(self.conv53(x))
 
         x = self.gradientdoor(x5)
@@ -144,24 +144,24 @@ class UNET(nn.Module):
         x5 = F.interpolate(x5, size=x4.shape[2:4], mode="nearest")
         x4 = torch.cat((x5, x4), 1)
         x4 = self.minmax(self.conv43d(x4))
-        x4 = self.absactivation(self.conv42d(x4))
+        x4 = self.minmax(self.conv42d(x4))
         x4 = self.minmax(self.conv41d(x4))
 
         x4 = F.interpolate(x4, size=x3.shape[2:4], mode="nearest")
         x3 = torch.cat((x4, x3), 1)
         x3 = self.minmax(self.conv33d(x3))
-        x3 = self.absactivation(self.conv32d(x3))
+        x3 = self.minmax(self.conv32d(x3))
         x3 = self.minmax(self.conv31d(x3))
 
         x3 = F.interpolate(x3, size=x2.shape[2:4], mode="nearest")
         x2 = torch.cat((x3, x2), 1)
         x2 = self.minmax(self.conv22d(x2))
-        x2 = self.absactivation(self.conv21d(x2))
+        x2 = self.minmax(self.conv21d(x2))
 
         x2 = F.interpolate(x2, size=x1.shape[2:4], mode="nearest")
         x1 = torch.cat((x2, x1, x), 1)
 
-        x = F.leaky_relu(self.final1(x1)) * 2
+        x = F.absactivation(self.final1(x1))
         x = self.final2(x)
         return x
 

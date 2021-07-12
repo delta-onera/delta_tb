@@ -25,7 +25,8 @@ import collections
 import random
 import lipschitz_unet
 
-net = lipschitz_unet.UNET()
+debugUNET = False
+net = lipschitz_unet.UNET(debug=debugUNET)
 net = net.cuda()
 net.train()
 
@@ -100,8 +101,10 @@ for epoch in range(nbepoch):
 
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
         optimizer.step()
+        if not debugUNET:
+            optimizer.zero_grad()
+            net.normalize()
 
         if random.randint(0, 30) == 0:
             print("loss=", (sum(meanloss) / len(meanloss)))
