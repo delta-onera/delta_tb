@@ -75,7 +75,7 @@ with torch.no_grad():
                 label.flatten(), pred.flatten(), labels=[0, 1, 2]
             )
 
-            if town in ["austin/test"]:
+            if town in ["potsdam/test"]:
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
                 imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
                 labelim = PIL.Image.fromarray(np.uint8(label) * 125)
