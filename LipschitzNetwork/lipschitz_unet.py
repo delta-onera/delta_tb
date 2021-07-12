@@ -29,7 +29,7 @@ class MinMax(nn.Module):
         self.debug = debug
 
     def forward(self, inputs):
-        if debug:
+        if self.debug:
             return F.leaky_relu(inputs)
 
         assert len(inputs.shape) == 4  # BxCxWxH
@@ -49,7 +49,7 @@ class AbsActivation(nn.Module):
         self.debug = debug
 
     def forward(self, inputs):
-        if debug:
+        if self.debug:
             return F.leaky_relu(inputs)
         else:
             return torch.abs(inputs)
@@ -189,3 +189,6 @@ if __name__ == "__main__":
     print(net.conv22.weight[1][1][0:10, 0:10])
     print(net.conv41d.weight[1][1][0:10, 0:10])
     print(net.final1.weight[1][1][0:10, 0:10])
+
+    tmp = torch.rand(4,3,128,128)
+    print(net(tmp).shape)
