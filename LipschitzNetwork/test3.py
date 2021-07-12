@@ -29,7 +29,7 @@ with torch.no_grad():
 print("massif benchmark")
 import dataloader
 
-miniworld = dataloader.MiniWorld(flag="custom", custom=["postdam/test"])
+miniworld = dataloader.MiniWorld(flag="custom", custom=["potsdam/test"])
 
 
 def accu(cm):

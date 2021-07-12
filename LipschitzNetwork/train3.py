@@ -33,7 +33,7 @@ net.train()
 print("load data")
 import dataloader
 
-miniworld = dataloader.MiniWorld(flag="custom", custom=["postdam/train"])
+miniworld = dataloader.MiniWorld(flag="custom", custom=["potsdam/train"])
 
 earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 weights = torch.Tensor([1, miniworld.balance, 0.00001]).to(device)
