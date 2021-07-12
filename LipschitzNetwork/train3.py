@@ -67,7 +67,7 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 30
 batchsize = 16
