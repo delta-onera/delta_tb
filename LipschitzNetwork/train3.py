@@ -101,6 +101,7 @@ for epoch in range(nbepoch):
 
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
         optimizer.step()
         if not debugUNET:
             optimizer.zero_grad()
