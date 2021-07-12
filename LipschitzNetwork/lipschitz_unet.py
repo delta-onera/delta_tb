@@ -23,9 +23,9 @@ def loadpretrained(model, correspondance, path):
     model.load_state_dict(model_dict)
 
 
-class MinMax(Module):
-    def __init__(self):
-        super(MinMax, self, debug).__init__()
+class MinMax(nn.Module):
+    def __init__(self, debug):
+        super(MinMax, self).__init__()
         self.debug = debug
 
     def forward(self, inputs):
@@ -43,9 +43,9 @@ class MinMax(Module):
         return torch.transpose(tmp, 2, 1)  # BxCxWxH
 
 
-class AbsActivation(Module):
-    def __init__(self):
-        super(AbsActivation, self, debug).__init__()
+class AbsActivation(nn.Module):
+    def __init__(self, debug):
+        super(AbsActivation, self).__init__()
         self.debug = debug
 
     def forward(self, inputs):
@@ -61,8 +61,8 @@ class UNET(nn.Module):
 
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
-        self.minmax = MinMax(debug=debug)
-        self.absactivation = AbsActivation(debug=debug)
+        self.minmax = MinMax(debug)
+        self.absactivation = AbsActivation(debug)
 
         self.conv11 = nn.Conv2d(self.nbchannel, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
@@ -166,16 +166,24 @@ class UNET(nn.Module):
         return x
 
     def normalize(self):
-        for layer in self.parameters():
-            torch.nn.functional.normalize(layer)
+        layers = ["conv11","conv12"]
+        for layer in layers:
+            print(self.__dict__[layer])
+            quit()
+            denom = layer.weight.norm(2).clamp_min(0.00000001)
+            layer.weight *= 1.0 / denom
+            layer.bias *= 1.0 / denom
 
 
 if __name__ == "__main__":
-    unet = UNET()
+    net = UNET()
+    print(net.__dict__)
+    quit()
+
     print("before normalization")
-    print(net.conv22.data[1][1][0:10, 0:10])
-    print(net.conv41d.data[1][1][0:10, 0:10])
-    print(net.final1.data[1][1][0:10, 0:10])
+    print(net.conv22.weight[1][1][0:10, 0:10])
+    print(net.conv41d.weight[1][1][0:10, 0:10])
+    print(net.final1.weight[1][1][0:10, 0:10])
 
     net.normalize()
 
