@@ -166,19 +166,17 @@ class UNET(nn.Module):
         return x
 
     def normalize(self):
-        layers = ["conv11","conv12"]
-        for layer in layers:
-            print(self.__dict__[layer])
-            quit()
-            denom = layer.weight.norm(2).clamp_min(0.00000001)
-            layer.weight *= 1.0 / denom
-            layer.bias *= 1.0 / denom
+        with torch.no_grad():
+            for layer in self._modules:
+                if layer in ["minmax","absactivation"]:
+                    continue
+                denom = self._modules[layer].weight.norm(2).clamp_min(0.00000001)
+                self._modules[layer].weight *= 1.0 / denom
+                self._modules[layer].bias *= 1.0 / denom
 
 
 if __name__ == "__main__":
     net = UNET()
-    print(net.__dict__)
-    quit()
 
     print("before normalization")
     print(net.conv22.weight[1][1][0:10, 0:10])
@@ -188,6 +186,6 @@ if __name__ == "__main__":
     net.normalize()
 
     print("after normalization")
-    print(net.conv22.data[1][1][0:10, 0:10])
-    print(net.conv41d.data[1][1][0:10, 0:10])
-    print(net.final1.data[1][1][0:10, 0:10])
+    print(net.conv22.weight[1][1][0:10, 0:10])
+    print(net.conv41d.weight[1][1][0:10, 0:10])
+    print(net.final1.weight[1][1][0:10, 0:10])
