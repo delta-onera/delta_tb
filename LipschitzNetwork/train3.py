@@ -68,7 +68,7 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 30
 batchsize = 16
@@ -102,7 +102,7 @@ for epoch in range(nbepoch):
 
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 10)
         optimizer.step()
         if not debugUNET:
             optimizer.zero_grad()
