@@ -273,6 +273,7 @@ def convertIn3class(y):
     )  # expand background
     yy = 1.0 - yy  # restore 0 - 1
     yy = yy.long()
+    y = y.long()
     yy += 2 * (yy != y).long()  # work because we have extended only the background
     return yy
 
