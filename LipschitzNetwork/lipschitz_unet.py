@@ -252,32 +252,58 @@ class UNET(nn.Module):
 
 
 if __name__ == "__main__":
-    net = OLD()
+    if True:
+        A = torch.rand((3, 5))
+        x = torch.rand(5) - 0.5
+        for i in range(5000):
+            with torch.no_grad():
+                x = x / x.norm(2)
 
-    print("before normalization")
-    print(net.conv22.weight[1][1])
-    print(net.conv41d.weight[1][1])
-    print(net.final1.weight[1][1])
+                norms = A[:].norm(2)
+                norm = torch.sqrt(torch.sum(norms * norms))
+                A = A / norm
 
-    net.normalize()
+            if A.grad is not None:
+                A.grad.zeros_()
+            if x.grad is not None:
+                x.grad.zeros_()
+            A.requires_grad_(True)
+            x.requires_grad_(True)
+            loss = torch.norm(torch.mv(A, x))
+            if i % 50 == 0:
+                print(x, loss)
+            loss.backward()
+            A = A + 0.001 * A.grad
+            x = x + 0.001 * x.grad
 
-    print("after normalization")
-    print(net.conv22.weight[1][1])
-    print(net.conv41d.weight[1][1])
-    print(net.final1.weight[1][1])
+    else:
 
-    tmp = torch.rand(4, 3, 128, 128)
-    print(net(tmp).shape)
+        net = OLD()
 
-    net = UNET()
+        print("before normalization")
+        print(net.conv22.weight[1][1])
+        print(net.conv41d.weight[1][1])
+        print(net.final1.weight[1][1])
 
-    print("before normalization")
-    print(net.conv1.weight[1][1])
+        net.normalize()
 
-    net.normalize()
+        print("after normalization")
+        print(net.conv22.weight[1][1])
+        print(net.conv41d.weight[1][1])
+        print(net.final1.weight[1][1])
 
-    print("after normalization")
-    print(net.conv1.weight[1][1])
+        tmp = torch.rand(4, 3, 128, 128)
+        print(net(tmp).shape)
 
-    tmp = torch.rand(4, 3, 128, 128)
-    print(net(tmp).shape)
+        net = UNET()
+
+        print("before normalization")
+        print(net.conv1.weight[1][1])
+
+        net.normalize()
+
+        print("after normalization")
+        print(net.conv1.weight[1][1])
+
+        tmp = torch.rand(4, 3, 128, 128)
+        print(net(tmp).shape)
