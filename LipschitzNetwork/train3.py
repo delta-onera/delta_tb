@@ -70,13 +70,13 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-nbepoch = 30
+nbepoch = 300
 batchsize = 16
 
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
-    XY = miniworld.getrandomtiles(10000, 128, batchsize)
+    XY = miniworld.getrandomtiles(5000, 128, batchsize)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
 
@@ -97,7 +97,7 @@ for epoch in range(nbepoch):
             loss = loss * 0.5
         if epoch > 160:
             loss = loss * 0.5
-        if epoch > 400:
+        if epoch > 260:
             loss = loss * 0.5
 
         optimizer.zero_grad()
