@@ -43,9 +43,9 @@ class MinMax(nn.Module):
         return torch.transpose(tmp, 2, 1)  # BxCxWxH
 
 
-class UNET(nn.Module):
+class OLD(nn.Module):
     def __init__(self, nbclasses=2, nbchannel=3, pretrained="", debug=False):
-        super(UNET, self).__init__()
+        super(OLD, self).__init__()
 
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
@@ -162,7 +162,7 @@ class UNET(nn.Module):
                 self._modules[layer].bias *= 1.0 / denom
 
 
-class UNET2(nn.Module):
+class UNET(nn.Module):
     def __init__(self, nbclasses=2, nbchannel=3, pretrained="", debug=False):
         super(UNET, self).__init__()
 
@@ -171,18 +171,18 @@ class UNET2(nn.Module):
         self.minmax = MinMax(debug)
 
         self.conv1 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)
-        self.pool1 = nn.Conv2d(self.nbchannel, 64, kernel_size=2, stride=2)
-        self.pool2 = nn.Conv2d(self.nbchannel, 128, kernel_size=4, stride=4)
+        self.pool1 = nn.Conv2d(self.nbchannel, 64, kernel_size=2, stride=2, padding=0)
+        self.pool2 = nn.Conv2d(self.nbchannel, 128, kernel_size=4, stride=4, padding=0)
 
-        self.l1 = nn.Conv2d(256, 128, kernel_size=1, padding=0)
+        self.l1 = nn.Conv2d(224, 128, kernel_size=1, padding=0)
         self.l2 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
         self.l3 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
 
         self.encoding1 = nn.Conv2d(128, 32, kernel_size=1, padding=0)
 
-        self.conv2 = nn.Conv2d(128, 128, kernel_size=9, padding=4)
-        self.pool3 = nn.Conv2d(128, 128, kernel_size=2, stride=2)
-        self.pool4 = nn.Conv2d(128, 256, kernel_size=4, stride=4)
+        self.conv2 = nn.Conv2d(128, 128, kernel_size=7, padding=3)
+        self.pool3 = nn.Conv2d(128, 128, kernel_size=2, stride=2, padding=0)
+        self.pool4 = nn.Conv2d(128, 256, kernel_size=4, stride=4, padding=0)
 
         self.l4 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
         self.l5 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
@@ -203,18 +203,18 @@ class UNET2(nn.Module):
         x2 = self.minmax(self.pool1(F.avg_pool2d(x, kernel_size=2, stride=2)))
         x4 = self.minmax(self.pool2(x))
 
-        x4 = torch.cat([x1, x2, x4], dim=1)
+        x4 = torch.cat([x1 / 3, x2 / 3, x4 / 3], dim=1)
         x4 = self.minmax(self.l1(x4))
         x4 = self.minmax(self.l2(x4))
         x4 = self.minmax(self.l3(x4))
 
         code4 = self.encoding1(x4)
 
-        x4 = F.max_pool2d(self.minimax(self.conv2(x)), kernel_size=4, stride=4)
-        x8 = self.minmax(self.pool3(F.max_pool2d(x, kernel_size=2, stride=2)))
-        x16 = self.minmax(self.pool4(x))
+        x16 = self.minmax(self.pool4(x4))
+        x8 = self.minmax(self.pool3(F.max_pool2d(x4, kernel_size=2, stride=2)))
+        x4 = F.max_pool2d(self.minmax(self.conv2(x4)), kernel_size=4, stride=4)
 
-        x16 = torch.cat([x4, x8, x16], dim=1)
+        x16 = torch.cat([x4 / 3, x8 / 3, x16 / 3], dim=1)
         x16 = self.minmax(self.l4(x16))
         x16 = self.minmax(self.l5(x16))
         x16 = self.minmax(self.l6(x16))
@@ -223,8 +223,8 @@ class UNET2(nn.Module):
         code16 = self.encoding2(x16)
 
         code16 = F.interpolate(code16, size=x.shape[2:4], mode="nearest")
-        code8 = F.interpolate(code8, size=x.shape[2:4], mode="nearest")
-        code = torch.cat([code1, code8, code16], dim)
+        code4 = F.interpolate(code4, size=x.shape[2:4], mode="nearest")
+        x = torch.cat([code1 / 3, code4 / 16 / 3, code16 / 256 / 3], dim=1)
 
         x = self.minmax(self.d1(x))
         x = self.minmax(self.d2(x))
@@ -237,27 +237,47 @@ class UNET2(nn.Module):
     def normalize(self):
         with torch.no_grad():
             for layer in self._modules:
-                if layer in ["minmax", "absactivation"]:
+                if layer in ["minmax"]:
                     continue
-                denom = self._modules[layer].weight.norm(2).clamp_min(0.00000001)
-                self._modules[layer].weight *= 1.0 / denom
-                self._modules[layer].bias *= 1.0 / denom
+
+                norms = self._modules[layer].weight[:].norm(2).clamp_min(0.0001)
+                if layer in ["conv1", "conv2", "conv3"]:
+                    W = self._modules[layer].weight.shape[-1]
+                    H = self._modules[layer].weight.shape[-2]
+                    norm = torch.sqrt(torch.sum(norms * norms) * W * H)
+                else:
+                    norm = torch.sqrt(torch.sum(norms * norms))
+                self._modules[layer].weight *= 1.0 / norm
+                self._modules[layer].bias *= 1.0 / norm
 
 
 if __name__ == "__main__":
-    net = UNET()
+    net = OLD()
 
     print("before normalization")
-    print(net.conv22.weight[1][1][0:10, 0:10])
-    print(net.conv41d.weight[1][1][0:10, 0:10])
-    print(net.final1.weight[1][1][0:10, 0:10])
+    print(net.conv22.weight[1][1])
+    print(net.conv41d.weight[1][1])
+    print(net.final1.weight[1][1])
 
     net.normalize()
 
     print("after normalization")
-    print(net.conv22.weight[1][1][0:10, 0:10])
-    print(net.conv41d.weight[1][1][0:10, 0:10])
-    print(net.final1.weight[1][1][0:10, 0:10])
+    print(net.conv22.weight[1][1])
+    print(net.conv41d.weight[1][1])
+    print(net.final1.weight[1][1])
+
+    tmp = torch.rand(4, 3, 128, 128)
+    print(net(tmp).shape)
+
+    net = UNET()
+
+    print("before normalization")
+    print(net.conv1.weight[1][1])
+
+    net.normalize()
+
+    print("after normalization")
+    print(net.conv1.weight[1][1])
 
     tmp = torch.rand(4, 3, 128, 128)
     print(net(tmp).shape)
