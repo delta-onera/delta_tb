@@ -25,7 +25,7 @@ import collections
 import random
 import lipschitz_unet
 
-debugUNET = False
+debugUNET = True
 net = lipschitz_unet.UNET(debug=debugUNET)
 net = net.cuda()
 net.normalize()
