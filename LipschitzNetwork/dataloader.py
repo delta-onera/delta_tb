@@ -32,6 +32,9 @@ def getindexeddata():
     if whereIam in ["super", "wdtim719z"]:
         root = "/data/miniworld/"
 
+    if whereIam == "ldtis706z":
+        root = "/media/achanhon/bigdata/data/miniworld/"
+
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
         root = "/scratch_ai4geo/miniworld/"
 
@@ -82,7 +85,7 @@ class SegSemDataset:
             label = (
                 PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
             )
-            label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
+            label = np.uint8(np.asarray(label))  # warning wh swapping
             label = np.uint8(label != 0)
             self.nbbat += np.sum((label == 1).astype(int))
             self.nbnonbat += np.sum((label == 0).astype(int))
@@ -98,10 +101,10 @@ class SegSemDataset:
         image = (
             PIL.Image.open(self.pathTOdata + str(i) + "_x.png").convert("RGB").copy()
         )
-        image = np.asarray(image, dtype=np.uint8)  # warning wh swapping
+        image = np.uint8(np.asarray(image))  # warning wh swapping
 
         label = PIL.Image.open(self.pathTOdata + str(i) + "_y.png").convert("L").copy()
-        label = np.asarray(label, dtype=np.uint8)  # warning wh swapping
+        label = np.uint8(np.asarray(label))  # warning wh swapping
         label = np.uint8(label != 0)
         return image, label
 
