@@ -25,7 +25,7 @@ import collections
 import random
 import lipschitz_unet
 
-debugUNET = True
+debugUNET = False
 net = lipschitz_unet.UNET(debug=debugUNET)
 net = net.cuda()
 net.normalize()
@@ -68,7 +68,7 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 30
 batchsize = 16
