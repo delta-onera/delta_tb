@@ -43,18 +43,6 @@ class MinMax(nn.Module):
         return torch.transpose(tmp, 2, 1)  # BxCxWxH
 
 
-class AbsActivation(nn.Module):
-    def __init__(self, debug):
-        super(AbsActivation, self).__init__()
-        self.debug = debug
-
-    def forward(self, inputs):
-        if self.debug:
-            return F.leaky_relu(inputs)
-        else:
-            return torch.abs(inputs)
-
-
 class UNET(nn.Module):
     def __init__(self, nbclasses=2, nbchannel=3, pretrained="", debug=False):
         super(UNET, self).__init__()
@@ -62,7 +50,6 @@ class UNET(nn.Module):
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
         self.minmax = MinMax(debug)
-        self.absactivation = AbsActivation(debug)
 
         self.conv11 = nn.Conv2d(self.nbchannel, 64, kernel_size=3, padding=1)
         self.conv12 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
@@ -116,7 +103,7 @@ class UNET(nn.Module):
             loadpretrained(self, correspondance, pretrained)
 
     def forward(self, x):
-        x = self.absactivation(self.conv11(x))
+        x = self.minmax(self.conv11(x))
         x1 = self.minmax(self.conv12(x))
 
         x = F.max_pool2d(x1, kernel_size=2, stride=2)
@@ -161,8 +148,90 @@ class UNET(nn.Module):
         x2 = F.interpolate(x2, size=x1.shape[2:4], mode="nearest")
         x1 = torch.cat((x2, x1, x), 1)
 
-        x = self.absactivation(self.final1(x1))
+        x = self.minmax(self.final1(x1))
         x = self.final2(x)
+        return x
+
+    def normalize(self):
+        with torch.no_grad():
+            for layer in self._modules:
+                if layer in ["minmax", "absactivation"]:
+                    continue
+                denom = self._modules[layer].weight.norm(2).clamp_min(0.00000001)
+                self._modules[layer].weight *= 1.0 / denom
+                self._modules[layer].bias *= 1.0 / denom
+
+
+class UNET2(nn.Module):
+    def __init__(self, nbclasses=2, nbchannel=3, pretrained="", debug=False):
+        super(UNET, self).__init__()
+
+        self.nbclasses = nbclasses
+        self.nbchannel = nbchannel
+        self.minmax = MinMax(debug)
+
+        self.conv1 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)
+        self.pool1 = nn.Conv2d(self.nbchannel, 64, kernel_size=2, stride=2)
+        self.pool2 = nn.Conv2d(self.nbchannel, 128, kernel_size=4, stride=4)
+
+        self.l1 = nn.Conv2d(256, 128, kernel_size=1, padding=0)
+        self.l2 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
+        self.l3 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
+
+        self.encoding1 = nn.Conv2d(128, 32, kernel_size=1, padding=0)
+
+        self.conv2 = nn.Conv2d(128, 128, kernel_size=9, padding=4)
+        self.pool3 = nn.Conv2d(128, 128, kernel_size=2, stride=2)
+        self.pool4 = nn.Conv2d(128, 256, kernel_size=4, stride=4)
+
+        self.l4 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        self.l5 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        self.l6 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        self.l7 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        self.encoding2 = nn.Conv2d(512, 32, kernel_size=1, padding=0)
+
+        self.d1 = nn.Conv2d(96, 128, kernel_size=1, padding=0)
+        self.d2 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
+        self.conv3 = nn.Conv2d(128, 256, kernel_size=5, padding=2)
+        self.d4 = nn.Conv2d(256, 128, kernel_size=1, padding=0)
+        self.decoding = nn.Conv2d(128, self.nbclasses, kernel_size=1, padding=0)
+
+    def forward(self, x):
+        code1 = self.minmax(self.conv1(x))
+
+        x1 = F.max_pool2d(code1, kernel_size=4, stride=4)
+        x2 = self.minmax(self.pool1(F.avg_pool2d(x, kernel_size=2, stride=2)))
+        x4 = self.minmax(self.pool2(x))
+
+        x4 = torch.cat([x1, x2, x4], dim=1)
+        x4 = self.minmax(self.l1(x4))
+        x4 = self.minmax(self.l2(x4))
+        x4 = self.minmax(self.l3(x4))
+
+        code4 = self.encoding1(x4)
+
+        x4 = F.max_pool2d(self.minimax(self.conv2(x)), kernel_size=4, stride=4)
+        x8 = self.minmax(self.pool3(F.max_pool2d(x, kernel_size=2, stride=2)))
+        x16 = self.minmax(self.pool4(x))
+
+        x16 = torch.cat([x4, x8, x16], dim=1)
+        x16 = self.minmax(self.l4(x16))
+        x16 = self.minmax(self.l5(x16))
+        x16 = self.minmax(self.l6(x16))
+        x16 = self.minmax(self.l7(x16))
+
+        code16 = self.encoding2(x16)
+
+        code16 = F.interpolate(code16, size=x.shape[2:4], mode="nearest")
+        code8 = F.interpolate(code8, size=x.shape[2:4], mode="nearest")
+        code = torch.cat([code1, code8, code16], dim)
+
+        x = self.minmax(self.d1(x))
+        x = self.minmax(self.d2(x))
+        x = self.minmax(self.conv3(x))
+        x = F.max_pool2d(x, kernel_size=3, stride=1, padding=1)
+        x = self.minmax(self.d4(x))
+        x = self.decoding(x)
         return x
 
     def normalize(self):
