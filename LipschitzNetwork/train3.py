@@ -99,11 +99,12 @@ for epoch in range(nbepoch):
         assert ypm.shape == predspm.shape
         assert one_no_border.shape == predspm.shape
 
-        hingeloss = torch.sum(
-            torch.nn.functional.relu(one_no_border - one_no_border * ypm * predspm)
-        )
+        hingeloss = torch.sum(torch.nn.functional.relu(-one_no_border * ypm * predspm))
+        # can not be 0 due to the other criterion
+        # ensure a linear penalty of the error rather than exponential one
+
         loss = (
-            criterion(preds * 100, yy) * 0.1
+            criterion(preds * 1000, yy) * 0.1
             + hingeloss / yy.shape[0] / yy.shape[1] / yy.shape[2]
         )
 
