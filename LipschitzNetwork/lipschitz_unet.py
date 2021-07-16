@@ -111,7 +111,7 @@ class UNET(nn.Module):
         x = self.decoding(x)
         return x
 
-    def normalize(self, force):
+    def normalize(self, force=False):
         with torch.no_grad():
             for layer in self._modules:
                 if layer in ["minmax"]:
