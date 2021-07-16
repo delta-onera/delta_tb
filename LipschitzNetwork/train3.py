@@ -119,14 +119,14 @@ for epoch in range(nbepoch):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(net.parameters(), 10)
         optimizer.step()
-        if not debugUNET:
-            optimizer.zero_grad()
-            net.normalize()
+        optimizer.zero_grad()
+        net.normalize()
 
         if random.randint(0, 30) == 0:
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
+    net.normalize(force=True)
     torch.save(net, outputname)
     cm = trainaccuracy()
     print("accuracy,iou", accu(cm), f1(cm))

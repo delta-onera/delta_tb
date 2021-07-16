@@ -111,7 +111,7 @@ class UNET(nn.Module):
         x = self.decoding(x)
         return x
 
-    def normalize(self):
+    def normalize(self, force):
         with torch.no_grad():
             for layer in self._modules:
                 if layer in ["minmax"]:
@@ -125,8 +125,9 @@ class UNET(nn.Module):
                 else:
                     norm = torch.sqrt(torch.sum(norms * norms))
 
-                self._modules[layer].weight *= 1.0 / norm
-                self._modules[layer].bias *= 1.0 / norm
+                if norm > 3 or force:
+                    self._modules[layer].weight *= 1.0 / norm
+                    self._modules[layer].bias *= 1.0 / norm
 
 
 if __name__ == "__main__":
