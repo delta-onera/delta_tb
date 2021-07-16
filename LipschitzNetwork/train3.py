@@ -123,6 +123,6 @@ for epoch in range(nbepoch):
     print("backup model")
     torch.save(net, outputname)
     cm = trainaccuracy()
-    print("accuracy", accu(cm))
+    print("accuracy,iou", accu(cm), f1(cm))
 
 print("training stops after reaching time limit")
