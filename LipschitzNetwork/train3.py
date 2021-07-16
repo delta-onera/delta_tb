@@ -73,7 +73,7 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 300
 batchsize = 16
@@ -102,7 +102,10 @@ for epoch in range(nbepoch):
         hingeloss = torch.sum(
             torch.nn.functional.relu(one_no_border - one_no_border * ypm * predspm)
         )
-        loss = criterion(preds * 100, yy) * 0.1 + hingeloss
+        loss = (
+            criterion(preds * 100, yy) * 0.1
+            + hingeloss / yy.shape[0] / yy.shape[1] / yy.shape[2]
+        )
 
         meanloss.append(loss.cpu().data.numpy())
 
