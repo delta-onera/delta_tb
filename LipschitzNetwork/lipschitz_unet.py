@@ -232,7 +232,7 @@ class UNET(nn.Module):
         x = F.max_pool2d(x, kernel_size=3, stride=1, padding=1)
         x = self.minmax(self.d4(x))
         x = self.decoding(x)
-        return x*100
+        return x
 
     def normalize(self):
         with torch.no_grad():

@@ -87,7 +87,7 @@ for epoch in range(nbepoch):
 
         yy = dataloader.convertIn3class(y)
 
-        loss = criterion(preds, yy)
+        loss = criterion(preds * 100, yy)
 
         meanloss.append(loss.cpu().data.numpy())
 
