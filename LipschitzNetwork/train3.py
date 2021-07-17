@@ -104,7 +104,7 @@ for epoch in range(nbepoch):
         # ensure a linear penalty of the error rather than exponential one
 
         loss = (
-            criterion(preds * 1000, yy) * 0.1
+            criterion(preds * 1000, yy)
             + hingeloss / yy.shape[0] / yy.shape[1] / yy.shape[2]
         )
 
