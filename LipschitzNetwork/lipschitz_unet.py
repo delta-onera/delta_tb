@@ -63,14 +63,14 @@ class UNET(nn.Module):
 
         self.l4 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
         self.l5 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
-        self.l6 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
-        self.l7 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        # self.l6 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
+        # self.l7 = nn.Conv2d(512, 512, kernel_size=1, padding=0)
         self.encoding2 = nn.Conv2d(512, 32, kernel_size=1, padding=0)
 
         self.d1 = nn.Conv2d(96, 128, kernel_size=1, padding=0)
-        self.d2 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
-        self.conv3 = nn.Conv2d(128, 256, kernel_size=5, padding=2)
-        self.d4 = nn.Conv2d(256, 128, kernel_size=1, padding=0)
+        # self.d2 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
+        self.conv3 = nn.Conv2d(128, 128, kernel_size=5, padding=2)
+        self.d4 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
         self.decoding = nn.Conv2d(128, self.nbclasses, kernel_size=1, padding=0)
 
     def forward(self, x):
@@ -94,8 +94,8 @@ class UNET(nn.Module):
         x16 = torch.cat([x4 / 3, x8 / 3, x16 / 3], dim=1)
         x16 = self.minmax(self.l4(x16))
         x16 = self.minmax(self.l5(x16))
-        x16 = self.minmax(self.l6(x16))
-        x16 = self.minmax(self.l7(x16))
+        # x16 = self.minmax(self.l6(x16))
+        # x16 = self.minmax(self.l7(x16))
 
         code16 = self.encoding2(x16)
 
@@ -104,7 +104,7 @@ class UNET(nn.Module):
         x = torch.cat([code1 / 3, code4 / 16 / 3, code16 / 256 / 3], dim=1)
 
         x = self.minmax(self.d1(x))
-        x = self.minmax(self.d2(x))
+        # x = self.minmax(self.d2(x))
         x = self.minmax(self.conv3(x))
         x = F.max_pool2d(x, kernel_size=3, stride=1, padding=1)
         x = self.minmax(self.d4(x))
