@@ -29,7 +29,9 @@ with torch.no_grad():
 print("massif benchmark")
 import dataloader
 
-miniworld = dataloader.MiniWorld(flag="custom", custom=["potsdam/test"])
+miniworld = dataloader.MiniWorld(
+    flag="custom", custom=["potsdam/test", "potsdam/train"]
+)
 
 
 def accu(cm):
@@ -75,13 +77,14 @@ with torch.no_grad():
                 label.flatten(), pred.flatten(), labels=[0, 1, 2]
             )
 
-            if town in ["potsdam/test"]:
+            if town in ["potsdam/test", "potsdam/train"]:
+                towntmp = town.replace("/", "_")
                 imageraw = PIL.Image.fromarray(np.uint8(imageraw))
-                imageraw.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
+                imageraw.save("build/" + towntmp + "_" + str(i) + "_x.png")
                 labelim = PIL.Image.fromarray(np.uint8(label) * 125)
-                labelim.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
+                labelim.save("build/" + towntmp + "_" + str(i) + "_y.png")
                 predim = PIL.Image.fromarray(np.uint8(pred) * 125)
-                predim.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
+                predim.save("build/" + towntmp + "_" + str(i) + "_z.png")
 
         cm[town] = cm[town][0:2, 0:2]
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
