@@ -125,9 +125,13 @@ class UNET(nn.Module):
                 else:
                     norm = torch.sqrt(torch.sum(norms * norms))
 
-                if norm > 5 or force:
-                    self._modules[layer].weight *= 1.0 / norm
-                    self._modules[layer].bias *= 1.0 / norm
+                if force:
+                    self._modules[layer].weight /= norm
+                    self._modules[layer].bias /= norm
+                else:
+                    if norm > 10:
+                        self._modules[layer].weight *= 0.5
+                        self._modules[layer].bias *= 0.5
 
 
 if __name__ == "__main__":
