@@ -98,7 +98,7 @@ for epoch in range(nbepoch):
         ypm = (y * 2 - 1).float()
         predspm = preds[:, 1, :, :] - preds[:, 0, :, :]
         one_no_border = (y == yy).float()
-        hingeloss = torch.sum(torch.nn.functional.relu(-one_no_border * ypm * predspm))
+        hingeloss = torch.sum(torch.nn.functional.relu(-one_no_border * ypm * predspm))/ypm.shape[0]/ypm.shape[1]/ypm.shape[2]
 
         meanloss.append(loss.cpu().data.numpy())
         meanlossbis.append(hingeloss.cpu().data.numpy())
