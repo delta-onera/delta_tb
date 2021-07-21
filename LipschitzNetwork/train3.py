@@ -95,9 +95,9 @@ for epoch in range(nbepoch):
 
         loss = criterion(preds, yy)
 
-        ypm = y * 2 - 1
+        ypm = (y * 2 - 1).float()
         predspm = preds[:, 1, :, :] - preds[:, 0, :, :]
-        one_no_border = (y == yy).long()
+        one_no_border = (y == yy).float()
         hingeloss = torch.sum(torch.nn.functional.relu(-one_no_border * ypm * predspm))
 
         meanloss.append(loss.cpu().data.numpy())
@@ -121,7 +121,11 @@ for epoch in range(nbepoch):
         net.normalize()
 
         if random.randint(0, 30) == 0:
-            print("loss=", (sum(meanloss) / len(meanloss)))
+            print(
+                "loss=",
+                (sum(meanloss) / len(meanloss)),
+                (sum(meanlossbis) / len(meanlossbis)),
+            )
 
     print("backup model")
     net.normalize(force=True)
