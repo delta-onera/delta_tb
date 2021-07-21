@@ -93,12 +93,16 @@ for epoch in range(nbepoch):
 
         yy = dataloader.convertIn3class(y)
 
-        loss = criterion(preds, yy)
+        loss = criterion(preds * 1000, yy)
 
-        ypm = (y * 2 - 1).float()
         predspm = preds[:, 1, :, :] - preds[:, 0, :, :]
-        one_no_border = (y == yy).float()
-        hingeloss = torch.sum(torch.nn.functional.relu(-one_no_border * ypm * predspm))/ypm.shape[0]/ypm.shape[1]/ypm.shape[2]
+        hingelossP = (
+            torch.sum(torch.nn.functional.relu(-(yy == 1).float() * predspm))
+            * miniworld.balance
+        )
+        hingelossN = torch.sum(torch.nn.functional.relu((yy == 0).float() * predspm))
+        hingeloss = hingelossP + hingelossN
+        hingeloss /= yy.shape[0] * yy.shape[1] * yy.shape[2]
 
         meanloss.append(loss.cpu().data.numpy())
         meanlossbis.append(hingeloss.cpu().data.numpy())
