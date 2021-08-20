@@ -25,7 +25,7 @@ import collections
 import random
 import lipschitz_unet
 
-net = lipschitz_unet.UNET(debug=True)
+net = lipschitz_unet.UNET()
 net = net.cuda()
 net.train()
 
