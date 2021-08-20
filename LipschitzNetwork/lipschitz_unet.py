@@ -20,9 +20,9 @@ class MinMax(nn.Module):
         return torch.transpose(tmp, 2, 1)  # BxCxWxH
 
 
-class PSP(nn.Module):
+class UNET(nn.Module):
     def __init__(self, nbclasses=2, nbchannel=3):
-        super(PSP, self).__init__()
+        super(UNET, self).__init__()
 
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
@@ -30,12 +30,12 @@ class PSP(nn.Module):
 
         self.conv1 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)
         self.conv2 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)
-        self.conv3 = nn.Conv2d(self.nbchannel * 2, 32, kernel_size=5, padding=2)
         self.conv4 = nn.Conv2d(self.nbchannel * 2, 32, kernel_size=5, padding=2)
+        self.conv8 = nn.Conv2d(self.nbchannel * 2, 32, kernel_size=5, padding=2)
 
         self.l1 = nn.Conv2d(32, 32, kernel_size=1)
         self.l2 = nn.Conv2d(64, 64, kernel_size=1)
-        self.l3 = nn.Conv2d(96, 96, kernel_size=1)
+        self.l4 = nn.Conv2d(96, 96, kernel_size=1)
 
         self.e1 = nn.Conv2d(128, 256, kernel_size=1)
         self.e2 = nn.Conv2d(256, 512, kernel_size=5, padding=2)
@@ -43,15 +43,14 @@ class PSP(nn.Module):
         self.e4 = nn.Conv2d(1024, 128, kernel_size=1)
 
         self.d1 = nn.Conv2d(32 + 64 + 96 + 128, 256, kernel_size=1)
-        self.e2 = nn.Conv2d(256, 256, kernel_size=1)
-        self.e3 = nn.Conv2d(256, self.nbclasses, kernel_size=1)
+        self.d2 = nn.Conv2d(256, 256, kernel_size=1)
+        self.d3 = nn.Conv2d(256, self.nbclasses, kernel_size=1)
 
     def forward(self, x):
         x1 = self.minmax(self.conv1(x) / 81)
-        x1 = F.max_pool2d(x1, kernel_size=2, stride=2)
         x1 = self.minmax(self.l1(x1))
 
-        x2 = F.avg_pool2d(x1, kernel_size=2, stride=2)
+        x2 = F.avg_pool2d(x, kernel_size=2, stride=2)
         x2 = self.minmax(self.conv2(x2) / 81)
         x2 = torch.cat([F.max_pool2d(x1, kernel_size=2, stride=2) / 2, x2 / 2], dim=1)
         x2 = self.minmax(self.l2(x2))
