@@ -27,7 +27,6 @@ import lipschitz_unet
 
 net = lipschitz_unet.UNET(debug=True)
 net = net.cuda()
-net.normalize()
 net.train()
 
 
@@ -73,7 +72,7 @@ def trainaccuracy():
     return cm[0:2, 0:2]
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=400)
 nbepoch = 100
 batchsize = 16

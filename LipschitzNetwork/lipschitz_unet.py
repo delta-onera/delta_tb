@@ -26,7 +26,7 @@ class UNET(nn.Module):
 
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
-        
+
         if debug:
             self.minmax = torch.nn.LeakyReLU()
         else:
@@ -44,6 +44,8 @@ class UNET(nn.Module):
         self.e1 = nn.Conv2d(128, 256, kernel_size=1)
         self.e2 = nn.Conv2d(256, 512, kernel_size=5, padding=2)
         self.e3 = nn.Conv2d(512, 1024, kernel_size=1)
+        self.e31 = nn.Conv2d(1024, 1024, kernel_size=1)
+        self.e32 = nn.Conv2d(1024, 1024, kernel_size=1)
         self.e4 = nn.Conv2d(1024, 128, kernel_size=1)
 
         self.d1 = nn.Conv2d(32 + 64 + 96 + 128, 256, kernel_size=1)
@@ -75,6 +77,8 @@ class UNET(nn.Module):
         x8 = self.minmax(self.e1(x8))
         x8 = self.minmax(self.e2(x8) / 25)
         x8 = self.minmax(self.e3(x8))
+        x8 = self.minmax(self.e31(x8))
+        x8 = self.minmax(self.e32(x8))
         x8 = self.minmax(self.e4(x8))
 
         x8 = F.interpolate(x8, size=x.shape[2:4], mode="nearest")
