@@ -21,12 +21,16 @@ class MinMax(nn.Module):
 
 
 class UNET(nn.Module):
-    def __init__(self, nbclasses=2, nbchannel=3):
+    def __init__(self, nbclasses=2, nbchannel=3, debug=False):
         super(UNET, self).__init__()
 
         self.nbclasses = nbclasses
         self.nbchannel = nbchannel
-        self.minmax = MinMax()
+        
+        if debug:
+            self.minmax = torch.nn.LeakyReLU()
+        else:
+            self.minmax = MinMax()
 
         self.conv1 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)
         self.conv2 = nn.Conv2d(self.nbchannel, 32, kernel_size=9, padding=4)

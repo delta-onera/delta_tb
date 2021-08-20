@@ -25,7 +25,7 @@ import collections
 import random
 import lipschitz_unet
 
-net = lipschitz_unet.UNET()
+net = lipschitz_unet.UNET(debug=True)
 net = net.cuda()
 net.normalize()
 net.train()
@@ -76,7 +76,7 @@ def trainaccuracy():
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 meanloss = collections.deque(maxlen=400)
 nbepoch = 100
-batchsize = 32
+batchsize = 16
 
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
@@ -106,19 +106,12 @@ for epoch in range(nbepoch):
             loss = loss * 0.1
 
         optimizer.zero_grad()
-        loss += hingeloss
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 10)
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
         optimizer.step()
-        optimizer.zero_grad()
-        net.normalize()
 
         if random.randint(0, 30) == 0:
-            print(
-                "loss=",
-                (sum(meanloss) / len(meanloss)),
-                (sum(meanlossbis) / len(meanlossbis)),
-            )
+            print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
     torch.save(net, outputname)
