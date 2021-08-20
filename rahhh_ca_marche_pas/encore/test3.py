@@ -24,7 +24,6 @@ with torch.no_grad():
         net = torch.load("build/model.pth")
     net = net.to(device)
     net.eval()
-    net.normalize()
 
 
 print("massif benchmark")

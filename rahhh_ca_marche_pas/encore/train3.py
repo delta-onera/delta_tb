@@ -75,6 +75,7 @@ def trainaccuracy():
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 meanloss = collections.deque(maxlen=400)
+meanlossbis = collections.deque(maxlen=400)
 nbepoch = 100
 batchsize = 32
 
@@ -92,9 +93,19 @@ for epoch in range(nbepoch):
 
         yy = dataloader.convertIn3class(y)
 
-        loss = criterion(preds, yy)
+        loss = criterion(preds * 1000, yy)
+
+        predspm = preds[:, 1, :, :] - preds[:, 0, :, :]
+        hingelossP = (
+            torch.sum(torch.nn.functional.relu(-(yy == 1).float() * predspm))
+            * miniworld.balance
+        )
+        hingelossN = torch.sum(torch.nn.functional.relu((yy == 0).float() * predspm))
+        hingeloss = hingelossP + hingelossN
+        hingeloss /= yy.shape[0] * yy.shape[1] * yy.shape[2]
 
         meanloss.append(loss.cpu().data.numpy())
+        meanlossbis.append(hingeloss.cpu().data.numpy())
 
         if epoch > 5:
             loss = loss * 0.5
@@ -121,6 +132,7 @@ for epoch in range(nbepoch):
             )
 
     print("backup model")
+    net.normalize(force=True)
     torch.save(net, outputname)
     cm = trainaccuracy()
     print("accuracy,iou", accu(cm), f1(cm))
