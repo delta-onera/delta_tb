@@ -101,7 +101,8 @@ class UNET(nn.Module):
 
         x = self.minmax(self.d1(x))
         x = self.minmax(self.d2(x))
-        x = self.minmax(self.d3(x))
+        x = self.d3(x)
+
         return x
 
     def getNorm(self, tensor):
