@@ -104,11 +104,11 @@ class UNET(nn.Module):
         x = self.minmax(self.d3(x))
         return x
 
-    def getNorm(tensor):
+    def getNorm(self, tensor):
         return torch.sqrt(tensor.norm(2).clamp_min(0.0001))
 
     def getLipschitzbound(self):
-        K = getNorm(self._modules["d3"].weight[:])
+        K = self.getNorm(self._modules["d3"].weight[:])
         for layer in self.layers:
-            K *= getNorm(self._modules[layer].weight[:])
+            K *= self.getNorm(self._modules[layer].weight[:])
         return K
