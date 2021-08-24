@@ -111,3 +111,4 @@ class UNET(nn.Module):
         K = getNorm(self._modules["d3"].weight[:])
         for layer in self.layers:
             K *= getNorm(self._modules[layer].weight[:])
+        return K
