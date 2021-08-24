@@ -116,5 +116,8 @@ for epoch in range(nbepoch):
     torch.save(net, outputname)
     cm = trainaccuracy()
     print("accuracy,iou", accu(cm), f1(cm))
+    if accu(cm) > 92:
+        print(":-)")
+        quit()
 
 print("training stops after reaching time limit")
