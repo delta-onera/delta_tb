@@ -1,5 +1,6 @@
 import torch
 
+
 class MinMax(torch.nn.Module):
     def __init__(self):
         super(MinMax, self).__init__()
@@ -9,12 +10,16 @@ class MinMax(torch.nn.Module):
         assert inputs.shape[1] % 2 == 0  # C%2==0
 
         tmp = torch.transpose(inputs, 1, 2)  # BxWxCxH
-        tmpmax = torch.nn.functional.F.max_pool2d(tmp, kernel_size=(2, 1), stride=(2, 1))  # BxWxC/2xH
-        tmpmin = -torch.nn.functional.F.max_pool2d(-tmp, kernel_size=(2, 1), stride=(2, 1))  # BxWxC/2xH
+        tmpmax = torch.nn.functional.F.max_pool2d(
+            tmp, kernel_size=(2, 1), stride=(2, 1)
+        )  # BxWxC/2xH
+        tmpmin = -torch.nn.functional.F.max_pool2d(
+            -tmp, kernel_size=(2, 1), stride=(2, 1)
+        )  # BxWxC/2xH
 
         tmp = torch.cat([tmpmin, tmpmax], dim=2)  # BxWxCxH
         return torch.transpose(tmp, 2, 1)  # BxCxWxH
-        
+
 
 class UNET(nn.Module):
     def __init__(self, nbclasses=2, nbchannel=3, debug=False):
@@ -47,8 +52,10 @@ class UNET(nn.Module):
         self.d1 = nn.Conv2d(32 + 64 + 96 + 128, 256, kernel_size=1)
         self.d2 = nn.Conv2d(256, 256, kernel_size=1)
         self.d3 = nn.Conv2d(256, self.nbclasses, kernel_size=1)
-        
-        self.layers = [ layer for layer in self._modules if layer not in ["minmax","d3"]]
+
+        self.layers = [
+            layer for layer in self._modules if layer not in ["minmax", "d3"]
+        ]
 
     def forward(self, x):
         x1 = self.minmax(self.conv1(x) / 81)
@@ -92,8 +99,8 @@ class UNET(nn.Module):
 
     def getNorm(tensor):
         return torch.sqrt(tensor.norm(2).clamp_min(0.0001))
-        
+
     def getLipschitzbound(self):
         K = getNorm(self._modules["d3"].weight[:])
         for layer in self.layers:
-            K*=getNorm(self._modules[layer].weight[:])
+            K *= getNorm(self._modules[layer].weight[:])

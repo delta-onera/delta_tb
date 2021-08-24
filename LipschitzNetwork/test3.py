@@ -24,7 +24,6 @@ with torch.no_grad():
         net = torch.load("build/model.pth")
     net = net.to(device)
     net.eval()
-    #net.normalize()
 
 
 print("massif benchmark")
@@ -105,3 +104,6 @@ globalcm = np.zeros((2, 2), dtype=int)
 for town in miniworld.towns:
     globalcm += cm[town]
 print("miniworld", accu(globalcm), f1(globalcm))
+
+with torch.no_grad():
+    print("K", net.getLipschitzbound())
