@@ -1,7 +1,8 @@
 import torch
+import torch.nn as nn
 
 
-class MinMax(torch.nn.Module):
+class MinMax(nn.Module):
     def __init__(self):
         super(MinMax, self).__init__()
 
@@ -10,10 +11,10 @@ class MinMax(torch.nn.Module):
         assert inputs.shape[1] % 2 == 0  # C%2==0
 
         tmp = torch.transpose(inputs, 1, 2)  # BxWxCxH
-        tmpmax = torch.nn.functional.F.max_pool2d(
+        tmpmax = nn.functional.max_pool2d(
             tmp, kernel_size=(2, 1), stride=(2, 1)
         )  # BxWxC/2xH
-        tmpmin = -torch.nn.functional.F.max_pool2d(
+        tmpmin = -nn.functional.max_pool2d(
             -tmp, kernel_size=(2, 1), stride=(2, 1)
         )  # BxWxC/2xH
 
@@ -29,7 +30,7 @@ class UNET(nn.Module):
         self.nbchannel = nbchannel
 
         if debug:
-            self.minmax = torch.nn.LeakyReLU()
+            self.minmax = nn.LeakyReLU()
         else:
             self.minmax = MinMax()
 
@@ -61,23 +62,29 @@ class UNET(nn.Module):
         x1 = self.minmax(self.conv1(x) / 81)
         x1 = self.minmax(self.l1(x1))
 
-        x2 = F.avg_pool2d(x, kernel_size=2, stride=2)
+        x2 = nn.functional.avg_pool2d(x, kernel_size=2, stride=2)
         x2 = self.minmax(self.conv2(x2) / 81)
-        x2 = torch.cat([F.max_pool2d(x1, kernel_size=2, stride=2) / 2, x2 / 2], dim=1)
+        x2 = torch.cat(
+            [nn.functional.max_pool2d(x1, kernel_size=2, stride=2) / 2, x2 / 2], dim=1
+        )
         x2 = self.minmax(self.l2(x2))
 
-        x4_p = F.max_pool2d(x, kernel_size=4, stride=4)
-        x4_m = -F.max_pool2d(-x, kernel_size=4, stride=4)
+        x4_p = nn.functional.max_pool2d(x, kernel_size=4, stride=4)
+        x4_m = -nn.functional.max_pool2d(-x, kernel_size=4, stride=4)
         x4 = torch.cat([x4_p / 2, x4_m / 2], dim=1)
         x4 = self.minmax(self.conv4(x4) / 25)
-        x4 = torch.cat([F.max_pool2d(x2, kernel_size=2, stride=2) / 2, x4 / 2], dim=1)
+        x4 = torch.cat(
+            [nn.functional.max_pool2d(x2, kernel_size=2, stride=2) / 2, x4 / 2], dim=1
+        )
         x4 = self.minmax(self.l4(x4))
 
-        x8_p = F.max_pool2d(x, kernel_size=8, stride=8)
-        x8_m = -F.max_pool2d(-x, kernel_size=8, stride=8)
+        x8_p = nn.functional.max_pool2d(x, kernel_size=8, stride=8)
+        x8_m = -nn.functional.max_pool2d(-x, kernel_size=8, stride=8)
         x8 = torch.cat([x8_p / 2, x8_m / 2], dim=1)
         x8 = self.minmax(self.conv8(x8) / 25)
-        x8 = torch.cat([F.max_pool2d(x4, kernel_size=2, stride=2) / 2, x8 / 2], dim=1)
+        x8 = torch.cat(
+            [nn.functional.max_pool2d(x4, kernel_size=2, stride=2) / 2, x8 / 2], dim=1
+        )
 
         x8 = self.minmax(self.e1(x8))
         x8 = self.minmax(self.e2(x8) / 25)
@@ -86,9 +93,9 @@ class UNET(nn.Module):
         x8 = self.minmax(self.e32(x8))
         x8 = self.minmax(self.e4(x8))
 
-        x8 = F.interpolate(x8, size=x.shape[2:4], mode="nearest")
-        x4 = F.interpolate(x4, size=x.shape[2:4], mode="nearest")
-        x2 = F.interpolate(x2, size=x.shape[2:4], mode="nearest")
+        x8 = nn.functional.interpolate(x8, size=x.shape[2:4], mode="nearest")
+        x4 = nn.functional.interpolate(x4, size=x.shape[2:4], mode="nearest")
+        x2 = nn.functional.interpolate(x2, size=x.shape[2:4], mode="nearest")
 
         x = torch.cat([x1 / 4, x2 / 2 / 2 / 4, x4 / 4 / 4 / 4, x8 / 8 / 8 / 4], dim=1)
 
