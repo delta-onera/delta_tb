@@ -58,7 +58,7 @@ def trainaccuracy():
         for x, y in earlystopping:
             x, y = x.to(device), y.to(device)
 
-            D = miniworld.distanceToBorder(y)
+            D = dataloader.distanceToBorder(y)
             tot += torch.sum(D)
 
             z = net(x)
@@ -84,7 +84,7 @@ for epoch in range(nbepoch):
     XY = miniworld.getrandomtiles(10000, 128, batchsize)
     for x, y in XY:
         x, y = x.to(device), y.to(device)
-        D = miniworld.distanceToBorder(y)
+        D = dataloader.distanceToBorder(y)
 
         z = net(x)
 

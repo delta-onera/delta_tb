@@ -222,7 +222,7 @@ class MiniWorld:
         return dataloader
 
 
-def largeforward(net, image, device, tilesize=128, stride=64):
+def largeforward(net, image, device="cuda", tilesize=128, stride=64):
     ## assume GPU is large enough -- use largeforwardCPU on very large image
     net.eval()
     with torch.no_grad():
