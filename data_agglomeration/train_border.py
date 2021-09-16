@@ -89,7 +89,7 @@ for epoch in range(nbepoch):
         z = net(x)
 
         CE = criterion(z, y)
-        CE = torch.sum(CE * D)
+        CE = torch.mean(CE * D)
         dice = criterionbis(z, y)
         loss = CE + dice
 
