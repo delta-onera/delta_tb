@@ -279,29 +279,10 @@ def convertIn3classNP(y):
     return np.uint8(yy[0].cpu().numpy())
 
 
-def distanceToBorder2(y, size=2):
-    # erosion
-    yy = 1.0 - y.unsqueeze(0)
-    yy = torch.nn.functional.max_pool2d(
-        yy, kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    yy = 1.0 - yy
-
-    # one by one dilatation
-    yyy = yy.clone()
-    for i in range(4 * size + 2):
-        yy = torch.nn.functional.max_pool2d(yy, kernel_size=3, stride=1, padding=1)
-        yyy += yy
-
-    yyy = (yyy - 2 * size - 1) / (2 * size + 1)
-    # return a vt from -1 (true background) to 1 (true roof)
-    # 0 is border
-    return yyy[0]
-
-
-def distanceToBorder(y, size=4, eps=0.01):
+def distanceToBorder(y, size=4):
     yy = 2.0 * y.unsqueeze(0) - 1
-    yy = torch.nn.functional.avg_pool2d(
+    yyy = torch.nn.functional.avg_pool2d(
         yy, kernel_size=2 * size + 1, stride=1, padding=size
     )
-    return torch.clamp(yy[0].abs(), min=eps, max=1.0)
+    D = 1.0 - 0.5 * (yy - yyy).abs()
+    return D[0]
