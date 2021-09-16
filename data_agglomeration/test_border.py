@@ -7,11 +7,20 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append("/d/achanhon/github/pytorch-image-models")
     sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
     sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
-else:
+if whereIam == "wdtis719z":
     sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
     sys.path.append("/home/optimom/github/pytorch-image-models")
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
+if whereIam == "super":
+    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
+    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
+    )
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
+    )
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -67,7 +76,7 @@ with torch.no_grad():
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            label = torch.Tensor(label)
+            label = torch.Tensor(label).cuda()
             distance = dataloader.distanceToBorder(label)
 
             image = torch.Tensor(numpy.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
@@ -81,34 +90,49 @@ with torch.no_grad():
             pred = globalresize(pred)
             _, pred = torch.max(pred[0], 0)
 
-            cm[town][0][0] += (pred == 0).float() * (label == 0).float() * distance
-            cm[town][1][1] += (pred == 1).float() * (label == 1).float() * distance
-            cm[town][1][0] += (pred == 1).float() * (label == 0).float() * distance
-            cm[town][0][1] += (pred == 0).float() * (label == 1).float() * distance
+            print(label.shape, pred.shape, distance.shape)
+
+            cm[town][0][0] += torch.sum(
+                (pred == 0).float() * (label == 0).float() * distance
+            )
+            cm[town][1][1] += torch.sum(
+                (pred == 1).float() * (label == 1).float() * distance
+            )
+            cm[town][1][0] += torch.sum(
+                (pred == 1).float() * (label == 0).float() * distance
+            )
+            cm[town][0][1] += torch.sum(
+                (pred == 0).float() * (label == 1).float() * distance
+            )
 
             if town in ["potsdam/test"]:
                 debug = image[0].cpu().numpy()
                 debug = numpy.transpose(debug, axes=(1, 2, 0))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + town[0:-5] + "_" + str(i) + "_x.png")
+                debug = label.cpu().numpy() * 255
+                debug = PIL.Image.fromarray(numpy.uint8(debug))
+                debug.save("build/" + town[0:-5] + "_" + str(i) + "_v.png")
                 debug = (2.0 * label - 1) * distance * 127 + 127
+                debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + town[0:-5] + "_" + str(i) + "_y.png")
-                debug = PIL.Image.fromarray(numpy.uint8(pred) * 255)
+                debug = pred.cpu().numpy() * 255
+                debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + town[0:-5] + "_" + str(i) + "_z.png")
 
         cm[town] = cm[town].cpu().numpy()
         print(cm[town][0][0], cm[town][0][1], cm[town][1][0], cm[town][1][1])
         print(accu(cm[town]), iou(cm[town]))
         cmforlogging.append(iou(cm[town]))
-        debug = debug.asarray(cmforlogging)
+        debug = numpy.asarray(cmforlogging)
         numpy.savetxt("build/logtest.txt", debug)
 
 print("-------- results ----------")
 for town in miniworld.towns:
     print(town, accu(cm[town]), iou(cm[town]))
 
-globalcm = np.zeros((2, 2))
+globalcm = numpy.zeros((2, 2))
 for town in miniworld.towns:
     globalcm += cm[town]
 print("miniworld", accu(globalcm), iou(globalcm))

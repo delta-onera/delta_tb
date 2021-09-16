@@ -304,4 +304,4 @@ def distanceToBorder(y, size=4, eps=0.01):
     yy = torch.nn.functional.avg_pool2d(
         yy, kernel_size=2 * size + 1, stride=1, padding=size
     )
-    return yy[0].abs() + eps
+    return torch.clamp(yy[0].abs(), min=eps, max=1.0)

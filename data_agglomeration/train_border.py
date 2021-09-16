@@ -56,7 +56,7 @@ def trainaccuracy():
         net.eval()
         good, tot = torch.zeros(1), torch.zeros(1)
         for x, y in earlystopping:
-            x, y = x.to(device), y.to(device)
+            x, y = x.cuda(), y.cuda()
 
             D = dataloader.distanceToBorder(y)
             tot += torch.sum(D)
@@ -70,7 +70,7 @@ def trainaccuracy():
         return 100.0 * good.cpu().numpy() / tot.cpu().numpy()
 
 
-weights = torch.Tensor([1, miniworld.balance]).to(device)
+weights = torch.Tensor([1, miniworld.balance]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights)
 criterionbis = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
@@ -83,7 +83,7 @@ for epoch in range(nbepoch):
 
     XY = miniworld.getrandomtiles(10000, 128, batchsize)
     for x, y in XY:
-        x, y = x.to(device), y.to(device)
+        x, y = x.cuda(), y.cuda()
         D = dataloader.distanceToBorder(y)
 
         z = net(x)
