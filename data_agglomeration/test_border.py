@@ -35,7 +35,7 @@ else:
     quit()
 with torch.no_grad():
     if len(sys.argv) > 1:
-        net = torch.load("build/" + sys.argv[1])
+        net = torch.load(sys.argv[1])
     else:
         net = torch.load("build/model.pth")
     net = net.cuda()
@@ -89,8 +89,6 @@ with torch.no_grad():
 
             pred = globalresize(pred)
             _, pred = torch.max(pred[0], 0)
-
-            print(label, pred, distance)
 
             cm[town][0][0] += torch.sum(
                 (pred == 0).float() * (label == 0).float() * distance

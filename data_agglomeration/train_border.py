@@ -4,7 +4,7 @@ import sys
 if len(sys.argv) > 1:
     outputname = sys.argv[1]
 else:
-    outputname = "model.pth"
+    outputname = "build/model.pth"
 
 whereIam = os.uname()[1]
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
@@ -113,7 +113,7 @@ for epoch in range(nbepoch):
             print("loss=", (sum(meanloss) / len(meanloss)))
 
     print("backup model")
-    torch.save(net, "build/" + outputname)
+    torch.save(net, outputname)
     cm = trainaccuracy()
     print("accuracy", accu(cm))
 
