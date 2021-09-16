@@ -72,7 +72,7 @@ cm = {}
 with torch.no_grad():
     for town in miniworld.towns:
         print(town)
-        cm[town] = torch.zeros((2, 2))
+        cm[town] = torch.zeros((2, 2)).cuda()
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
