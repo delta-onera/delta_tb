@@ -71,7 +71,7 @@ def trainaccuracy():
 
 
 weights = torch.Tensor([1, miniworld.balance]).cuda()
-criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="None")
+criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 criterionbis = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
