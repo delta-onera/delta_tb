@@ -62,7 +62,7 @@ def trainaccuracy():
             tot += torch.sum(D)
 
             z = net(x)
-            _, z = outputs.max(1)
+            _, z = z.max(1)
 
             cool = (z == y).float()
             cool *= D

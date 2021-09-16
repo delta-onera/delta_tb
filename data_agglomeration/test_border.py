@@ -90,7 +90,7 @@ with torch.no_grad():
             pred = globalresize(pred)
             _, pred = torch.max(pred[0], 0)
 
-            print(label.shape, pred.shape, distance.shape)
+            print(type(label), type(pred), type(distance))
 
             cm[town][0][0] += torch.sum(
                 (pred == 0).float() * (label == 0).float() * distance
