@@ -54,7 +54,7 @@ earlystopping = miniworld.getrandomtiles(5000, 128, 32)
 def trainaccuracy():
     with torch.no_grad():
         net.eval()
-        good, tot = torch.zeros(1), torch.zeros(1)
+        good, tot = torch.zeros(1).cuda(), torch.zeros(1).cuda()
         for x, y in earlystopping:
             x, y = x.cuda(), y.cuda()
 
