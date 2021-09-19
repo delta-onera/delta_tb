@@ -88,7 +88,7 @@ for epoch in range(nbepoch):
 
         z = net(x)
 
-        if random.randint(10) == 0:
+        if random.randint(0, 10) == 0:
             weights = torch.Tensor([1, miniworld.balance]).cuda()
             criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
         else:
