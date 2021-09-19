@@ -92,7 +92,7 @@ for epoch in range(nbepoch):
             weights = torch.Tensor([1, miniworld.balance]).cuda()
             criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
         else:
-            nb0, nb1 = torch.sum((y == 0).float), torch.sum((y == 1).float)
+            nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
             weights = torch.Tensor([1, nb0 / nb1]).cuda()
             criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 
