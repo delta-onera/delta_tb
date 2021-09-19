@@ -70,8 +70,8 @@ def trainaccuracy():
         return 100.0 * good.cpu().numpy() / tot.cpu().numpy()
 
 
-weights = torch.Tensor([1, miniworld.balance]).cuda()
-criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
+# weights = torch.Tensor([1, miniworld.balance]).cuda()
+# criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 criterionbis = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
@@ -87,6 +87,14 @@ for epoch in range(nbepoch):
         D = dataloader.distanceToBorder(y)
 
         z = net(x)
+
+        if random.randint(10) == 0:
+            weights = torch.Tensor([1, miniworld.balance]).cuda()
+            criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
+        else:
+            nb0, nb1 = torch.sum((y == 0).float), torch.sum((y == 1).float)
+            weights = torch.Tensor([1, nb0 / nb1]).cuda()
+            criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 
         CE = criterion(z, y)
         CE = torch.mean(CE * D)
