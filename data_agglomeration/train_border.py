@@ -82,6 +82,7 @@ for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
     XY = miniworld.getrandomtiles(10000, 128, batchsize)
+    net.train()
     for x, y in XY:
         x, y = x.cuda(), y.cuda()
         D = dataloader.distanceToBorder(y)
