@@ -37,10 +37,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-if True:
-    miniworld = dataloader.MiniWorld(flag="custom", custom=["potsdam/test"])
-else:
-    miniworld = dataloader.MiniWorld("test")
+miniworld = dataloader.MiniWorld("test")
 
 print("test")
 import numpy
@@ -92,7 +89,7 @@ with torch.no_grad():
                 (pred == 0).float() * (label == 1).float() * distance
             )
 
-            if True:
+            if town in ["potsdam/test", "chicago/test", "Austin/test"]:
                 nextI = len(os.listdir("build"))
                 debug = image[0].cpu().numpy()
                 debug = numpy.transpose(debug, axes=(1, 2, 0))

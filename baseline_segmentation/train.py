@@ -42,10 +42,7 @@ net.eval()
 
 
 print("load data")
-if True:
-    miniworld = dataloader.MiniWorld("custom", custom=["potsdam/train"])
-else:
-    miniworld = dataloader.MiniWorld("train")
+miniworld = dataloader.MiniWorld("train")
 
 print("train")
 import collections
@@ -54,10 +51,7 @@ import random
 criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-if True:
-    nbepoch = 1
-else:
-    nbepoch = 800
+nbepoch = 800
 batchsize = 16
 
 for epoch in range(nbepoch):
