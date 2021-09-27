@@ -58,7 +58,7 @@ if True:
     nbepoch = 1
 else:
     nbepoch = 800
-    batchsize = 16
+batchsize = 16
 
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
