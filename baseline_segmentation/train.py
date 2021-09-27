@@ -53,7 +53,6 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 800
 batchsize = 16
-
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
@@ -65,7 +64,7 @@ for epoch in range(nbepoch):
         z = net(x)
 
         nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
-        weights = torch.Tensor([1, nb0 / nb1]).cuda()
+        weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
         criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
         D = dataloader.distancetransform(y)
         CE = criterion(z, y)

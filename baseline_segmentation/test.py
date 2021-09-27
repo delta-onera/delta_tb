@@ -46,75 +46,64 @@ from PIL import Image
 
 
 def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / numpy.sum(cm)
-    iou = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1]) + 50.0 * cm[1][1] / (
-        cm[1][1] + cm[1][0] + cm[0][1]
-    )
-    return iou, accu
+    if len(cm.shape) == 2:
+        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
+        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
+        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
+        return iou0 + iou1, accu
+    else:
+        out = torch.zeros(cm.shape[0], 2)
+        for k in range(cm.shape[0]):
+            out[k, :] = perf(cm[k])
+        return out
 
 
-cmforlogging = []
-cm = {}
+cm = torch.zeros((len(miniworld.towns), 2, 2)).cuda()
 with torch.no_grad():
-    for town in miniworld.towns:
-        print(town)
-        cm[town] = torch.zeros((2, 2)).cuda()
+    for k, town in enumerate(miniworld.towns):
+        print(k, town)
         for i in range(miniworld.data[town].nbImages):
             imageraw, label = miniworld.data[town].getImageAndLabel(i)
 
-            label = torch.Tensor(label).cuda()
-            distance = dataloader.distancetransform(label)
+            y = torch.Tensor(label).cuda()
+            h, w = y.shape[0], y.shape[1]
+            D = dataloader.distancetransform(y)
 
-            image = torch.Tensor(numpy.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
-            h, w = image.shape[2], image.shape[3]
+            x = torch.Tensor(numpy.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
-            image = power2resize(image)
+            x = power2resize(x)
 
-            pred = dataloader.largeforward(net, image)
+            z = dataloader.largeforward(net, x)
 
-            pred = globalresize(pred)
-            _, pred = torch.max(pred[0], 0)
+            z = globalresize(z)
+            z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            cm[town][0][0] += torch.sum(
-                (pred == 0).float() * (label == 0).float() * distance
-            )
-            cm[town][1][1] += torch.sum(
-                (pred == 1).float() * (label == 1).float() * distance
-            )
-            cm[town][1][0] += torch.sum(
-                (pred == 1).float() * (label == 0).float() * distance
-            )
-            cm[town][0][1] += torch.sum(
-                (pred == 0).float() * (label == 1).float() * distance
-            )
+            cm[k][0][0] += torch.sum((z == 0).float() * (y == 0).float() * D)
+            cm[k][1][1] += torch.sum((z == 1).float() * (y == 1).float() * D)
+            cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
+            cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
 
             if town in ["potsdam/test", "chicago/test", "Austin/test"]:
                 nextI = len(os.listdir("build"))
-                debug = image[0].cpu().numpy()
+                debug = globalresize(x)[0].cpu().numpy()
                 debug = numpy.transpose(debug, axes=(1, 2, 0))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
-                debug = (2.0 * label - 1) * distance * 127 + 127
+                debug = (2.0 * y - 1) * D * 127 + 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_y.png")
-                debug = pred.cpu().numpy() * 255
+                debug = z.cpu().numpy() * 255
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
 
-        cm[town] = cm[town].cpu().numpy()
-        iou, accu = perf(cm[town])
-        print("iou=", iou)
-        cmforlogging.append(iou)
-        debug = numpy.asarray(cmforlogging)
-        numpy.savetxt("build/logtest.txt", debug)
+        print("perf=", perf(cm[k]))
+        numpy.savetxt("build/logtest.txt", perf(cm).cpu().numpy())
 
 print("-------- results ----------")
-for town in miniworld.towns:
-    print(town, perf(cm[town]))
+for k, town in enumerate(miniworld.towns):
+    print(town, perf(cm[k]))
 
-globalcm = numpy.zeros((2, 2))
-for town in miniworld.towns:
-    globalcm += cm[town]
-print("miniworld", perf(globalcm))
+cm = torch.sum(cm, dim=0)
+print("miniworld", perf(cm))
