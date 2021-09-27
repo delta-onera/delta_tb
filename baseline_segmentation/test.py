@@ -11,15 +11,6 @@ else:
     quit()
 
 whereIam = os.uname()[1]
-if whereIam == "super":
-    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
-    )
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
-    )
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
@@ -46,7 +37,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-if whereIam == "super":
+if True:
     miniworld = dataloader.MiniWorld(flag="custom", custom=["potsdam/test"])
 else:
     miniworld = dataloader.MiniWorld("test")

@@ -8,11 +8,10 @@ assert whereIam in [
     "astroboy",
     "flexo",
     "bender",
-    "super",
     "ldtis706z",
 ]
 
-if whereIam in ["wdtim719z", "super"]:
+if whereIam == "wdtim719z":
     root = "/data/"
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
@@ -26,9 +25,6 @@ if not os.path.exists(root + "miniworld"):
 os.system("rm -rf build")
 os.makedirs("build")
 
-if whereIam == "super":
-    os.system("/data/anaconda3/bin/python train.py build/model.pth")
-    os.system("/data/anaconda3/bin/python test.py build/model.pth")
 if whereIam == "wdtim719z":
     os.system("/data/anaconda3/envs/pytorch/bin/python train.py build/model.pth")
     os.system("/data/anaconda3/envs/pytorch/bin/python test.py build/model.pth")

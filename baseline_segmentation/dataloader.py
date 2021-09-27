@@ -43,9 +43,9 @@ def getindexeddata():
         "Seekonk",
     ]
 
-    if whereIam in ["super", "wdtim719z"]:
+    if whereIam == "wdtim719z":
         root = "/data/miniworld/"
-    if whereIam in ["ldtis706z"]:
+    if whereIam == "ldtis706z":
         root = "/media/achanhon/bigdata/data/miniworld/"
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
         root = "/scratch_ai4geo/miniworld/"
@@ -162,6 +162,7 @@ class MiniWorld:
     def getrandomtiles(self, nbtiles, tilesize, batchsize):
         nbtilesperTown = 1.0 * nbtiles / len(self.towns)
 
+        XY = []
         for town in self.towns:
             XY += self.data[town].getrawrandomtiles(nbtilesperTown, tilesize)
 

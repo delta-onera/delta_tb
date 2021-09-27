@@ -11,15 +11,6 @@ else:
     quit()
 
 whereIam = os.uname()[1]
-if whereIam == "super":
-    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
-    )
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
-    )
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
@@ -51,7 +42,7 @@ net.eval()
 
 
 print("load data")
-if whereIam == "super":
+if True:
     miniworld = dataloader.MiniWorld("custom", custom=["potsdam/train"])
 else:
     miniworld = dataloader.MiniWorld("train")
@@ -63,9 +54,8 @@ import random
 criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
-if whereIam == "super":
+if True:
     nbepoch = 1
-    batchsize = 4
 else:
     nbepoch = 800
     batchsize = 16
