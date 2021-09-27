@@ -114,13 +114,9 @@ class SegSemDataset:
             )
 
             for i in range(nbtilesperimage):
-                im = image[
-                    row[i] : row[i] + tilesize, col[i] : col[i] + tilesize, :
-                ].copy()
-                mask = label[
-                    row[i] : row[i] + tilesize, col[i] : col[i] + tilesize
-                ].copy()
-                XY.append((im, mask))
+                im = image[row[i] : row[i] + tilesize, col[i] : col[i] + tilesize, :]
+                mask = label[row[i] : row[i] + tilesize, col[i] : col[i] + tilesize]
+                XY.append((im.copy(), mask.copy()))
 
         # symetrie
         symetrieflag = np.random.randint(0, 2, size=(len(XY), 3))
