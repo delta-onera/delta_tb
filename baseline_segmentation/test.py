@@ -75,7 +75,6 @@ with torch.no_grad():
             x = power2resize(x)
 
             z = dataloader.largeforward(net, x)
-
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
