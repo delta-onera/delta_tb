@@ -102,7 +102,7 @@ for epoch in range(nbepoch):
         tot += torch.sum(D)
 
     print("backup model")
-    torch.save(net, outputname)
+    torch.save(net, "build/model.pth")
     print("accuracy", 100 * good / tot)
 
     if 100 * good / tot > 98:
