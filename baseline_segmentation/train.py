@@ -94,7 +94,6 @@ for epoch in range(nbepoch):
         good += torch.sum((z == y).float() * D)
         tot += torch.sum(D)
 
-    print("backup model")
     torch.save(net, "build/model.pth")
     print("accuracy", 100 * good / tot)
 
