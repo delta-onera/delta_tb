@@ -38,7 +38,7 @@ net = smp.Unet(
     classes=2,
 )
 net = net.cuda()
-net.eval()
+net.train()
 
 
 print("load data")
@@ -52,7 +52,7 @@ criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 meanloss = collections.deque(maxlen=200)
 nbepoch = 800
-batchsize = 16
+batchsize = 32
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
