@@ -2,13 +2,6 @@ import numpy as np
 import os
 
 
-def safeuint8(x):
-    x0 = np.zeros(x.shape, dtype=float)
-    x255 = np.ones(x.shape, dtype=float) * 255
-    x = np.maximum(x0, np.minimum(x.copy(), x255))
-    return np.uint8(x)
-
-
 def symetrie(x, y, i, j, k):
     if i == 1:
         x, y = np.transpose(x, axes=(1, 0, 2)), np.transpose(y, axes=(1, 0))
