@@ -97,7 +97,7 @@ for epoch in range(nbepoch):
     torch.save(net, "build/model.pth")
     print("accuracy", 100 * good / tot)
 
-    if 100 * good / tot > 98:
+    if 100 * good / tot > 97.8:
         print("training stops after reaching high training accuracy")
         quit()
 print("training stops after reaching time limit")
