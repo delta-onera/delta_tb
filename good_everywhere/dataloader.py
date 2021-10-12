@@ -64,13 +64,15 @@ class MiniWorld:
 
         self.nbImages = {}
         for city in self.cities:
-            self.nbImages[city] = 0
+            nb = 0
             path = self.root + "/" + city + "/"
-            while os.path.exists(path + str(self.nbImages) + "_x.png"):
-                self.nbImages[city] += 1
-            if self.nbImages[city] == 0:
+            while os.path.exists(path + str(nb) + "_x.png"):
+                nb += 1
+            if nb == 0:
                 print("wrong path", path)
                 quit()
+            else:
+                self.nbImages[city] = nb
         tot = sum([self.nbImages[city] for city in self.cities])
         print("found #cities, #image = ", len(self.cities), tot)
 
