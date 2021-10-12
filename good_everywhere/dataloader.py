@@ -107,9 +107,9 @@ class MiniWorld:
                 XY.append(self.privategetone(city))
         X, Y = [x for x, _ in XY], [y for _, y in XY]
         X, Y = torch.cat(X, dim=0), torch.cat(Y, dim=0)
-        return X, Y
+        return (X, Y)
 
-    def openpytorchloader(self, tilesize=128, nbtiles=20000):
+    def openpytorchloader(self, tilesize=128, nbtiles=10000):
         self.tilesize = tilesize
         self.nbtiles = nbtiles // len(self.cities) + 1
         self.torchloader, self.iterator = {}, {}
