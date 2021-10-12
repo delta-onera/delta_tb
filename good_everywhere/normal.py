@@ -54,6 +54,7 @@ batchsize = 128
 stats = torch.zeros(3).cuda()
 for i in range(50000):
     x, y = miniworld.getbatch(batchsize)
+    print(x.shape)
     x, y = x.cuda(), y.cuda()
     z = net(x)
 

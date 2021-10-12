@@ -52,6 +52,7 @@ class MiniWorld:
                 "Norfolk",
                 "Seekonk",
             ]
+            self.cities = ["potsdam", "toulouse", "austin", "chicago", "kitsap"]
             self.cities = [city + "/" + flag for city in self.cities]
 
         whereIam = os.uname()[1]
