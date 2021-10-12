@@ -112,8 +112,7 @@ class MiniWorld:
         self.nbtiles = nbtiles // len(self.cities) + 1
         self.torchloader, self.iterator = {}, {}
         for city in self.cities:
-            self.torchloader[city] = self.privatedataloader(city)
-            self.iterator[city] = iter(self.torchloader[city])
+            self.privatedataloader(city)
 
     def privatedataloader(self, city):
         assert city in self.cities
@@ -150,12 +149,12 @@ class MiniWorld:
         self.torchloader[city] = torch.utils.data.DataLoader(
             dataset, batch_size=2, shuffle=True, num_workers=1
         )
+        self.iterator[city] = iter(self.torchloader[city])
 
     def privategetone(self, city):
         assert city in self.cities
         try:
             return next(self.iterator[city])
         except StopIteration:
-            self.torchloader[city] = self.privatedataloader(city)
-            self.iterator[city] = iter(self.torchloader[city])
+            self.privatedataloader(city)
             return next(self.iterator[city])
