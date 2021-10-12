@@ -24,7 +24,7 @@ def symetrie(x, y, i, j, k):
     return x.copy(), y.copy()
 
 
-class MultiLocationDataset:
+class MiniWorld:
     def __init__(self, custom=None, flag=None):
         assert custom is not None or flag is not None
 
@@ -71,11 +71,10 @@ class MultiLocationDataset:
             if self.nbImages[city] == 0:
                 print("wrong path", path)
                 quit()
+        tot = sum([self.nbImages[city] for city in self.cities])
+        print("found #cities, #image = ", len(self.cities), tot)
 
-        if initpytorch:
-            initdataloader()
-
-    def getImageAndLabel(self, city, i):
+    def getImageAndLabel(self, city, i, torchFormat=False):
         assert city in self.cities
         assert i < self.nbImages[city]
 
@@ -86,19 +85,38 @@ class MultiLocationDataset:
         label = PIL.Image.open(path + str(i) + "_y.png").convert("L").copy()
         label = np.uint8(np.asarray(label))
         label = np.uint8(label != 0)
-        return image, label
 
-    def openpytorchloader(self, tilesize, nbtiles):
+        if torchFormat:
+            x = torch.Tensor(numpy.transpose(image, axes=(2, 0, 1)))
+            return x.unsqueeze(0), torch.Tensor(label)
+        else:
+            return image, label
+
+    def getbatch(self, batchsize, priority=None):
+        if priority is None:
+            nb = batchsize // 2 // len(self.city) + 1
+            priority = set([(city, nb) for city in self.cities])
+
+        XY = []
+        for city in self.cities:
+            for i in range(priority[city]):
+                XY.append(self.privategetone(city))
+        X, Y = [x for x, _ in XY], [y for _, y in XY]
+        X, Y = torch.cat(X, dim=0), torch.cat(Y, dim=0)
+        return X, Y
+
+    def openpytorchloader(self, tilesize=128, nbtiles=100000):
         self.tilesize = tilesize
-        self.nbtiles = int(nbtiles / len(self.cities)) + 1
+        self.nbtiles = nbtiles // len(self.cities) + 1
         self.torchloader, self.iterator = {}, {}
         for city in self.cities:
             self.torchloader[city] = privatedataloader(self, city)
             self.iterator[city] = iter(self.torchloader[city])
 
     def privatedataloader(self, city):
+        assert city in self.cities
         tile = self.tilesize
-        tilesperimage = int(self.nbtiles / self.nbImages[city]) + 1
+        tilesperimage = self.nbtiles // self.nbImages[city] + 1
 
         # crop
         XY = []
@@ -128,10 +146,10 @@ class MultiLocationDataset:
 
         dataset = torch.utils.data.TensorDataset(X, Y)
         self.torchloader[city] = torch.utils.data.DataLoader(
-            dataset, batch_size=3, shuffle=True, num_workers=1
+            dataset, batch_size=2, shuffle=True, num_workers=1
         )
 
-    def privategetbatch(self, city):
+    def privategetone(self, city):
         assert city in self.cities
         try:
             return next(self.iterator[city])
@@ -139,6 +157,3 @@ class MultiLocationDataset:
             self.torchloader[city] = privatedataloader(self, city)
             self.iterator[city] = iter(self.torchloader[city])
             return next(self.iterator[city])
-
-    def getbatch(self, batchsize, priority=None):
-        assert city in self.cities

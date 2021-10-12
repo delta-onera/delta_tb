@@ -1,5 +1,7 @@
 import os
-import sys
+import numpy
+import PIL
+from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -37,12 +39,9 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-miniworld = dataloader.MiniWorld("test")
+miniworld = dataloader.MiniWorld(flag="test")
 
 print("test")
-import numpy
-import PIL
-from PIL import Image
 
 
 def perf(cm):
@@ -58,11 +57,10 @@ def perf(cm):
         return out
 
 
-def largeforward(net, image, device="cuda", tilesize=128, stride=64):
-    net.eval()
+def largeforward(image, tilesize=128, stride=64):
     with torch.no_grad():
-        pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).to(device)
-        image = image.float().to(device)
+        pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
+        image = image.float().cuda()
         for row in range(0, image.shape[2] - tilesize + 1, stride):
             for col in range(0, image.shape[3] - tilesize + 1, stride):
                 tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
@@ -75,19 +73,16 @@ cm = torch.zeros((len(miniworld.towns), 2, 2)).cuda()
 with torch.no_grad():
     for k, town in enumerate(miniworld.towns):
         print(k, town)
-        for i in range(miniworld.data[town].nbImages):
-            imageraw, label = miniworld.data[town].getImageAndLabel(i)
+        for i in range(miniworld.nbImages[town]):
+            x, y = miniworld.getImageAndLabel(town, i, torchFormat=True)
 
-            y = torch.Tensor(label).cuda()
             h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
-
-            x = torch.Tensor(numpy.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
+            D = dataloader.distancetransform(y.unsqueeze(0))
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
-            z = dataloader.largeforward(net, x)
+            z = largeforward(x)
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 

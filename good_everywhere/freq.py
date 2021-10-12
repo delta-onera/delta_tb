@@ -1,5 +1,7 @@
 import os
-import sys
+import numpy
+import PIL
+from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -42,44 +44,38 @@ net.train()
 
 
 print("load data")
-miniworld = dataloader.MiniWorld("train")
+miniworld = dataloader.MiniWorld(flag="train")
+miniworld.openpytorchloader()
 
 print("train")
-import collections
-import random
-
-criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-meanloss = collections.deque(maxlen=200)
-nbepoch = 800
-batchsize = 32
-for epoch in range(nbepoch):
-    print("epoch=", epoch, "/", nbepoch)
-
-    XY = miniworld.getrandomtiles(10000, 128, batchsize)
-    tot, good = torch.zeros(1).cuda(), torch.zeros(1).cuda()
-
-    for x, y in XY:
+nbepoch = 400
+batchsize = 128
+for i in range(500000):
+    stats = torch.zeros(3).cuda()
+    for x, y in dataloader.getbatch(batchsize):
         x, y = x.cuda(), y.cuda()
         z = net(x)
 
+        D = dataloader.distancetransform(y)
         nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
         weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
         criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-        D = dataloader.distancetransform(y)
+        criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
         CE = criterion(z, y)
         CE = torch.mean(CE * D)
         dice = criteriondice(z, y)
         loss = CE + dice
 
-        meanloss.append(loss.cpu().data.numpy())
-        if epoch > 30:
+        with torch.no_grad():
+            stats[0] += loss.clone().detach()
+        if i > 100000:
             loss = loss * 0.5
-        if epoch > 90:
+        if i > 200000:
             loss = loss * 0.5
-        if epoch > 160:
+        if i > 300000:
             loss = loss * 0.5
-        if epoch > 400:
+        if i > 400000:
             loss = loss * 0.5
 
         optimizer.zero_grad()
@@ -87,17 +83,21 @@ for epoch in range(nbepoch):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
         optimizer.step()
 
-        if random.randint(0, 30) == 0:
-            print("loss=", (sum(meanloss) / len(meanloss)))
+        with torch.no_grad():
+            z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
+            stats[1] += torch.sum((z == y).float() * D)
+            stats[2] += torch.sum(D)
 
-        z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
-        good += torch.sum((z == y).float() * D)
-        tot += torch.sum(D)
+        if i % 61 == 60:
+            print(i, "/500000", stats[0] / 61)
 
-    torch.save(net, "build/model.pth")
-    print("accuracy", 100 * good / tot)
+        if i % 500 == 499:
+            torch.save(net, "build/model.pth")
+            print("accuracy", 100 * stats[1] / stats[2])
+            if 100 * stats[1] / stats[2]:
+                print("training stops after reaching high training accuracy")
+                quit()
+            else:
+                stats = torch.zeros(3).cuda()
 
-    if 100 * good / tot > 98:
-        print("training stops after reaching high training accuracy")
-        quit()
 print("training stops after reaching time limit")
