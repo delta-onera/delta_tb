@@ -50,7 +50,7 @@ miniworld.openpytorchloader()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-batchsize = 128
+batchsize = 64
 stats = torch.zeros(3).cuda()
 for i in range(50000):
     x, y = miniworld.getbatch(batchsize)
