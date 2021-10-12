@@ -96,7 +96,7 @@ class MiniWorld:
 
     def getbatch(self, batchsize, priority=None):
         if priority is None:
-            nb = batchsize // 2 // len(self.city) + 1
+            nb = batchsize // 2 // len(self.cities) + 1
             priority = set([(city, nb) for city in self.cities])
 
         XY = []
@@ -107,7 +107,7 @@ class MiniWorld:
         X, Y = torch.cat(X, dim=0), torch.cat(Y, dim=0)
         return X, Y
 
-    def openpytorchloader(self, tilesize=128, nbtiles=100000):
+    def openpytorchloader(self, tilesize=128, nbtiles=20000):
         self.tilesize = tilesize
         self.nbtiles = nbtiles // len(self.cities) + 1
         self.torchloader, self.iterator = {}, {}

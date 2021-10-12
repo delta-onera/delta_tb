@@ -50,9 +50,8 @@ miniworld.openpytorchloader()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-nbepoch = 400
 batchsize = 128
-for i in range(500000):
+for i in range(50000):
     stats = torch.zeros(3).cuda()
     for x, y in miniworld.getbatch(batchsize):
         x, y = x.cuda(), y.cuda()
@@ -70,13 +69,13 @@ for i in range(500000):
 
         with torch.no_grad():
             stats[0] += loss.clone().detach()
-        if i > 100000:
+        if i > 10000:
             loss = loss * 0.5
-        if i > 200000:
+        if i > 20000:
             loss = loss * 0.5
-        if i > 300000:
+        if i > 30000:
             loss = loss * 0.5
-        if i > 400000:
+        if i > 40000:
             loss = loss * 0.5
 
         optimizer.zero_grad()
@@ -90,7 +89,7 @@ for i in range(500000):
             stats[2] += torch.sum(D)
 
         if i % 61 == 60:
-            print(i, "/500000", stats[0] / 61)
+            print(i, "/50000", stats[0] / 61)
 
         if i % 500 == 499:
             torch.save(net, "build/model.pth")
