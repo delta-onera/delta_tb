@@ -112,7 +112,7 @@ class MiniWorld:
         self.nbtiles = nbtiles // len(self.cities) + 1
         self.torchloader, self.iterator = {}, {}
         for city in self.cities:
-            self.torchloader[city] = privatedataloader(self, city)
+            self.torchloader[city] = self.privatedataloader(city)
             self.iterator[city] = iter(self.torchloader[city])
 
     def privatedataloader(self, city):
@@ -156,6 +156,6 @@ class MiniWorld:
         try:
             return next(self.iterator[city])
         except StopIteration:
-            self.torchloader[city] = privatedataloader(self, city)
+            self.torchloader[city] = self.privatedataloader(city)
             self.iterator[city] = iter(self.torchloader[city])
             return next(self.iterator[city])
