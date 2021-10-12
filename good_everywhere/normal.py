@@ -54,7 +54,7 @@ nbepoch = 400
 batchsize = 128
 for i in range(500000):
     stats = torch.zeros(3).cuda()
-    for x, y in dataloader.getbatch(batchsize):
+    for x, y in miniworld.getbatch(batchsize):
         x, y = x.cuda(), y.cuda()
         z = net(x)
 
