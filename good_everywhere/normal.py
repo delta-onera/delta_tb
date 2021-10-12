@@ -51,53 +51,53 @@ miniworld.openpytorchloader()
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 batchsize = 128
+stats = torch.zeros(3).cuda()
 for i in range(50000):
-    stats = torch.zeros(3).cuda()
-    for x, y in miniworld.getbatch(batchsize):
-        x, y = x.cuda(), y.cuda()
-        z = net(x)
+    x, y = miniworld.getbatch(batchsize)
+    x, y = x.cuda(), y.cuda()
+    z = net(x)
 
-        D = dataloader.distancetransform(y)
-        nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
-        weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
-        criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-        criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
-        CE = criterion(z, y)
-        CE = torch.mean(CE * D)
-        dice = criteriondice(z, y)
-        loss = CE + dice
+    D = dataloader.distancetransform(y)
+    nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
+    weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
+    criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
+    criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
+    CE = criterion(z, y)
+    CE = torch.mean(CE * D)
+    dice = criteriondice(z, y)
+    loss = CE + dice
 
-        with torch.no_grad():
-            stats[0] += loss.clone().detach()
-        if i > 10000:
-            loss = loss * 0.5
-        if i > 20000:
-            loss = loss * 0.5
-        if i > 30000:
-            loss = loss * 0.5
-        if i > 40000:
-            loss = loss * 0.5
+    with torch.no_grad():
+        stats[0] += loss.clone().detach()
+    if i > 10000:
+        loss = loss * 0.5
+    if i > 20000:
+        loss = loss * 0.5
+    if i > 30000:
+        loss = loss * 0.5
+    if i > 40000:
+        loss = loss * 0.5
 
-        optimizer.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
-        optimizer.step()
+    optimizer.zero_grad()
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
+    optimizer.step()
 
-        with torch.no_grad():
-            z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
-            stats[1] += torch.sum((z == y).float() * D)
-            stats[2] += torch.sum(D)
+    with torch.no_grad():
+        z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
+        stats[1] += torch.sum((z == y).float() * D)
+        stats[2] += torch.sum(D)
 
-        if i % 61 == 60:
-            print(i, "/50000", stats[0] / 61)
+    if i % 61 == 60:
+        print(i, "/50000", stats[0] / 61)
 
-        if i % 500 == 499:
-            torch.save(net, "build/model.pth")
-            print("accuracy", 100 * stats[1] / stats[2])
-            if 100 * stats[1] / stats[2]:
-                print("training stops after reaching high training accuracy")
-                quit()
-            else:
-                stats = torch.zeros(3).cuda()
+    if i % 500 == 499:
+        torch.save(net, "build/model.pth")
+        print("accuracy", 100 * stats[1] / stats[2])
+        if 100 * stats[1] / stats[2]:
+            print("training stops after reaching high training accuracy")
+            quit()
+        else:
+            stats = torch.zeros(3).cuda()
 
 print("training stops after reaching time limit")
