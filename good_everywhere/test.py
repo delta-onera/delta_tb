@@ -1,4 +1,5 @@
 import os
+
 import numpy
 import PIL
 from PIL import Image
