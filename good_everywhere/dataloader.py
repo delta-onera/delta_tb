@@ -128,7 +128,7 @@ class MiniWorld:
             row = np.random.randint(0, image.shape[0] - tile - 2, size=tilesperimage)
             col = np.random.randint(0, image.shape[1] - tile - 2, size=tilesperimage)
 
-            for i in range(nbtilesperimage):
+            for i in range(tilesperimage):
                 im = image[row[i] : row[i] + tile, col[i] : col[i] + tile, :]
                 mask = label[row[i] : row[i] + tile, col[i] : col[i] + tile]
                 XY.append((im.copy(), mask.copy()))
