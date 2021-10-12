@@ -102,3 +102,5 @@ for i in range(50000):
             stats = torch.zeros(3).cuda()
 
 print("training stops after reaching time limit")
+
+#### 1 dataloader par ville.... finalement à ce stade c'est peut être mieux de le faire à la main...
