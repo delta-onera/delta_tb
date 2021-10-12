@@ -97,7 +97,7 @@ class MiniWorld:
     def getbatch(self, batchsize, priority=None):
         if priority is None:
             nb = batchsize // 2 // len(self.cities) + 1
-            priority = set([(city, nb) for city in self.cities])
+            priority = map([(city, nb) for city in self.cities])
 
         XY = []
         for city in self.cities:
