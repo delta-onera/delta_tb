@@ -20,7 +20,7 @@ class MiniWorld:
     def __init__(self, flag, custom=None, tilesize=128):
         assert flag in ["train", "test", "custom"]
 
-        self.names = [
+        self.cities = [
             "potsdam",
             "christchurch",
             "toulouse",
@@ -43,12 +43,12 @@ class MiniWorld:
         self.tilesize = tilesize
 
         if flag == "custom":
-            self.names = custom
+            self.cities = custom
         else:
             if flag == "train":
-                self.names = [s + "/train/" for s in self.names]
+                self.cities = [s + "/train/" for s in self.cities]
             else:
-                self.names = [s + "/test/" for s in self.names]
+                self.cities = [s + "/test/" for s in self.cities]
 
         whereIam = os.uname()[1]
         if whereIam in ["super", "wdtim719z"]:
@@ -59,16 +59,16 @@ class MiniWorld:
             self.root = "/scratch_ai4geo/miniworld/"
 
         self.data = {}
-        for town in self.names:
-            self.data[town] = cropextractor.CropExtractor(
-                self.root + town, tilesize=tilesize
+        for city in self.cities:
+            self.data[city] = cropextractor.CropExtractor(
+                self.root + city, tilesize=tilesize
             )
         self.run = False
 
     def start():
         self.run = True
-        for town in self.names:
-            self.data[town].start()
+        for city in self.cities:
+            self.data[city].start()
 
     def getbatch(self, batchsize, batchpriority=None):
         assert self.run
@@ -76,14 +76,13 @@ class MiniWorld:
 
         tilesize = self.tilesize
         if batchpriority is None:
-            batchpriority = numpy.ones(self.names)
+            batchpriority = numpy.ones(self.cities)
         batchpriority /= numpy.sum(batchpriority)
 
-        batchchoice = numpy.random.choice(self.names, batchsize, p=batchpriority)
+        batchchoice = numpy.random.choice(len(self.cities), batchsize, p=batchpriority)
 
-        x, y = torch.zeros(batchsize, 3, tilesize, tilesize), torch.zeros(
-            batchsize, tilesize, tilesize
-        )
-        for i, name in enumerate(batchchoice):
-            x[i], y[i] = self.data[name].getcrop()
+        x = torch.zeros(batchsize, 3, tilesize, tilesize)
+        y = torch.zeros(batchsize, tilesize, tilesize)
+        for i in batchchoice:
+            x[i], y[i] = self.data[self.cities[i]].getcrop()
         return x, y, batchchoice

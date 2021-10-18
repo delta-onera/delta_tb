@@ -60,9 +60,7 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 batchsize = 32
 printloss = torch.zeros(1).cuda()
-stats = {}
-for name in miniworld.availabledata:
-    stats[name] = torch.zeros(2).cuda()
+stats = torch.zeros((len(miniworld.cities), 2)).cuda()
 for i in range(50000):
     x, y, batchchoise = miniworld.getbatch(batchsize)
     x, y = x.cuda(), y.cuda()
@@ -96,25 +94,22 @@ for i in range(50000):
 
     with torch.no_grad():
         z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
-        for j, name in enumerate(batchchoise):
-            stats[name][0] += torch.sum((z[j] == y[j]).float() * D[j])
-            stats[name][1] += torch.sum(D[j])
+        for j in range(batchsize):
+            stats[batchchoise[j]][0] += torch.sum((z[j] == y[j]).float() * D[j])
+            stats[batchchoise[j]][1] += torch.sum(D[j])
 
     if i % 61 == 60:
         print(i, "/50000", printloss / 61)
 
     if i % 500 == 499:
         torch.save(net, "build/model.pth")
-        cm = torch.zeros(2).cuda()
-        for name in stats:
-            cm += stats[name]
+        cm = stats.sum(dim=0)
         print("accuracy", 100 * cm[0] / cm[1])
         if 100 * cm[0] / cm[1]:
             print("training stops after reaching high training accuracy")
             os._exit(0)
         else:
-            for name in miniworld.availabledata:
-                stats[name] = torch.zeros(2).cuda()
+            stats = torch.zeros((len(miniworld.cities), 2)).cuda()
 
 print("training stops after reaching time limit")
 os._exit(0)

@@ -78,12 +78,12 @@ def perf(cm):
         return out
 
 
-cm = torch.zeros((len(miniworld.availabledata), 2, 2)).cuda()
+cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 with torch.no_grad():
-    for k, town in enumerate(miniworld.availabledata):
-        print(k, town)
-        for i in range(miniworld.data[town].NB):
-            x, y = miniworld.data[town].getImageAndLabel(i, torchFormat=True)
+    for k, city in enumerate(miniworld.cities):
+        print(k, city)
+        for i in range(miniworld.data[city].NB):
+            x, y = miniworld.data[city].getImageAndLabel(i, torchFormat=True)
 
             h, w = y.shape[0], y.shape[1]
             D = dataloader.distancetransform(y.unsqueeze(0))
@@ -100,7 +100,7 @@ with torch.no_grad():
             cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
             cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
 
-            if town in ["potsdam/test", "chicago/test", "Austin/test"]:
+            if city in ["potsdam/test", "chicago/test", "Austin/test"]:
                 nextI = len(os.listdir("build"))
                 debug = cropextractor.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
@@ -117,8 +117,8 @@ with torch.no_grad():
         numpy.savetxt("build/logtest.txt", perf(cm).cpu().numpy())
 
 print("-------- results ----------")
-for k, town in enumerate(miniworld.towns):
-    print(town, perf(cm[k]))
+for k, city in enumerate(miniworld.citys):
+    print(city, perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
 print("miniworld", perf(cm))
