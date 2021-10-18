@@ -84,6 +84,6 @@ class MiniWorld:
 
         x = torch.zeros(batchsize, 3, tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
-        for i in batchchoice:
-            x[i], y[i] = self.data[self.cities[i]].getCrop()
+        for i in batchsize:
+            x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
         return x, y, batchchoice
