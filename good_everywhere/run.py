@@ -23,6 +23,7 @@ if not os.path.exists(root + "miniworld"):
     print("miniworld not found")
     quit()
 
+os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
@@ -38,3 +39,5 @@ if whereIam == "super":
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     os.system("/d/jcastillo/anaconda3/bin/python -u normal.py")
     os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
+
+os.system("rm -rf __pycache__")
