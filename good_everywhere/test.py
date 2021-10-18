@@ -1,5 +1,4 @@
 import os
-
 import numpy
 import PIL
 from PIL import Image
@@ -13,7 +12,27 @@ else:
     print("no cuda")
     quit()
 
+
+def largeforward(net, image, tilesize=128, stride=64):
+    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
+    image = image.cuda()
+    for row in range(0, image.shape[2] - tilesize + 1, stride):
+        for col in range(0, image.shape[3] - tilesize + 1, stride):
+            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
+            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
+    return pred
+
+
 whereIam = os.uname()[1]
+if whereIam == "super":
+    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
+    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
+    )
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
+    )
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
@@ -31,6 +50,7 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
+import cropextractor
 import dataloader
 
 print("load model")
@@ -58,24 +78,12 @@ def perf(cm):
         return out
 
 
-def largeforward(image, tilesize=128, stride=64):
-    with torch.no_grad():
-        pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
-        image = image.float().cuda()
-        for row in range(0, image.shape[2] - tilesize + 1, stride):
-            for col in range(0, image.shape[3] - tilesize + 1, stride):
-                tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-                pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
-
-    return pred
-
-
-cm = torch.zeros((len(miniworld.towns), 2, 2)).cuda()
+cm = torch.zeros((len(miniworld.availabledata), 2, 2)).cuda()
 with torch.no_grad():
-    for k, town in enumerate(miniworld.towns):
+    for k, town in enumerate(miniworld.availabledata):
         print(k, town)
-        for i in range(miniworld.nbImages[town]):
-            x, y = miniworld.getImageAndLabel(town, i, torchFormat=True)
+        for i in range(miniworld.data[town].NB):
+            x, y = miniworld.data[town].getImageAndLabel(i, torchFormat=True)
 
             h, w = y.shape[0], y.shape[1]
             D = dataloader.distancetransform(y.unsqueeze(0))
@@ -83,7 +91,7 @@ with torch.no_grad():
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
-            z = largeforward(x)
+            z = largeforward(x.unsqueeze(0))
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
@@ -94,8 +102,7 @@ with torch.no_grad():
 
             if town in ["potsdam/test", "chicago/test", "Austin/test"]:
                 nextI = len(os.listdir("build"))
-                debug = globalresize(x)[0].cpu().numpy()
-                debug = numpy.transpose(debug, axes=(1, 2, 0))
+                debug = cropextractor.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127

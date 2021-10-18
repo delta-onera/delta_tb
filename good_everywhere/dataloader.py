@@ -1,8 +1,10 @@
+import numpy
 import os
-import numpy as np
 import PIL
 from PIL import Image
 import torch
+import random
+import cropextractor
 
 
 def distancetransform(y, size=4):
@@ -14,150 +16,74 @@ def distancetransform(y, size=4):
     return D[0]
 
 
-def symetrie(x, y, i, j, k):
-    if i == 1:
-        x, y = np.transpose(x, axes=(1, 0, 2)), np.transpose(y, axes=(1, 0))
-    if j == 1:
-        x, y = np.flip(x, axis=1), np.flip(y, axis=1)
-    if k == 1:
-        x, y = np.flip(x, axis=1), np.flip(y, axis=1)
-    return x.copy(), y.copy()
-
-
 class MiniWorld:
-    def __init__(self, custom=None, flag=None):
-        assert custom is not None or flag is not None
+    def __init__(self, flag, custom=None, tilesize=128):
+        assert flag in ["train", "test", "custom"]
 
-        if custom is not None:
-            self.cities = custom
+        self.names = [
+            "potsdam",
+            "christchurch",
+            "toulouse",
+            "austin",
+            "chicago",
+            "kitsap",
+            "tyrol-w",
+            "vienna",
+            "bruges",
+            "Arlington",
+            "Austin",
+            "DC",
+            "NewYork",
+            "SanFrancisco",
+            "Atlanta",
+            "NewHaven",
+            "Norfolk",
+            "Seekonk",
+        ]
+        self.tilesize = tilesize
+
+        if flag == "custom":
+            self.names = custom
         else:
-            assert flag in ["train", "test"]
-            self.cities = [
-                "potsdam",
-                "christchurch",
-                "toulouse",
-                "austin",
-                "chicago",
-                "kitsap",
-                "tyrol-w",
-                "vienna",
-                "bruges",
-                "Arlington",
-                "Austin",
-                "DC",
-                "NewYork",
-                "SanFrancisco",
-                "Atlanta",
-                "NewHaven",
-                "Norfolk",
-                "Seekonk",
-            ]
-            self.cities = ["potsdam", "toulouse", "austin", "chicago", "kitsap"]
-            self.cities = [city + "/" + flag for city in self.cities]
+            if flag == "train":
+                self.names = [s + "/train/" for s in self.names]
+            else:
+                self.names = [s + "/test/" for s in self.names]
 
         whereIam = os.uname()[1]
-        if whereIam == "wdtim719z":
-            self.root = "/data/miniworld"
+        if whereIam in ["super", "wdtim719z"]:
+            self.root = "/data/miniworld/"
         if whereIam == "ldtis706z":
-            self.root = "/media/achanhon/bigdata/data/miniworld"
+            self.root = "/media/achanhon/bigdata/data/miniworld/"
         if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-            self.root = "/scratch_ai4geo/miniworld"
+            self.root = "/scratch_ai4geo/miniworld/"
 
-        self.nbImages = {}
-        for city in self.cities:
-            nb = 0
-            path = self.root + "/" + city + "/"
-            while os.path.exists(path + str(nb) + "_x.png"):
-                nb += 1
-            if nb == 0:
-                print("wrong path", path)
-                quit()
-            else:
-                self.nbImages[city] = nb
-        tot = sum([self.nbImages[city] for city in self.cities])
-        print("found #cities, #image = ", len(self.cities), tot)
+        self.data = {}
+        for town in self.names:
+            self.data[town] = cropextractor.CropExtractor(
+                self.root + town, tilesize=tilesize
+            )
+        self.run = False
 
-    def getImageAndLabel(self, city, i, torchFormat=False):
-        assert city in self.cities
-        assert i < self.nbImages[city]
+    def start():
+        self.run = True
+        for town in self.names:
+            self.data[town].start()
 
-        path = self.root + "/" + city + "/"
-        image = PIL.Image.open(path + str(i) + "_x.png").convert("RGB").copy()
-        image = np.uint8(np.asarray(image))
+    def getbatch(self, batchsize, batchpriority=None):
+        assert self.run
+        assert batchpriority is None or numpy.sum(batchpriority) > 0
 
-        label = PIL.Image.open(path + str(i) + "_y.png").convert("L").copy()
-        label = np.uint8(np.asarray(label))
-        label = np.uint8(label != 0)
+        tilesize = self.tilesize
+        if batchpriority is None:
+            batchpriority = numpy.ones(self.names)
+        batchpriority /= numpy.sum(batchpriority)
 
-        if torchFormat:
-            x = torch.Tensor(numpy.transpose(image, axes=(2, 0, 1)))
-            return x.unsqueeze(0), torch.Tensor(label)
-        else:
-            return image, label
+        batchchoice = numpy.random.choice(self.names, batchsize, p=batchpriority)
 
-    def getbatch(self, batchsize, priority=None):
-        if priority is None:
-            nb = batchsize // 2 // len(self.cities) + 1
-            priority = {}
-            for city in self.cities:
-                priority[city] = nb
-
-        XY = []
-        for city in self.cities:
-            for i in range(priority[city]):
-                XY.append(self.privategetone(city))
-        X, Y = [x for x, _ in XY], [y for _, y in XY]
-        X, Y = torch.cat(X, dim=0), torch.cat(Y, dim=0)
-        return X, Y
-
-    def openpytorchloader(self, tilesize=128, nbtiles=20000):
-        self.tilesize = tilesize
-        self.nbtiles = nbtiles // len(self.cities) + 1
-        self.torchloader, self.iterator = {}, {}
-        for city in self.cities:
-            self.privatedataloader(city)
-
-    def privatedataloader(self, city):
-        assert city in self.cities
-        tile = self.tilesize
-        tilesperimage = self.nbtiles // self.nbImages[city] + 1
-
-        # crop
-        XY = []
-        for i in range(self.nbImages[city]):
-            image, label = self.getImageAndLabel(city, i)
-
-            row = np.random.randint(0, image.shape[0] - tile - 2, size=tilesperimage)
-            col = np.random.randint(0, image.shape[1] - tile - 2, size=tilesperimage)
-
-            for i in range(tilesperimage):
-                im = image[row[i] : row[i] + tile, col[i] : col[i] + tile, :]
-                mask = label[row[i] : row[i] + tile, col[i] : col[i] + tile]
-                XY.append((im.copy(), mask.copy()))
-
-        # symetrie
-        symetrieflag = np.random.randint(0, 2, size=(len(XY), 3))
-        XY = [
-            (symetrie(x, y, symetrieflag[i][0], symetrieflag[i][1], symetrieflag[i][2]))
-            for i, (x, y) in enumerate(XY)
-        ]
-
-        # pytorch
-        X = torch.stack(
-            [torch.Tensor(np.transpose(x, axes=(2, 0, 1))).cpu() for x, y in XY]
+        x, y = torch.zeros(batchsize, 3, tilesize, tilesize), torch.zeros(
+            batchsize, tilesize, tilesize
         )
-        Y = torch.stack([torch.from_numpy(y).long().cpu() for x, y in XY])
-
-        dataset = torch.utils.data.TensorDataset(X, Y)
-        self.torchloader[city] = torch.utils.data.DataLoader(
-            dataset, batch_size=2, shuffle=True, num_workers=1
-        )
-        self.iterator[city] = iter(self.torchloader[city])
-
-    def privategetone(self, city):
-        assert city in self.cities
-        try:
-            return next(self.iterator[city])
-        except StopIteration:
-            self.privatedataloader(city)
-            return next(self.iterator[city])
+        for i, name in enumerate(batchchoice):
+            x[i], y[i] = self.data[name].getcrop()
+        return x, y, batchchoice

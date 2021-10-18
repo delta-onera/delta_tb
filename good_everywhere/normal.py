@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy
 import PIL
 from PIL import Image
@@ -14,6 +13,15 @@ else:
     quit()
 
 whereIam = os.uname()[1]
+if whereIam == "super":
+    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
+    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
+    )
+    sys.path.append(
+        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
+    )
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
@@ -31,6 +39,7 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
+import cropextractor
 import dataloader
 
 print("define model")
@@ -43,18 +52,19 @@ net = smp.Unet(
 net = net.cuda()
 net.train()
 
-
 print("load data")
 miniworld = dataloader.MiniWorld(flag="train")
-miniworld.openpytorchloader()
+miniworld.start()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-batchsize = 64
-stats = torch.zeros(3).cuda()
+batchsize = 32
+printloss = torch.zeros(1).cuda()
+stats = {}
+for name in miniworld.availabledata:
+    stats[name] = torch.zeros(2).cuda()
 for i in range(50000):
-    x, y = miniworld.getbatch(batchsize)
-    print(x.shape)
+    x, y, batchchoise = miniworld.getbatch(batchsize)
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
@@ -66,10 +76,10 @@ for i in range(50000):
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
     dice = criteriondice(z, y)
-    loss = CE + dice
+    loss = CE + 0.5 * dice
 
     with torch.no_grad():
-        stats[0] += loss.clone().detach()
+        printloss += loss.clone().detach()
     if i > 10000:
         loss = loss * 0.5
     if i > 20000:
@@ -86,21 +96,25 @@ for i in range(50000):
 
     with torch.no_grad():
         z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
-        stats[1] += torch.sum((z == y).float() * D)
-        stats[2] += torch.sum(D)
+        for j, name in enumerate(batchchoise):
+            stats[name][0] += torch.sum((z[j] == y[j]).float() * D[j])
+            stats[name][1] += torch.sum(D[j])
 
     if i % 61 == 60:
-        print(i, "/50000", stats[0] / 61)
+        print(i, "/50000", printloss / 61)
 
     if i % 500 == 499:
         torch.save(net, "build/model.pth")
-        print("accuracy", 100 * stats[1] / stats[2])
-        if 100 * stats[1] / stats[2]:
+        cm = torch.zeros(2).cuda()
+        for name in stats:
+            cm += stats[name]
+        print("accuracy", 100 * cm[0] / cm[1])
+        if 100 * cm[0] / cm[1]:
             print("training stops after reaching high training accuracy")
-            quit()
+            os._exit(0)
         else:
-            stats = torch.zeros(3).cuda()
+            for name in miniworld.availabledata:
+                stats[name] = torch.zeros(2).cuda()
 
 print("training stops after reaching time limit")
-
-#### 1 dataloader par ville.... finalement à ce stade c'est peut être mieux de le faire à la main...
+os._exit(0)

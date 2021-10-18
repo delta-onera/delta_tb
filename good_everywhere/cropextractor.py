@@ -20,11 +20,11 @@ def symetrie(x, y, ijk):
 
 
 def pilTOtorch(x):
-    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1))).unsqueeze(0)
+    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 
 
 def torchTOpil(x):
-    return numpy.transpose(x[0].cpu().numpy(), axes=(1, 2, 0))
+    return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
 class CropExtractor(threading.Thread):
@@ -56,7 +56,7 @@ class CropExtractor(threading.Thread):
         label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label).long()
+            return pilTOtorch(image), torch.Tensor(label)
         else:
             return image, label
 
@@ -83,5 +83,5 @@ class CropExtractor(threading.Thread):
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y).unsqueeze(0).long()
+                    x, y = pilTOtorch(x), torch.Tensor(y).long()
                     self.q.put((x, y), block=True)
