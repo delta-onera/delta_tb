@@ -99,7 +99,7 @@ for i in range(nbbatchs):
     optimizer.step()
 
     with torch.no_grad():
-        z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
+        z = z[:, 1, :, :] > z[:, 0, :, :]
         for j in range(batchsize):
             stats[batchchoise[j]][0] += torch.sum((z[j] == y[j]).float() * D[j])
             stats[batchchoise[j]][1] += torch.sum(D[j])
