@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy
 import PIL
 from PIL import Image
@@ -60,7 +61,9 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.MiniWorld(
+    flag="custom", custom=["potsdam/test/", "toulouse/test/"]
+)
 
 print("test")
 

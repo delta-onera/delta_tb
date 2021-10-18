@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy
 import PIL
 from PIL import Image
@@ -53,12 +54,14 @@ net = net.cuda()
 net.train()
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="train")
+miniworld = dataloader.MiniWorld(
+    flag="custom", custom=["potsdam/train/", "toulouse/train/"]
+)
 miniworld.start()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-batchsize = 32
+batchsize = 3
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2)).cuda()
 for i in range(50000):
@@ -70,11 +73,11 @@ for i in range(50000):
     nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
     weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-    criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
-    CE = criterion(z, y)
+    # criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
+    CE = criterion(z, y.long())
     CE = torch.mean(CE * D)
-    dice = criteriondice(z, y)
-    loss = CE + 0.5 * dice
+    # dice = criteriondice(z, y)
+    loss = CE  # + 0.5 * dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()

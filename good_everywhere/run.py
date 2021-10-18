@@ -9,9 +9,10 @@ assert whereIam in [
     "flexo",
     "bender",
     "ldtis706z",
+    "super",
 ]
 
-if whereIam == "wdtim719z":
+if whereIam in ["wdtim719z", "super"]:
     root = "/data/"
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
@@ -26,11 +27,14 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 if whereIam == "wdtim719z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python normal.py")
-    os.system("/data/anaconda3/envs/pytorch/bin/python test.py")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u normal.py")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py")
 if whereIam == "ldtis706z":
-    os.system("python3 normal.py")
-    os.system("python3 test.py")
+    os.system("python3 -u normal.py")
+    os.system("python3 -u test.py")
+if whereIam == "super":
+    os.system("/data/anaconda3/bin/python -u normal.py")
+    os.system("/data/anaconda3/bin/python -u test.py")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("/d/jcastillo/anaconda3/bin/python normal.py")
-    os.system("/d/jcastillo/anaconda3/bin/python test.py")
+    os.system("/d/jcastillo/anaconda3/bin/python -u normal.py")
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py")

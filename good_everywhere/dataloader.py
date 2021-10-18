@@ -1,5 +1,6 @@
-import numpy
 import os
+import sys
+import numpy
 import PIL
 from PIL import Image
 import torch
@@ -65,7 +66,7 @@ class MiniWorld:
             )
         self.run = False
 
-    def start():
+    def start(self):
         self.run = True
         for city in self.cities:
             self.data[city].start()
@@ -76,7 +77,7 @@ class MiniWorld:
 
         tilesize = self.tilesize
         if batchpriority is None:
-            batchpriority = numpy.ones(self.cities)
+            batchpriority = numpy.ones(len(self.cities))
         batchpriority /= numpy.sum(batchpriority)
 
         batchchoice = numpy.random.choice(len(self.cities), batchsize, p=batchpriority)
@@ -84,5 +85,5 @@ class MiniWorld:
         x = torch.zeros(batchsize, 3, tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
         for i in batchchoice:
-            x[i], y[i] = self.data[self.cities[i]].getcrop()
+            x[i], y[i] = self.data[self.cities[i]].getCrop()
         return x, y, batchchoice
