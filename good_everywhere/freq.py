@@ -50,7 +50,10 @@ miniworld.start()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-batchsize = 32
+if whereIam in ["ldtis706z", "wdtim719z"]:
+    batchsize = 16
+else:
+    batchsize = 32
 nbbatchs = 100000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2)).cuda()
