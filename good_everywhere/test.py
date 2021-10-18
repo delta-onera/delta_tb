@@ -86,15 +86,16 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
         for i in range(miniworld.data[city].NB):
-            x, y = miniworld.data[city].getImageAndLabel(i, torchFormat=True)
+            x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
+            x, y = x.cuda(), y.cuda()
 
             h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y.unsqueeze(0))
+            D = dataloader.distancetransform(y)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
-            z = largeforward(x.unsqueeze(0))
+            z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
@@ -103,7 +104,7 @@ with torch.no_grad():
             cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
             cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
 
-            if city in ["potsdam/test", "chicago/test", "Austin/test"]:
+            if city in ["potsdam/test/", "chicago/test/", "Austin/test/"]:
                 nextI = len(os.listdir("build"))
                 debug = cropextractor.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
@@ -120,7 +121,7 @@ with torch.no_grad():
         numpy.savetxt("build/logtest.txt", perf(cm).cpu().numpy())
 
 print("-------- results ----------")
-for k, city in enumerate(miniworld.citys):
+for k, city in enumerate(miniworld.cities):
     print(city, perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
