@@ -52,7 +52,7 @@ class MiniWorld:
                 self.cities = [s + "/test/" for s in self.cities]
 
         whereIam = os.uname()[1]
-        if whereIam in ["super", "wdtim719z"]:
+        if whereIam == "wdtim719z":
             self.root = "/data/miniworld/"
         if whereIam == "ldtis706z":
             self.root = "/media/achanhon/bigdata/data/miniworld/"
@@ -71,16 +71,16 @@ class MiniWorld:
         for city in self.cities:
             self.data[city].start()
 
-    def getbatch(self, batchsize, batchpriority=None):
+    def getbatch(self, batchsize, priority=None):
         assert self.run
-        assert batchpriority is None or numpy.sum(batchpriority) > 0
+        assert priority is None or numpy.sum(priority) > 0
 
         tilesize = self.tilesize
-        if batchpriority is None:
-            batchpriority = numpy.ones(len(self.cities))
-        batchpriority /= numpy.sum(batchpriority)
+        if priority is None:
+            priority = numpy.ones(len(self.cities))
+        priority /= numpy.sum(priority)
 
-        batchchoice = numpy.random.choice(len(self.cities), batchsize, p=batchpriority)
+        batchchoice = numpy.random.choice(len(self.cities), batchsize, p=priority)
 
         x = torch.zeros(batchsize, 3, tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)

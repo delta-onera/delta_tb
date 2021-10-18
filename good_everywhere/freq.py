@@ -14,15 +14,6 @@ else:
     quit()
 
 whereIam = os.uname()[1]
-if whereIam == "super":
-    sys.path.append("/home/achanhon/github/segmentation_models/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/segmentation_models/pytorch-image-models")
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/pretrained-models.pytorch"
-    )
-    sys.path.append(
-        "/home/achanhon/github/segmentation_models/segmentation_models.pytorch"
-    )
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/home/achanhon/github/pytorch-image-models")
@@ -54,20 +45,19 @@ net = net.cuda()
 net.train()
 
 print("load data")
-miniworld = dataloader.MiniWorld(
-    flag="custom", custom=["potsdam/train/", "toulouse/train/"]
-)
+miniworld = dataloader.MiniWorld(flag="train")
 miniworld.start()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-batchsize = 3
+batchsize = 32
 nbbatchs = 100000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2)).cuda()
 for i in range(nbbatchs):
-    if i % 500 > 50:
-        priority = stats[:, 1] / (stats[:, 0] + 1)
+    if i % 500 > 70:
+        priority = 10000 * (stats[:, 1] == 0).float() + stats[:, 1] / (stats[:, 0] + 1)
+        priority = priority.cpu().numpy()
         x, y, batchchoise = miniworld.getbatch(batchsize, priority=priority)
     else:
         x, y, batchchoise = miniworld.getbatch(batchsize)
@@ -78,11 +68,12 @@ for i in range(nbbatchs):
     nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
     weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-    # criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
     CE = criterion(z, y.long())
     CE = torch.mean(CE * D)
-    # dice = criteriondice(z, y)
-    loss = CE  # + 0.5 * dice
+
+    criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
+    dice = criteriondice(z, y.long())
+    loss = CE + 0.1 * dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
