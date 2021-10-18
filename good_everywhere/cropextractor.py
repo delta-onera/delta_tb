@@ -79,7 +79,7 @@ class CropExtractor(threading.Thread):
                 flag = numpy.random.randint(0, 2, size=(16, 3))
                 for j in range(16):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
-                    c = int(RC[i][1] * (image.shape[1] - tilesize - 2))
+                    c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
