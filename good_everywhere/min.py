@@ -56,7 +56,7 @@ else:
     batchsize = 32
 nbbatchs = 100000
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(miniworld.cities), 2)).cuda()
+stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 for i in range(nbbatchs):
     x, y, batchchoise = miniworld.getbatch(batchsize)
     x, y = x.cuda(), y.cuda()
@@ -66,7 +66,6 @@ for i in range(nbbatchs):
     nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
     weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-
     CE = criterion(z, y.long())
     CE = CE * D
     CE = torch.mean(CE, dim=1)
@@ -101,22 +100,25 @@ for i in range(nbbatchs):
     with torch.no_grad():
         z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
         for j in range(batchsize):
-            stats[batchchoise[j]][0] += torch.sum((z[j] == y[j]).float() * D[j])
-            stats[batchchoise[j]][1] += torch.sum(D[j])
+            cm = torch.zeros(2, 2).cuda()
+            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                cm[a][b] = torch.sum((z[j] == a).float() * (y[j] == b).float() * D[j])
+            stats[batchchoise[j]] += cm
 
-    if i % 61 == 60:
-        print(i, "/50000", printloss / 61)
+    if i % 100 == 99:
+        print(i, "/50000", printloss / 100)
         printloss = torch.zeros(1).cuda()
 
-    if i % 500 == 499:
+    if i % 1000 == 999:
         torch.save(net, "build/model.pth")
-        cm = stats.sum(dim=0)
-        print("accuracy", 100 * cm[0] / cm[1])
-        if 100 * cm[0] / cm[1] > 96:
+        cm = torch.sum(stats, dim=0)
+        perf = dataloader.perf(cm)
+        print("perf", perf)
+        if perf[0] > 92:
             print("training stops after reaching high training accuracy")
             os._exit(0)
         else:
-            stats = torch.zeros((len(miniworld.cities), 2)).cuda()
+            stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 
 print("training stops after reaching time limit")
 os._exit(0)
