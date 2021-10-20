@@ -60,7 +60,7 @@ stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 for i in range(nbbatchs):
     if i % 500 > 70:
         perf = dataloader.perf(stats)
-        priority = 100.1 - perf[0]
+        priority = 100.1 - perf[:, 0]
         priority = priority.cpu().numpy()
         x, y, batchchoise = miniworld.getbatch(batchsize, priority=priority)
     else:
