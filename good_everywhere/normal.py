@@ -45,7 +45,10 @@ net = net.cuda()
 net.train()
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="train")
+if len(sys.argv) < 2:
+    miniworld = dataloader.MiniWorld(flag="train")
+else:
+    miniworld = dataloader.MiniWorld(flag="custom", custom=[sys.argv[1] + "/train"])
 miniworld.start()
 
 print("train")
