@@ -64,7 +64,7 @@ for i in range(nbbatchs):
         perf = [(perf[j][0], j) for j in range(perf.shape[0])]
         perf = sorted(perf)
 
-        priority = numpy.ones(perf.shape[0])
+        priority = numpy.ones(len(perf))
         for j in range(perf.shape[0] // 2):
             priority[perf[j][1]] = 100
 
