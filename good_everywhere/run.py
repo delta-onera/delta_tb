@@ -20,7 +20,7 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 if whereIam == "wdtim719z":
-    self.cities = [
+    cities = [
         "potsdam",
         "christchurch",
         "toulouse",
