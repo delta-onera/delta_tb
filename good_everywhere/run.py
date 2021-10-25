@@ -47,13 +47,13 @@ if whereIam == "wdtim719z":
 if whereIam == "ldtis706z":
     print("freq")
     os.system("python3 -u freq.py")
-    os.system("python3 -u test.py debug")
+    os.system("python3 -u test.py")
     print("normal")
     os.system("python3 -u normal.py")
-    os.system("python3 -u test.py debug")
+    os.system("python3 -u test.py")
     print("min")
     os.system("python3 -u min.py")
-    os.system("python3 -u test.py debug")
+    os.system("python3 -u test.py")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     print("freq")
     os.system("/d/jcastillo/anaconda3/bin/python -u freq.py")
