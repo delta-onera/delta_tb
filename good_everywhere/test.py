@@ -99,7 +99,7 @@ with torch.no_grad():
             cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
             cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
 
-            if city in ["potsdam/test/", "chicago/test/", "Austin/test/"]:
+            if len(sys.argv) == 2 and sys.argv[1] != "debug":
                 nextI = len(os.listdir("build"))
                 debug = cropextractor.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
