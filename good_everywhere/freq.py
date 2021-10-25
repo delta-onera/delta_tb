@@ -61,7 +61,7 @@ for i in range(nbbatchs):
     if i % 500 > 70:
         perf = dataloader.perf(stats)
 
-        perf = [(perf[j], j) for j in range(perf.shape[0])]
+        perf = [(perf[j][0], j) for j in range(perf.shape[0])]
         perf = sorted(perf)
 
         priority = numpy.ones(perf.shape[0])
