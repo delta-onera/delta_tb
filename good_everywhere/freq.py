@@ -65,7 +65,7 @@ for i in range(nbbatchs):
         perf = sorted(perf)
 
         priority = numpy.ones(len(perf))
-        for j in range(perf.shape[0] // 2):
+        for j in range(stats.shape[0] // 2):
             priority[perf[j][1]] = 100
 
         x, y, batchchoise = miniworld.getbatch(batchsize, priority=priority)
