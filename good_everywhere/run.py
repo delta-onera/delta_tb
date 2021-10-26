@@ -43,7 +43,7 @@ if whereIam == "wdtim719z":
     for city in cities:
         print(city)
         os.system("/data/anaconda3/envs/pytorch/bin/python -u normal.py " + city)
-        os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py" + city)
+        os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py " + city)
 if whereIam == "ldtis706z":
     print("freq")
     os.system("python3 -u freq.py")
