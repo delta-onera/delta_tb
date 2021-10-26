@@ -19,6 +19,39 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def normalize(image):
+    if len(im.shape) == 2:
+        allvalues = []
+        for row in range(0, im.shape[0] - 100, 300):
+            for col in range(0, im.shape[1] - 100, 300):
+                allvalues += list(im[row : row + 100, col : col + 100].flatten())
+
+        allvalues = [v for v in allvalues if v >= 2]
+
+        allvalues = sorted(allvalues)
+        n = len(allvalues)
+        allvalues = allvalues[0 : int(98 * n / 100)]
+        allvalues = allvalues[int(2 * n / 100) :]
+
+        n = len(allvalues)
+        k = n // 255
+        pivot = [0] + [allvalues[i] for i in range(0, n, k)]
+        assert len(pivot) >= 255
+
+        out = np.zeros(im.shape, dtype=int)
+        for i in range(1, 255):
+            print(i)
+            out = np.maximum(out, np.uint8(im > pivot[i]) * i)
+
+        return safeuint8(out)
+
+    else:
+        output = im.copy()
+        for i in range(im.shape[2]):
+            output[:, :, i] = normalizehistogram(im[:, :, i])
+        return output
+
+
 def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 

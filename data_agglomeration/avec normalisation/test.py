@@ -52,13 +52,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-if len(sys.argv) == 2 and sys.argv[1] == "debug":
-    miniworld = dataloader.MiniWorld(flag="train")
-else:
-    if len(sys.argv) == 2:
-        miniworld = dataloader.MiniWorld(flag="custom", custom=[sys.argv[1] + "/test/"])
-    else:
-        miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.MiniWorld(flag="test")
 
 print("test")
 
