@@ -19,32 +19,6 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
-def normalize(image):
-    if len(image.shape) == 2:
-        allvalues = list(image[::2, ::2].flatten())
-        allvalues = sorted([v for v in allvalues if v > 0])
-        n = len(allvalues)
-        d, f = int(2 * n / 100), int(98 * n / 100)
-        allvalues = allvalues[d:f]
-
-        n = len(allvalues)
-        k = n // 255
-        pivot = [0] + [allvalues[i] for i in range(0, n, k)]
-        assert len(pivot) >= 255
-
-        out = numpy.uint8(numpy.zeros(image.shape))
-        for i in range(1, 255):
-            tmp = numpy.uint8(image > pivot[i])
-            out = numpy.maximum(out, i * tmp)
-
-        return numpy.uint8(out)
-    else:
-        output = numpy.zeros(image.shape)
-        for i in range(3):
-            output[:, :, i] = normalize(image[:, :, i])
-        return output
-
-
 def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 
@@ -71,15 +45,11 @@ class CropExtractor(threading.Thread):
         else:
             self.tilesize = None
 
-    def getImageAndLabel(self, i, torchformat=False, randomNormalization=101):
+    def getImageAndLabel(self, i, torchformat=False):
         assert i < self.NB
 
         image = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
         image = numpy.uint8(numpy.asarray(image))
-
-        if image.shape[0] > 1024 and image.shape[1] > 1024:
-            if random.randint(0, 100) > randomNormalization:
-                image = normalize(image)
 
         label = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
         label = numpy.uint8(numpy.asarray(label))
