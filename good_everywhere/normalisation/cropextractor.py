@@ -6,6 +6,8 @@ from PIL import Image
 import numpy
 import torch
 import random
+import skimage
+from skimage import exposure
 
 
 def symetrie(x, y, ijk):
@@ -19,32 +21,6 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
-def normalize(image):
-    if len(image.shape) == 2:
-        allvalues = list(image[::2, ::2].flatten())
-        allvalues = sorted([v for v in allvalues if v > 0])
-        n = len(allvalues)
-        d, f = int(2 * n / 100), int(98 * n / 100)
-        allvalues = allvalues[d:f]
-
-        n = len(allvalues)
-        k = n // 255
-        pivot = [0] + [allvalues[i] for i in range(0, n, k)]
-        assert len(pivot) >= 255
-
-        out = numpy.uint8(numpy.zeros(image.shape))
-        for i in range(1, 255):
-            tmp = numpy.uint8(image > pivot[i])
-            out = numpy.maximum(out, i * tmp)
-
-        return numpy.uint8(out)
-    else:
-        output = numpy.zeros(image.shape)
-        for i in range(3):
-            output[:, :, i] = normalize(image[:, :, i])
-        return output
-
-
 def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 
@@ -54,7 +30,7 @@ def torchTOpil(x):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, path, maxsize=1000, tilesize=128):
+    def __init__(self, path, maxsize=500, tilesize=128):
         threading.Thread.__init__(self)
         self.path = path
         self.NB = 0
@@ -71,7 +47,7 @@ class CropExtractor(threading.Thread):
         else:
             self.tilesize = None
 
-    def getImageAndLabel(self, i, torchformat=False, randomNormalization=101):
+    def getImageAndLabel(self, i, torchformat=False, randomNormalization=50):
         assert i < self.NB
 
         image = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
@@ -79,7 +55,10 @@ class CropExtractor(threading.Thread):
 
         if image.shape[0] > 1024 and image.shape[1] > 1024:
             if random.randint(0, 100) > randomNormalization:
-                image = normalize(image)
+                image[:, :, 0] = skimage.exposure.equalize_hist(image[:, :, 0])
+                image[:, :, 1] = skimage.exposure.equalize_hist(image[:, :, 1])
+                image[:, :, 2] = skimage.exposure.equalize_hist(image[:, :, 2])
+        image = numpy.uint8(image)
 
         label = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
         label = numpy.uint8(numpy.asarray(label))
@@ -105,8 +84,13 @@ class CropExtractor(threading.Thread):
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
 
-                RC = numpy.random.rand(16, 2)
-                flag = numpy.random.randint(0, 2, size=(16, 3))
+                if image.shape[0] < 512 or image.shape[1] < 512:
+                    RC = numpy.random.rand(2, 2)
+                if image.shape[0] < 1024 or image.shape[1] < 1024:
+                    RC = numpy.random.rand(4, 2)
+                if image.shape[0] > 1024 and image.shape[1] > 1024:
+                    RC = numpy.random.rand(16, 2)
+                flag = numpy.random.randint(0, 2, size=(RC.shape[0], 3))
                 for j in range(16):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
