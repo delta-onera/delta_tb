@@ -21,33 +21,26 @@ def symetrie(x, y, ijk):
 
 def normalize(image):
     if len(im.shape) == 2:
-        allvalues = []
-        for row in range(0, im.shape[0] - 100, 300):
-            for col in range(0, im.shape[1] - 100, 300):
-                allvalues += list(im[row : row + 100, col : col + 100].flatten())
-
-        allvalues = [v for v in allvalues if v >= 2]
-
-        allvalues = sorted(allvalues)
+        allvalues = list(im[::2, ::2].flatten())
+        allvalues = sorted([v for v in allvalues if v > 0])
         n = len(allvalues)
-        allvalues = allvalues[0 : int(98 * n / 100)]
-        allvalues = allvalues[int(2 * n / 100) :]
+        d, f = int(2 * n / 100), int(98 * n / 100)
+        allvalues = allvalues[d:f]
 
         n = len(allvalues)
         k = n // 255
         pivot = [0] + [allvalues[i] for i in range(0, n, k)]
         assert len(pivot) >= 255
 
-        out = np.zeros(im.shape, dtype=int)
+        out = numpy.uint8(numpy.zeros(im.shape))
         for i in range(1, 255):
-            print(i)
-            out = np.maximum(out, np.uint8(im > pivot[i]) * i)
+            tmp = numpy.uint8(im > pivot[i])
+            out = numpy.maximum(out, i * tmp)
 
-        return safeuint8(out)
-
+        return numpy.uint8(out)
     else:
-        output = im.copy()
-        for i in range(im.shape[2]):
+        output = numpy.zeros(image.shape)
+        for i in range(3):
             output[:, :, i] = normalizehistogram(im[:, :, i])
         return output
 
@@ -78,11 +71,15 @@ class CropExtractor(threading.Thread):
         else:
             self.tilesize = None
 
-    def getImageAndLabel(self, i, torchformat=False):
+    def getImageAndLabel(self, i, torchformat=False, randomNormalization=40):
         assert i < self.NB
 
         image = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
         image = numpy.uint8(numpy.asarray(image))
+
+        if image.shape[0] > 1024 and image.shape[1] > 1024:
+            if random.randint(0, 100) > randomNormalization:
+                image = normalize(image)
 
         label = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
         label = numpy.uint8(numpy.asarray(label))
