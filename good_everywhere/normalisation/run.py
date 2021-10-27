@@ -27,13 +27,13 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 if whereIam == "wdtim719z":
-    os.system("/data/anaconda3/envs/pytorch/bin/python train.py")
-    os.system("/data/anaconda3/envs/pytorch/bin/python test.py")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u train.py")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py")
 if whereIam == "ldtis706z":
-    os.system("python3 train.py")
-    os.system("python3 test.py")
+    os.system("python3 -u train.py")
+    os.system("python3 -u test.py")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("/d/jcastillo/anaconda3/bin/python train.py")
-    os.system("/d/jcastillo/anaconda3/bin/python test.py")
+    os.system("/d/jcastillo/anaconda3/bin/python -u train.py")
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
 
 os.system("rm -rf __pycache__")

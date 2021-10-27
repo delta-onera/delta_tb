@@ -20,8 +20,8 @@ def symetrie(x, y, ijk):
 
 
 def normalize(image):
-    if len(im.shape) == 2:
-        allvalues = list(im[::2, ::2].flatten())
+    if len(image.shape) == 2:
+        allvalues = list(image[::2, ::2].flatten())
         allvalues = sorted([v for v in allvalues if v > 0])
         n = len(allvalues)
         d, f = int(2 * n / 100), int(98 * n / 100)
@@ -32,16 +32,16 @@ def normalize(image):
         pivot = [0] + [allvalues[i] for i in range(0, n, k)]
         assert len(pivot) >= 255
 
-        out = numpy.uint8(numpy.zeros(im.shape))
+        out = numpy.uint8(numpy.zeros(image.shape))
         for i in range(1, 255):
-            tmp = numpy.uint8(im > pivot[i])
+            tmp = numpy.uint8(image > pivot[i])
             out = numpy.maximum(out, i * tmp)
 
         return numpy.uint8(out)
     else:
         output = numpy.zeros(image.shape)
         for i in range(3):
-            output[:, :, i] = normalizehistogram(im[:, :, i])
+            output[:, :, i] = normalize(image[:, :, i])
         return output
 
 
