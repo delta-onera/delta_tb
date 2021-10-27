@@ -91,7 +91,7 @@ class CropExtractor(threading.Thread):
                 if image.shape[0] > 1024 and image.shape[1] > 1024:
                     RC = numpy.random.rand(16, 2)
                 flag = numpy.random.randint(0, 2, size=(RC.shape[0], 3))
-                for j in range(16):
+                for j in range(RC.shape[0]):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
                     im = image[r : r + tilesize, c : c + tilesize, :]
