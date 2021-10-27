@@ -51,13 +51,13 @@ class CropExtractor(threading.Thread):
         assert i < self.NB
 
         image = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
-        image = numpy.uint8(numpy.asarray(image))
+        image = numpy.uint8(numpy.asarray(image)).copy()
 
         if image.shape[0] > 1024 and image.shape[1] > 1024:
             if random.randint(0, 100) > randomNormalization:
-                image[:, :, 0] = skimage.exposure.equalize_hist(image[:, :, 0])
-                image[:, :, 1] = skimage.exposure.equalize_hist(image[:, :, 1])
-                image[:, :, 2] = skimage.exposure.equalize_hist(image[:, :, 2])
+                image[:, :, 0] = skimage.exposure.equalize_hist(image[:, :, 0]) * 255
+                image[:, :, 1] = skimage.exposure.equalize_hist(image[:, :, 1]) * 255
+                image[:, :, 2] = skimage.exposure.equalize_hist(image[:, :, 2]) * 255
         image = numpy.uint8(image)
 
         label = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
