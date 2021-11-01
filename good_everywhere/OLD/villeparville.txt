@@ -1,0 +1,255 @@
+potsdam
+define model
+load data
+train
+1999 /50000 tensor([0.0667], device='cuda:0')
+perf tensor([94.3217, 97.9445])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 potsdam/test/
+perf= tensor([86.5016, 93.8102])
+-------- results ----------
+potsdam/test/ tensor([86.5016, 93.8102])
+miniworld tensor([86.5016, 93.8102])
+christchurch
+define model
+load data
+train
+99999 /50000 tensor([0.0771], device='cuda:0')
+perf tensor([91.3612, 98.5441])
+training stops after reaching time limit
+load model
+load data
+test
+0 christchurch/test/
+perf= tensor([86.5742, 97.5428])
+-------- results ----------
+christchurch/test/ tensor([86.5742, 97.5428])
+miniworld tensor([86.5742, 97.5428])
+toulouse
+define model
+load data
+train
+5999 /50000 tensor([0.0925], device='cuda:0')
+perf tensor([92.6694, 97.6964])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 toulouse/test/
+perf= tensor([86.7685, 95.7161])
+-------- results ----------
+toulouse/test/ tensor([86.7685, 95.7161])
+miniworld tensor([86.7685, 95.7161])
+austin
+define model
+load data
+train
+99999 /50000 tensor([0.0954], device='cuda:0')
+perf tensor([91.6819, 97.7098])
+training stops after reaching time limit
+load model
+load data
+test
+0 austin/test/
+perf= tensor([87.2514, 96.8192])
+-------- results ----------
+austin/test/ tensor([87.2514, 96.8192])
+miniworld tensor([87.2514, 96.8192])
+chicago
+define model
+load data
+train
+99999 /50000 tensor([0.1108], device='cuda:0')
+perf tensor([91.4999, 96.9409])
+training stops after reaching time limit
+load model
+load data
+test
+0 chicago/test/
+perf= tensor([79.5973, 91.3107])
+-------- results ----------
+chicago/test/ tensor([79.5973, 91.3107])
+miniworld tensor([79.5973, 91.3107])
+kitsap
+define model
+load data
+train
+99999 /50000 tensor([0.0904], device='cuda:0')
+perf tensor([81.8289, 98.2369])
+training stops after reaching time limit
+load model
+load data
+test
+0 kitsap/test/
+perf= tensor([76.8359, 96.7550])
+-------- results ----------
+kitsap/test/ tensor([76.8359, 96.7550])
+miniworld tensor([76.8359, 96.7550])
+tyrol-w
+define model
+load data
+train
+99999 /50000 tensor([0.0575], device='cuda:0')
+perf tensor([89.6043, 98.9389])
+training stops after reaching time limit
+load model
+load data
+test
+0 tyrol-w/test/
+perf= tensor([87.5458, 98.3091])
+-------- results ----------
+tyrol-w/test/ tensor([87.5458, 98.3091])
+miniworld tensor([87.5458, 98.3091])
+vienna
+define model
+load data
+train
+40999 /50000 tensor([0.1157], device='cuda:0')
+perf tensor([92.1996, 96.4856])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 vienna/test/
+perf= tensor([88.6042, 95.4064])
+-------- results ----------
+vienna/test/ tensor([88.6042, 95.4064])
+miniworld tensor([88.6042, 95.4064])
+bruges
+define model
+load data
+train
+2999 /50000 tensor([0.0416], device='cuda:0')
+perf tensor([92.9130, 99.0329])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 bruges/test/
+perf= tensor([57.1358, 90.3867])
+-------- results ----------
+bruges/test/ tensor([57.1358, 90.3867])
+miniworld tensor([57.1358, 90.3867])
+Arlington
+define model
+load data
+train
+6999 /50000 tensor([0.0971], device='cuda:0')
+perf tensor([92.0027, 97.4994])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 Austin/test/
+perf= tensor([88.5312, 96.5348])
+-------- results ----------
+Austin/test/ tensor([88.5312, 96.5348])
+miniworld tensor([88.5312, 96.5348])
+DC
+define model
+load data
+train
+1999 /50000 tensor([0.0955], device='cuda:0')
+perf tensor([92.5004, 96.4317])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 DC/test/
+perf= tensor([76.9893, 88.1675])
+-------- results ----------
+DC/test/ tensor([76.9893, 88.1675])
+miniworld tensor([76.9893, 88.1675])
+NewYork
+define model
+load data
+train
+3999 /50000 tensor([0.0882], device='cuda:0')
+perf tensor([92.1880, 97.3956])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 NewYork/test/
+perf= tensor([84.1380, 94.2102])
+-------- results ----------
+NewYork/test/ tensor([84.1380, 94.2102])
+miniworld tensor([84.1380, 94.2102])
+SanFrancisco
+define model
+load data
+train
+5999 /50000 tensor([0.1045], device='cuda:0')
+perf tensor([92.1464, 96.8380])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 SanFrancisco/test/
+perf= tensor([82.9184, 91.2709])
+-------- results ----------
+SanFrancisco/test/ tensor([82.9184, 91.2709])
+miniworld tensor([82.9184, 91.2709])
+Atlanta
+define model
+load data
+train
+3999 /50000 tensor([0.0742], device='cuda:0')
+perf tensor([92.3922, 98.0927])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 Atlanta/test/
+perf= tensor([83.4082, 94.7653])
+-------- results ----------
+Atlanta/test/ tensor([83.4082, 94.7653])
+miniworld tensor([83.4082, 94.7653])
+NewHaven
+define model
+load data
+train
+7999 /50000 tensor([0.0619], device='cuda:0')
+perf tensor([92.3976, 98.4046])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 NewHaven/test/
+perf= tensor([76.9105, 93.5958])
+-------- results ----------
+NewHaven/test/ tensor([76.9105, 93.5958])
+miniworld tensor([76.9105, 93.5958])
+Norfolk
+define model
+load data
+train
+6999 /50000 tensor([0.0770], device='cuda:0')
+perf tensor([92.1770, 98.0061])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 Norfolk/test/
+perf= tensor([83.9923, 96.3768])
+-------- results ----------
+Norfolk/test/ tensor([83.9923, 96.3768])
+miniworld tensor([83.9923, 96.3768])
+Seekonk
+define model
+load data
+train
+61999 /50000 tensor([0.0224], device='cuda:0')
+perf tensor([92.1040, 99.6525])
+training stops after reaching high training accuracy
+load model
+load data
+test
+0 Seekonk/test/
+perf= tensor([84.8160, 98.6763])
+-------- results ----------
+Seekonk/test/ tensor([84.8160, 98.6763])
+miniworld tensor([84.8160, 98.6763])
