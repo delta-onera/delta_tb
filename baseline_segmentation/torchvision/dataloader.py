@@ -41,7 +41,7 @@ def getindexeddata():
     if whereIam == "ldtis706z":
         root = "/media/achanhon/bigdata/data/miniworld/"
     if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-        root = "/scratchf/miniworld"
+        root = "/scratchf/miniworld/"
 
     return root, availabledata
 
