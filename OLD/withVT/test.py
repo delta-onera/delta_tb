@@ -37,7 +37,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-root = "/media/achanhon/bigdata/data/miniworld/christchurch/test/"
+root = "/media/achanhon/bigdata/data/miniworld/potsdam/test/"
 if len(sys.argv) == 1 or "vt" in sys.argv[1]:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=0)
 else:

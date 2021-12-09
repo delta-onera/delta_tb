@@ -28,7 +28,7 @@ def distancetransform(y, size=4):
 
 
 class SegSemDataset:
-    def __init__(self, pathTOdata, FLAGinteractif=33, batchsize=8):
+    def __init__(self, pathTOdata, FLAGinteractif=33, batchsize=4):
         self.pathTOdata = pathTOdata
         self.FLAGinteractif = FLAGinteractif
         self.nbImages = 0

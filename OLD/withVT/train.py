@@ -42,7 +42,7 @@ net.train()
 
 
 print("load data")
-root = "/media/achanhon/bigdata/data/miniworld/christchurch/train/"
+root = "/media/achanhon/bigdata/data/miniworld/potsdam/train/"
 if len(sys.argv) == 1 or "vt" in sys.argv[1]:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=10)
 else:
