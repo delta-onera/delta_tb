@@ -62,7 +62,8 @@ with torch.no_grad():
         if True:
             for i in range(x.shape[0]):
                 nextI = len(os.listdir("build"))
-                debug = x[i, 0:3, :, :].cpu().numpy()
+                debug = x[i, 1:4, :, :].cpu().numpy()
+                debug[2, :, :] += 125
                 debug = numpy.transpose(debug, axes=(1, 2, 0))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")

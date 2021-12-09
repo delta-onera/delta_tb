@@ -60,7 +60,7 @@ class SegSemDataset:
         xx = torch.zeros(4, x.shape[0], x.shape[1])
         xx[0:3, :, :] = torch.Tensor(np.transpose(x, axes=(2, 0, 1)))
         if random.randint(0, 99) >= self.FLAGinteractif:
-            xx[3, 0:64, :] = 2 * torch.Tensor(y[0:64, :]) - 1
+            xx[3, 0:64, :] = 254 * torch.Tensor(y[0:64, :]) - 125
         return torch.Tensor(xx)
 
     def finalize(self, XY):
