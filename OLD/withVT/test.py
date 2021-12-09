@@ -42,7 +42,7 @@ if len(sys.argv) == 1 or "vt" in sys.argv[1]:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=0)
 else:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=100)
-dataloader = airs.getFrozenTiles()
+tileprovider = airs.getFrozenTiles()
 
 print("test")
 import numpy
@@ -51,35 +51,36 @@ from PIL import Image
 
 cm = torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for x, y in dataloader:
-        x, y = x.cuda(), y.cuda()
+    for x, y in tileprovider:
+        x, y = x.cuda(), y.cuda().float()
         h, w = y.shape[0], y.shape[1]
         D = dataloader.distancetransform(y)
 
         z = net(x)
         z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
 
+        if True:
+            for i in range(x.shape[0]):
+                nextI = len(os.listdir("build"))
+                debug = x[i, 0:3, :, :].cpu().numpy()
+                debug = numpy.transpose(debug, axes=(1, 2, 0))
+                debug = PIL.Image.fromarray(numpy.uint8(debug))
+                debug.save("build/" + str(nextI) + "_x.png")
+                debug = (2.0 * y[i] - 1) * D[i] * 127 + 127
+                debug = debug.cpu().numpy()
+                debug = PIL.Image.fromarray(numpy.uint8(debug))
+                debug.save("build/" + str(nextI) + "_y.png")
+                debug = z[i].cpu().numpy() * 255
+                debug = PIL.Image.fromarray(numpy.uint8(debug))
+                debug.save("build/" + str(nextI) + "_z.png")
+
         if len(sys.argv) == 1 or "cut" in sys.argv[1]:
-            z, y = z[:, 64:, :], y[:, 64:, :]
+            z, y, D = z[:, 64:, :], y[:, 64:, :], D[:, 64:, :]
 
         cm[0][0] += torch.sum((z == 0).float() * (y == 0).float() * D)
         cm[1][1] += torch.sum((z == 1).float() * (y == 1).float() * D)
         cm[1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
         cm[0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
-
-        if True:
-            nextI = len(os.listdir("build"))
-            debug = x.cpu().numpy()
-            debug = numpy.transpose(debug, axes=(1, 2, 0))
-            debug = PIL.Image.fromarray(numpy.uint8(debug))
-            debug.save("build/" + str(nextI) + "_x.png")
-            debug = (2.0 * y - 1) * D * 127 + 127
-            debug = debug.cpu().numpy()
-            debug = PIL.Image.fromarray(numpy.uint8(debug))
-            debug.save("build/" + str(nextI) + "_y.png")
-            debug = z.cpu().numpy() * 255
-            debug = PIL.Image.fromarray(numpy.uint8(debug))
-            debug.save("build/" + str(nextI) + "_z.png")
 
     accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
     iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)

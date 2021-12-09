@@ -32,7 +32,7 @@ import dataloader
 
 print("define model")
 net = smp.Unet(
-    encoder_name="efficientnet-b7",
+    encoder_name="efficientnet-b0",
     encoder_weights="imagenet",
     in_channels=4,
     classes=2,
@@ -47,7 +47,6 @@ if len(sys.argv) == 1 or "vt" in sys.argv[1]:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=10)
 else:
     airs = dataloader.SegSemDataset(root, FLAGinteractif=100)
-dataloader = airs.getFrozenTiles()
 
 print("train")
 import collections
@@ -60,7 +59,7 @@ nbepoch = 800
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
 
-    XY = miniworld.getrandomtiles()
+    XY = airs.getrandomtiles()
     tot, good = torch.zeros(1).cuda(), torch.zeros(1).cuda()
 
     for x, y in XY:
@@ -70,7 +69,7 @@ for epoch in range(nbepoch):
         nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
         weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
         criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-        D = dataloader.distancetransform(y)
+        D = dataloader.distancetransform(y.float())
         CE = criterion(z, y)
         CE = torch.mean(CE * D)
         dice = criteriondice(z, y)

@@ -91,7 +91,7 @@ class SegSemDataset:
 
         return self.finalize(XY)
 
-    def getrawrandomtiles(self, nbtiles=10000, tilesize=256):
+    def getrandomtiles(self, nbtiles=1000, tilesize=256):
         XY = []
         NB = int(nbtiles / self.nbImages + 1)
 
