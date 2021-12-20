@@ -59,15 +59,21 @@ organisefiles["Preczow"] = [
     "M-34-77-B-c-2-3",
     "M-34-51-C-b-2-1",
     "M-34-51-C-d-4-1",
-]
-organisefiles["Prusy"] = [
-    "M-34-55-B-b-4-1",
-    "M-34-56-A-b-1-4",
-    "M-34-68-B-a-1-3",
-    "M-34-32-B-b-1-3",
-    "M-34-32-B-a-4-3",
-]
-organisefiles["Mycielin"] = [
+]  # M-34-51-C-d-4-1.tif
+organisefiles["Grzedy"] = [
+    "N-34-94-A-b-2-4",
+    "N-34-106-A-b-3-4",
+    "N-34-106-A-c-1-3",
+]  # N-34-94-A-b-2-4.tif
+organisefiles["Fordon"] = [
+    "N-34-97-C-b-1-2",
+    "N-34-97-D-c-2-4",
+    "N-33-96-D-d-1-1",
+    "N-33-60-D-c-4-2",
+    "N-34-61-B-a-1-1",
+    "N-33-60-D-d-1-2",
+]  # N-34-97-C-b-1-2.tif
+organisefiles["Predocin"] = [
     "M-33-20-D-c-4-2",
     "M-33-20-D-d-3-3",
     "M-33-32-B-b-4-4",
@@ -77,31 +83,32 @@ organisefiles["Mycielin"] = [
     "M-33-7-A-d-2-3",
     "M-33-7-A-d-3-2",
     "M-33-48-A-c-4-4",
-]
-organisefiles["Szalwina"] = [
-    "N-33-104-A-c-1-1",
-    "N-33-130-A-d-3-3",
-    "N-33-130-A-d-4-4",
-    "N-33-119-C-c-3-3",
-]
-organisefiles["Okoly"] = [
+]  # M-33-48-A-c-4-4.tif
+organisefiles["Gajlity"] = ["N-34-66-C-c-4-3", "N-34-77-A-b-1-4"]  # N-34-66-C-c-4-3
+
+organisefiles["Jedrzejow"] = [
     "M-34-5-D-d-4-2",
     "M-34-6-A-d-2-2",
     "N-34-140-A-b-3-2",
     "N-34-140-A-b-4-2",
     "N-34-140-A-d-4-2",
     "N-34-140-A-d-3-4",
-]
-organisefiles["Chojnowo"] = ["N-34-94-A-b-2-4", "N-34-106-A-b-3-4", "N-34-106-A-c-1-3"]
-organisefiles["NowaWies"] = ["N-34-66-C-c-4-3", "N-34-77-A-b-1-4"]
-organisefiles["Koslinka"] = [
-    "N-34-97-C-b-1-2",
-    "N-34-97-D-c-2-4",
-    "N-33-96-D-d-1-1",
-    "N-33-60-D-c-4-2",
-    "N-34-61-B-a-1-1",
-    "N-33-60-D-d-1-2",
-]
+]  # N-34-140-A-d-4-2.tif
+organisefiles["Zajeziorze"] = [
+    "M-34-55-B-b-4-1",
+    "M-34-56-A-b-1-4",
+    "M-34-68-B-a-1-3",
+    "M-34-32-B-b-1-3",
+    "M-34-32-B-a-4-3",
+]  # M-34-56-A-b-1-4.tif
+organisefiles["Rokietnica"] = [
+    "N-33-104-A-c-1-1",
+    "N-33-130-A-d-3-3",
+    "N-33-130-A-d-4-4",
+    "N-33-119-C-c-3-3",
+]  # N-33-130-A-d-4-4.tif
+
+
 for name in organisefiles:
     sorted(organisefiles[name])
 
