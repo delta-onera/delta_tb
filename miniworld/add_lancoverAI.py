@@ -52,7 +52,7 @@ def makepath(name):
 
 
 organisefiles = {}
-organisefiles["Michalowice"] = [
+organisefiles["Preczow"] = [
     "M-34-65-D-a-4-4",
     "M-34-65-D-c-4-2",
     "M-34-65-D-d-4-1",
