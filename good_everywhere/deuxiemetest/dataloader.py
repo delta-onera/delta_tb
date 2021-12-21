@@ -40,7 +40,7 @@ class MiniWorld:
         if whereIam == "ldtis706z":
             self.root = "/media/achanhon/bigdata/data/miniworld/"
         if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-            self.root = "/scratch_ai4geo/miniworld/"
+            self.root = "/scratchf/miniworld/"
 
         self.cities = os.listdir(self.root)
         self.tilesize = tilesize
