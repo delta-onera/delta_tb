@@ -49,6 +49,10 @@ net.train()
 
 
 print("train")
+if len(sys.argv) == 2 and sys.argv[1] == "penalizemin":
+    print("mode penalize min")
+else:
+    print("mode baseline")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16

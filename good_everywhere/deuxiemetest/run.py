@@ -9,7 +9,7 @@ if whereIam == "wdtim719z":
 if whereIam == "ldtis706z":
     root = "/media/achanhon/bigdata/data/"
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    root = "/scratch_ai4geo/"
+    root = "/scratchf/"
 
 if not os.path.exists(root + "miniworld"):
     print("miniworld not found")
@@ -20,49 +20,20 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 if whereIam == "wdtim719z":
-    cities = [
-        "potsdam",
-        "christchurch",
-        "toulouse",
-        "austin",
-        "chicago",
-        "kitsap",
-        "tyrol-w",
-        "vienna",
-        "bruges",
-        "Arlington",
-        "Austin",
-        "DC",
-        "NewYork",
-        "SanFrancisco",
-        "Atlanta",
-        "NewHaven",
-        "Norfolk",
-        "Seekonk",
-    ]
-    for city in cities:
-        print(city)
-        os.system("/data/anaconda3/envs/pytorch/bin/python -u normal.py " + city)
-        os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py " + city)
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u train.py baseline")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py | tee logbasline.txt")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u train.py penalizemin")
+    os.system("/data/anaconda3/envs/pytorch/bin/python -u test.py | tee logpenalty.txt")
 if whereIam == "ldtis706z":
-    print("freq")
-    os.system("python3 -u freq.py")
-    os.system("python3 -u test.py")
-    print("normal")
-    os.system("python3 -u normal.py")
-    os.system("python3 -u test.py")
-    print("min")
-    os.system("python3 -u min.py")
-    os.system("python3 -u test.py")
+    os.system("python3 -u train.py baseline")
+    os.system("python3 -u test.py | tee logbasline.txt")
+    os.system("python3 -u train.py penalizemin")
+    os.system("python3 -u test.py | tee logpenalty.txt")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    print("freq")
-    os.system("/d/jcastillo/anaconda3/bin/python -u freq.py")
-    os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
-    # print("normal")
-    # os.system("/d/jcastillo/anaconda3/bin/python -u normal.py")
-    # os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
-    # print("min")
-    # os.system("/d/jcastillo/anaconda3/bin/python -u min.py")
-    # os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
+    os.system("/d/jcastillo/anaconda3/bin/python -u train.py baseline")
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py | tee logbasline.txt")
+    os.system("/d/jcastillo/anaconda3/bin/python -u train.py penalizemin")
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py | tee logpenalty.txt")
+
 
 os.system("rm -rf __pycache__")
