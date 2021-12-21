@@ -30,10 +30,10 @@ if whereIam == "ldtis706z":
     os.system("python3 -u train.py penalizemin")
     os.system("python3 -u test.py | tee logpenalty.txt")
 if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    os.system("/d/jcastillo/anaconda3/bin/python -u train.py baseline")
-    os.system("/d/jcastillo/anaconda3/bin/python -u test.py | tee logbasline.txt")
     os.system("/d/jcastillo/anaconda3/bin/python -u train.py penalizemin")
     os.system("/d/jcastillo/anaconda3/bin/python -u test.py | tee logpenalty.txt")
+    os.system("/d/jcastillo/anaconda3/bin/python -u train.py baseline")
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py | tee logbasline.txt")
 
 
 os.system("rm -rf __pycache__")
