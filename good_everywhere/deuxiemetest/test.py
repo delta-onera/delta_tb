@@ -13,17 +13,6 @@ else:
     print("no cuda")
     quit()
 
-
-def largeforward(net, image, tilesize=128, stride=64):
-    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
-    image = image.cuda()
-    for row in range(0, image.shape[2] - tilesize + 1, stride):
-        for col in range(0, image.shape[3] - tilesize + 1, stride):
-            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
-    return pred
-
-
 whereIam = os.uname()[1]
 if whereIam == "ldtis706z":
     sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
@@ -45,28 +34,27 @@ import segmentation_models_pytorch as smp
 import cropextractor
 import dataloader
 
+print("load data")
+miniworld = dataloader.MiniWorld(flag="test")
+
 print("load model")
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.cuda()
     net.eval()
 
-print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
-
 
 print("test")
-def perf(cm):
-    if len(cm.shape) == 2:
-        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-        return torch.Tensor((iou0 + iou1, accu))
-    else:
-        out = torch.zeros(cm.shape[0], 2)
-        for k in range(cm.shape[0]):
-            out[k] = perf(cm[k])
-        return out
+
+
+def largeforward(net, image, tilesize=128, stride=64):
+    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
+    image = image.cuda()
+    for row in range(0, image.shape[2] - tilesize + 1, stride):
+        for col in range(0, image.shape[3] - tilesize + 1, stride):
+            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
+            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
+    return pred
 
 
 cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
@@ -87,10 +75,8 @@ with torch.no_grad():
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            cm[k][0][0] += torch.sum((z == 0).float() * (y == 0).float() * D)
-            cm[k][1][1] += torch.sum((z == 1).float() * (y == 1).float() * D)
-            cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
-            cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
+            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
             if False:
                 nextI = len(os.listdir("build"))
@@ -105,12 +91,12 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
 
-        print("perf=", perf(cm[k]))
-        numpy.savetxt("build/logtest.txt", perf(cm).cpu().numpy())
+        print("perf=", dataloader.perf(cm[k]))
+        numpy.savetxt("build/logtest.txt", dataloader.perf(cm).cpu().numpy())
 
 print("-------- results ----------")
 for k, city in enumerate(miniworld.cities):
-    print(city, perf(cm[k]))
+    print(city, dataloader.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
-print("miniworld", perf(cm))
+print("miniworld", dataloader.perf(cm))

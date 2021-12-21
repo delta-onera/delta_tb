@@ -28,7 +28,7 @@ def torchTOpil(x):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, path, maxsize=1000, tilesize=128):
+    def __init__(self, path, maxsize=500, tilesize=128):
         threading.Thread.__init__(self)
         self.path = path
         self.NB = 0
@@ -39,11 +39,8 @@ class CropExtractor(threading.Thread):
             print("wrong path", self.path)
             quit()
 
-        if maxsize > 0:
-            self.tilesize = tilesize
-            self.q = queue.Queue(maxsize=maxsize)
-        else:
-            self.tilesize = None
+        self.tilesize = tilesize
+        self.maxsize = maxsize
 
     def getImageAndLabel(self, i, torchformat=False):
         assert i < self.NB
@@ -60,13 +57,15 @@ class CropExtractor(threading.Thread):
         else:
             return image, label
 
-    def getCrop(self):
-        return self.q.get(block=True)
-
     ###############################################################
 
+    def getCrop(self):
+        assert self.maxsize != 0
+        return self.q.get(block=True)
+
     def run(self):
-        assert self.tilesize is not None
+        assert self.maxsize != 0
+        self.q = queue.Queue(maxsize=self.maxsize)
         tilesize = self.tilesize
 
         while True:

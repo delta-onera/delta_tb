@@ -34,26 +34,15 @@ class MiniWorld:
     def __init__(self, flag, custom=None, tilesize=128):
         assert flag in ["train", "test", "custom"]
 
-        self.cities = [
-            "potsdam",
-            "christchurch",
-            "toulouse",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol-w",
-            "vienna",
-            "bruges",
-            "Arlington",
-            "Austin",
-            "DC",
-            "NewYork",
-            "SanFrancisco",
-            "Atlanta",
-            "NewHaven",
-            "Norfolk",
-            "Seekonk",
-        ]
+        whereIam = os.uname()[1]
+        if whereIam == "wdtim719z":
+            self.root = "/data/miniworld/"
+        if whereIam == "ldtis706z":
+            self.root = "/media/achanhon/bigdata/data/miniworld/"
+        if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+            self.root = "/scratch_ai4geo/miniworld/"
+
+        self.cities = os.listdir(self.root)
         self.tilesize = tilesize
 
         if flag == "custom":
@@ -64,33 +53,31 @@ class MiniWorld:
             else:
                 self.cities = [s + "/test/" for s in self.cities]
 
-        whereIam = os.uname()[1]
-        if whereIam == "wdtim719z":
-            self.root = "/data/miniworld/"
-        if whereIam == "ldtis706z":
-            self.root = "/media/achanhon/bigdata/data/miniworld/"
-        if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-            self.root = "/scratch_ai4geo/miniworld/"
+        print("loading data from", self.cities)
 
         self.data = {}
         for city in self.cities:
-            self.data[city] = cropextractor.CropExtractor(
-                self.root + city, tilesize=tilesize
-            )
+            if flag != "test":
+                self.data[city] = cropextractor.CropExtractor(
+                    self.root + city, tilesize=tilesize
+                )
+            else:
+                self.data[city] = cropextractor.CropExtractor(
+                    self.root + city, maxsize=0, tilesize=tilesize
+                )
         self.run = False
 
     def start(self):
+        assert not self.run
         self.run = True
         for city in self.cities:
             self.data[city].start()
 
-    def getbatch(self, batchsize, priority=None):
+    def getbatch(self, batchsize):
         assert self.run
-        assert priority is None or numpy.sum(priority) > 0
 
         tilesize = self.tilesize
-        if priority is None:
-            priority = numpy.ones(len(self.cities))
+        priority = numpy.ones(len(self.cities))
         priority /= numpy.sum(priority)
 
         batchchoice = numpy.random.choice(len(self.cities), batchsize, p=priority)

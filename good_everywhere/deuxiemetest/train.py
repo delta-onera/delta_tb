@@ -34,6 +34,9 @@ import segmentation_models_pytorch as smp
 import cropextractor
 import dataloader
 
+print("load data")
+miniworld = dataloader.MiniWorld(flag="train")
+
 print("define model")
 net = smp.Unet(
     encoder_name="efficientnet-b7",
@@ -44,9 +47,6 @@ net = smp.Unet(
 net = net.cuda()
 net.train()
 
-print("load data")
-miniworld = dataloader.MiniWorld(flag="train")
-miniworld.start()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
@@ -57,6 +57,9 @@ else:
 nbbatchs = 100000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+worse = set([i for i in range(stats.shape[0])])
+miniworld.start()
+
 for i in range(nbbatchs):
     x, y, batchchoise = miniworld.getbatch(batchsize)
     x, y = x.cuda(), y.cuda()
@@ -70,11 +73,11 @@ for i in range(nbbatchs):
     CE = CE * D
     CE = torch.mean(CE, dim=1)
     CE = torch.mean(CE, dim=1)
-    assert len(CE.shape) == 1
-    worse = [(-CE[j], j) for j in range(batchsize)]
-    worse = sorted(worse)
-    for j in range(batchsize // 3):
-        CE[worse[j][1]] = CE[worse[j][1]] * 2
+
+    assert CE.shape[0] == len(batchchoise)
+    for j in range(CE.shape[0]):
+        if batchchoise[j] in worse:
+            CE[j] *= 3.0
     CE = torch.mean(CE)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
@@ -83,13 +86,13 @@ for i in range(nbbatchs):
 
     with torch.no_grad():
         printloss += loss.clone().detach()
-    if i > nbbatchs // 10:
+    if i > nbbatchs * 0.1:
         loss = loss * 0.5
-    if i > nbbatchs // 5:
+    if i > nbbatchs * 0.2:
         loss = loss * 0.5
-    if i > nbbatchs // 2:
+    if i > nbbatchs * 0.5:
         loss = loss * 0.5
-    if i > (nbbatchs * 8) // 10:
+    if i > nbbatchs * 0.8:
         loss = loss * 0.5
 
     optimizer.zero_grad()
@@ -118,6 +121,13 @@ for i in range(nbbatchs):
             print("training stops after reaching high training accuracy")
             os._exit(0)
         else:
+            if len(sys.argv) == 2 and sys.argv[1] == "penalizemin":
+                perfs = [dataloader.perf(stats[j])[0] for j in range(stats.shape[0])]
+                tmp = perfs[:]
+                sorted(tmp)
+                threshold = tmp[stats.shape[0] // 2 + 1]
+                worse = set([j for j in range(stats.shape[0]) if perfs[j] <= threshold])
+
             stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 
 print("training stops after reaching time limit")
