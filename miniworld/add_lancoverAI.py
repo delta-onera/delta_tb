@@ -35,14 +35,7 @@ def resizefile(root, XY, output, nativeresolution, outputresolution=50.0):
 whereIam = os.uname()[1]
 
 path = "/home/achanhon/Téléchargements/landcover.ai.v1"
-if whereIam == "super":
-    rootminiworld = "build/miniworld/"
-
-if whereIam == "wdtim719z":
-    rootminiworld = "build/miniworld/"
-
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    rootminiworld = "build/miniworld/"
+rootminiworld = "build/miniworld/"
 
 
 def makepath(name):
