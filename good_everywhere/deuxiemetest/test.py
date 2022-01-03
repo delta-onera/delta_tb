@@ -35,7 +35,7 @@ import cropextractor
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.MiniWorld(flag="train")
 
 print("load model")
 with torch.no_grad():
