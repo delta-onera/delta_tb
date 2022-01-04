@@ -41,6 +41,8 @@ class MiniWorld:
             self.root = "/media/achanhon/bigdata/data/miniworld/"
         if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
             self.root = "/scratchf/miniworld/"
+        if whereIam == "super":
+            self.root = "/data/miniworld/"
 
         self.cities = os.listdir(self.root)
         self.tilesize = tilesize

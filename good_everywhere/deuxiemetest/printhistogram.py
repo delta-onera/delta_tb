@@ -16,7 +16,7 @@ def fillhistogram(histogram, image):
 
 
 chn = ["rouge", "vert", "bleu"]
-for chn, ch in range(3):
+for ch in range(3):
     print(chn[ch])
     for city in miniworld.cities:
         histogram = numpy.zeros(255)
@@ -26,7 +26,7 @@ for chn, ch in range(3):
             histogram = fillhistogram(histogram, im[:, :, ch])
 
         histogram = numpy.float32(histogram) / numpy.sum(histogram)
-        histogram = numpy.int32(histogram * 100.0)
+        histogram = numpy.int32(histogram * 1000.0)
 
         s = city
         for i in range(255):
