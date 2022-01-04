@@ -6,24 +6,29 @@ from PIL import Image
 
 import dataloader
 
-print("load data")
 miniworld = dataloader.MiniWorld(flag="train")
 
 
 def fillhistogram(histogram, image):
-    for ch in range(3):
-        for i in range(255):
-            histogram[ch][i] += numpy.sum(numpy.int32(image == i))
+    for i in range(255):
+        histogram[i] += numpy.sum(numpy.int32(image == i))
     return histogram
 
 
-print("histo")
-for city in miniworld.cities:
-    histogram = numpy.zeros(3, 255)
+chn = ["rouge", "vert", "bleu"]
+for chn, ch in range(3):
+    print(chn[ch])
+    for city in miniworld.cities:
+        histogram = numpy.zeros(255)
 
-    for i in range(miniworld.data[city].NB):
-        im, _ = miniworld.data[city].getImageAndLabel(i)
+        for i in range(miniworld.data[city].NB):
+            im, _ = miniworld.data[city].getImageAndLabel(i)
+            histogram = fillhistogram(histogram, im[:, :, ch])
 
-        histogram = fillhistogram(histogram, im)
+        histogram = numpy.float32(histogram) / numpy.sum(histogram)
+        histogram = numpy.int32(histogram * 100.0)
 
-    print(city, histogram)
+        s = city
+        for i in range(255):
+            s = s + "\t" + str(histogram[i])
+        print(s)
