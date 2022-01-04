@@ -131,6 +131,7 @@ for i in range(nbbatchs):
                 sorted(tmp)
                 threshold = tmp[stats.shape[0] // 2 + 1]
                 worse = set([j for j in range(stats.shape[0]) if perfs[j] <= threshold])
+                print("penalty increased for", worse)
 
             stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 
