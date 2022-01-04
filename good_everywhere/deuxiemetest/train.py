@@ -58,7 +58,7 @@ if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
 else:
     batchsize = 32
-nbbatchs = 100000
+nbbatchs = 200000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 worse = set([i for i in range(stats.shape[0])])
@@ -81,7 +81,7 @@ for i in range(nbbatchs):
     assert CE.shape[0] == len(batchchoise)
     for j in range(CE.shape[0]):
         if batchchoise[j] in worse:
-            CE[j] *= 3.0
+            CE[j] *= 6.0
     CE = torch.mean(CE)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
@@ -113,7 +113,7 @@ for i in range(nbbatchs):
             stats[batchchoise[j]] += cm
 
     if i % 100 == 99:
-        print(i, "/50000", printloss / 100)
+        print(i, "/200000", printloss / 100)
         printloss = torch.zeros(1).cuda()
 
     if i % 1000 == 999:
@@ -129,7 +129,7 @@ for i in range(nbbatchs):
                 perfs = [dataloader.perf(stats[j])[0] for j in range(stats.shape[0])]
                 tmp = perfs[:]
                 sorted(tmp)
-                threshold = tmp[stats.shape[0] // 2 + 1]
+                threshold = tmp[stats.shape[0] // 3 + 1]
                 worse = set([j for j in range(stats.shape[0]) if perfs[j] <= threshold])
                 print("penalty increased for", worse)
 
