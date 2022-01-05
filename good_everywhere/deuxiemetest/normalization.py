@@ -32,7 +32,7 @@ def computehisto(image, removelarge=True):
     keys = set(image.flatten())
     print(keys)
     quit()
-    
+
     source = {}
     for k in keys:
         source[k] = float(numpy.sum(numpy.int32(image == k)))
