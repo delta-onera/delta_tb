@@ -3,7 +3,7 @@ import math
 
 
 def minmax(image):
-    values = list(image.fold())
+    values = list(image.flatten())
     sorted(values)
     I = len(values)
     values = values[(I * 3) // 100 : (I * 97) // 100]
@@ -11,56 +11,64 @@ def minmax(image):
     imax = values[-1]
 
     out = 255.0 * (image - imin) / (imax - imin + 1)
-    out = numpy.int32(out)
+    out = numpy.int16(out)
 
-    tmp = numpy.int32(out > 255)
+    tmp = numpy.int16(out > 255)
     out -= 100000 * tmp
-    out *= numpy.int32(out > 0)
+    out *= numpy.int16(out > 0)
     out += 255 * tmp
 
     return out
 
 
 def computehisto(image):
-    keys = set(image.fold())
+    keys = set(image.flatten())
     source = {}
     for k in keys:
-        source[k] = numpy.sum(numpy.int32(image == k))
+        source[k] = float(numpy.sum(numpy.int32(image == k)))
+
+    sourcesum = float(image.shape[0] * image.shape[1])
+    for i in source:
+        if source[i] > sourcesum / 255:
+            source[i] = sourcesum / 255
+    sourcesum = sum([source[j] for j in source])
+    for i in source:
+        source[i] /= sourcesum
     return source
 
 
 def histogrammatching(source, cible):
-    # assert |source|>>|cible|
-    cible, source = numpy.float64(cible), numpy.float64(source)
-
-    I = numpy.non_zero(source > numpy.sum(source) / 255)
-    for i in I:
-        source[i] = numpy.sum(source) / 255
-    cible, source = cible / numpy.sum(cible), source / numpy.sum(source)
-
     j = 0
     matching = {}
-    for i in range(source.shape[0]):
+    for i in source:
         matching[i] = j
         cible[j] -= source[i]
-        if cible[j] <= 0:
+        if cible[j] < 0.:
             j += 1
             if j > 255:
                 j = 255
     if j < 255:
         for i in matching:
-            matching[i] *= 255 / j
+            matching[i] *= 255. / j
+    
+    for i in matching:
+        matching[i] = int(matching[i])
 
     inversematching = {}
     for i in matching:
         inversematching[matching[i]] = int(i)
+    
+    print(matching)
+    print(inversematching)    
+    quit()
+        
     return inversematching
 
 
 def convert(image, matching):
-    output = numpy.zeros(image.shape)
+    output = numpy.int16(numpy.zeros(image.shape))
     for i in range(255):
-        outputs += numpy.int32(image > matching[i + 1])
+        output += numpy.int16(image > matching[i + 1])
     return output
 
 
@@ -75,16 +83,22 @@ class ManyHistogram:
 
         for i in range(256):
             self.cibles[3][i] = 256 // 2 - abs(i - 256 // 2) + 2
+
         self.cibles[4] = numpy.ones(256)
+
+        self.cibles = numpy.float32(self.cibles)
+        for i in range(5):
+            self.cibles[i] = self.cibles[i] / numpy.sum(self.cibles[i])
 
     def normalize(self, image):
         image = numpy.int32(image)
-        out = numpy.zeros(18, image.shape[0], image.shape[1])
+        out = numpy.zeros((18, image.shape[0], image.shape[1]))
+        out = numpy.int16(out)
 
         source = [computehisto(image[:, :, i]) for i in range(3)]
         for i in range(5):
             for ch in range(3):
-                tmp = histogrammatching(source[ch], self.cibles[i])
+                tmp = histogrammatching(source[ch], self.cibles[i].copy())
                 out[i * 3 + ch] = convert(image[:, :, ch], tmp)
 
         out[15] = minmax(image[:, :, 0])
