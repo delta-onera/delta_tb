@@ -41,15 +41,11 @@ def computehisto(image, removelarge=True):
     keys = set(image.flatten())
     source = {}
     for k in keys:
-        source[k] = float(numpy.sum(numpy.int32(image == k)))
+        source[k] = numpy.sum(numpy.int32(image == k))
 
-    sourcesum = 1./ image.shape[0] / image.shape[1]
-    for i in source:
-        source[i] *= sourcesum
-
-    printhisto(source)
-    quit()
-
+    sourcesum = 1.0 / image.shape[0] / image.shape[1]
+    for k in keys:
+        source[k] *= sourcesum
     return source
 
 
