@@ -31,7 +31,7 @@ def minmax(image, removeborder=True):
 def printhisto(histo):
     s = "histo"
     for i in histo:
-        histo[i] = int(0.1 * histo[i])
+        histo[i] = int(1000 * histo[i])
         s += "\t" + str(histo[i])
     print(s)
     return histo
@@ -41,18 +41,15 @@ def computehisto(image, removelarge=True):
     keys = set(image.flatten())
     source = {}
     for k in keys:
-        source[k] = numpy.sum(numpy.int32(image == k))
-    
+        source[k] = float(numpy.sum(numpy.int32(image == k)))
+
+    sourcesum = 1./ image.shape[0] / image.shape[1]
+    for i in source:
+        source[i] *= sourcesum
+
     printhisto(source)
     quit()
 
-    sourcesum = float(image.shape[0] * image.shape[1])
-    if removelarge:
-        for i in source:
-            source[i] = min(source[i], sourcesum * 0.05)
-        sourcesum = sum([source[j] for j in source])
-    for i in source:
-        source[i] /= sourcesum
     return source
 
 
