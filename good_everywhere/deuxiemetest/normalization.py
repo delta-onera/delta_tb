@@ -28,14 +28,25 @@ def minmax(image, removeborder=True):
     return out
 
 
+def printhisto(histo):
+    s = "histo"
+    for i in histo:
+        histo[i] = int(1000 * histo[i])
+        s += "\t" + str(histo[i])
+    print(s)
+    return histo
+
+
 def computehisto(image, removelarge=True):
     keys = set(image.flatten())
-    print(keys)
-    quit()
-
     source = {}
     for k in keys:
-        source[k] = float(numpy.sum(numpy.int32(image == k)))
+        source[k] = numpy.sum(numpy.int32(image == k))
+    
+    for k in keys:
+        if source[k]>4000:
+            print(k, source[k])
+    quit()
 
     sourcesum = float(image.shape[0] * image.shape[1])
     if removelarge:
@@ -76,16 +87,6 @@ def convert(image, matching):
     for i in range(255):
         output += numpy.int16(image > matching[i + 1])
     return minmax(output, removeborder=False)
-
-
-def printhisto(image):
-    histo = computehisto(image)
-    s = "histo"
-    for i in histo:
-        histo[i] = int(1000 * histo[i])
-        s += "\t" + str(histo[i])
-    print(s)
-    return histo
 
 
 class ManyHistogram:
@@ -135,8 +136,8 @@ if __name__ == "__main__":
 
     images = normalizations.normalize(image)
 
-    printhisto(image[:, :, 0])
-    printhisto(images[:, :, 0])
+    printhisto(computehisto(image[:, :, 0]))
+    printhisto(computehisto(images[:, :, 0]))
     quit()
 
     for i in range(6):
