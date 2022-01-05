@@ -58,10 +58,9 @@ def histogrammatching(source, cible):
     for i in matching:
         inversematching[matching[i]] = int(i)
     
-    print(matching)
-    print(inversematching)    
-    quit()
-        
+    for i in range(256):
+        if i not in inversematching[i]:
+            inversematching[i] = inversematching[i-1]            
     return inversematching
 
 
