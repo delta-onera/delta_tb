@@ -75,6 +75,15 @@ def convert(image, matching):
     return minmax(output, removeborder=False)
 
 
+def printhisto(image):
+    histo = computehisto(image)
+    s = "histo"
+    for i in histo:
+        histo[i] = int(100 * histo[i])
+        s += "\t" + str(histo[i])
+    return s
+
+
 class ManyHistogram:
     def __init__(self):
         self.cibles = numpy.zeros((5, 256))
@@ -121,6 +130,11 @@ if __name__ == "__main__":
     image = numpy.uint8(numpy.asarray(image))
 
     images = normalizations.normalize(image)
+
+    printhisto(image[:, :, 0])
+    printhisto(images[:, :, 0])
+    quit()
+
     for i in range(6):
         debug = images[3 * i : 3 * i + 3, :, :]
         debug = numpy.transpose(debug, axes=(1, 2, 0))
@@ -130,7 +144,10 @@ if __name__ == "__main__":
     import rasterio
 
     with rasterio.open("/data/SEMCITY_TOULOUSE/TLS_BDSD_M_04.tif") as src:
-        image16bits = numpy.uint16(src.read(1))
+        r = numpy.uint16(src.read(4))
+        g = numpy.uint16(src.read(3))
+        b = numpy.uint16(src.read(2))
+        image16bits = numpy.stack([r, g, b], axis=-1)
 
     images8bits = normalizations.normalize(image16bits)
     for i in range(6):
