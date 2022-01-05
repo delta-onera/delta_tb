@@ -28,17 +28,20 @@ def minmax(image, removeborder=True):
     return out
 
 
-def computehisto(image):
+def computehisto(image, removelarge=True):
     keys = set(image.flatten())
+    print(keys)
+    quit()
+    
     source = {}
     for k in keys:
         source[k] = float(numpy.sum(numpy.int32(image == k)))
 
     sourcesum = float(image.shape[0] * image.shape[1])
-    for i in source:
-        if source[i] > sourcesum / 255:
-            source[i] = sourcesum / 255
-    sourcesum = sum([source[j] for j in source])
+    if removelarge:
+        for i in source:
+            source[i] = min(source[i], sourcesum * 0.05)
+        sourcesum = sum([source[j] for j in source])
     for i in source:
         source[i] /= sourcesum
     return source
@@ -79,9 +82,10 @@ def printhisto(image):
     histo = computehisto(image)
     s = "histo"
     for i in histo:
-        histo[i] = int(100 * histo[i])
+        histo[i] = int(1000 * histo[i])
         s += "\t" + str(histo[i])
-    return s
+    print(s)
+    return histo
 
 
 class ManyHistogram:
