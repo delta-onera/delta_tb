@@ -2,9 +2,7 @@ import numpy
 import math
 
 
-
-
-def minmax(image, removeborder = True):
+def minmax(image, removeborder=True):
     values = list(image.flatten())
     if removeborder:
         values = sorted(values)
@@ -15,15 +13,15 @@ def minmax(image, removeborder = True):
     else:
         imin = min(values)
         imax = max(values)
-        
-    if imin==imax:
-        return numpy.int16(256//2*numpy.ones(image.shape))
-        
+
+    if imin == imax:
+        return numpy.int16(256 // 2 * numpy.ones(image.shape))
+
     out = 255.0 * (image - imin) / (imax - imin)
     out = numpy.int16(out)
 
-    tmp = numpy.int16(out > 255)
-    out -= 100000 * tmp
+    tmp = numpy.int16(out >= 255)
+    out -= 10000 * tmp
     out *= numpy.int16(out > 0)
     out += 255 * tmp
 
@@ -74,7 +72,7 @@ def convert(image, matching):
     output = numpy.int16(numpy.zeros(image.shape))
     for i in range(255):
         output += numpy.int16(image > matching[i + 1])
-    return minmax(output,removeborder=False)
+    return minmax(output, removeborder=False)
 
 
 class ManyHistogram:
