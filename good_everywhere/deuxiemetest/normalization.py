@@ -43,24 +43,24 @@ def histogrammatching(source, cible):
     for i in source:
         matching[i] = j
         cible[j] -= source[i]
-        if cible[j] < 0.:
+        if cible[j] < 0.0:
             j += 1
             if j > 255:
                 j = 255
     if j < 255:
         for i in matching:
-            matching[i] *= 255. / j
-    
+            matching[i] *= 255.0 / j
+
     for i in matching:
         matching[i] = int(matching[i])
 
     inversematching = {}
     for i in matching:
         inversematching[matching[i]] = int(i)
-    
+
     for i in range(256):
-        if i not in inversematching[i]:
-            inversematching[i] = inversematching[i-1]            
+        if i not in inversematching:
+            inversematching[i] = inversematching[i - 1]
     return inversematching
 
 
