@@ -2,15 +2,24 @@ import numpy
 import math
 
 
-def minmax(image):
-    values = list(image.flatten())
-    sorted(values)
-    I = len(values)
-    values = values[(I * 3) // 100 : (I * 97) // 100]
-    imin = values[0]
-    imax = values[-1]
 
-    out = 255.0 * (image - imin) / (imax - imin + 1)
+
+def minmax(image, removeborder = True):
+    values = list(image.flatten())
+    if removeborder:
+        values = sorted(values)
+        I = len(values)
+        values = values[(I * 3) // 100 : (I * 97) // 100]
+        imin = values[0]
+        imax = values[-1]
+    else:
+        imin = min(values)
+        imax = max(values)
+        
+    if imin==imax:
+        return numpy.int16(256//2*numpy.ones(image.shape))
+        
+    out = 255.0 * (image - imin) / (imax - imin)
     out = numpy.int16(out)
 
     tmp = numpy.int16(out > 255)
@@ -47,9 +56,6 @@ def histogrammatching(source, cible):
             j += 1
             if j > 255:
                 j = 255
-    if j < 255:
-        for i in matching:
-            matching[i] *= 255.0 / j
 
     for i in matching:
         matching[i] = int(matching[i])
@@ -68,7 +74,7 @@ def convert(image, matching):
     output = numpy.int16(numpy.zeros(image.shape))
     for i in range(255):
         output += numpy.int16(image > matching[i + 1])
-    return output
+    return minmax(output,removeborder=False)
 
 
 class ManyHistogram:
