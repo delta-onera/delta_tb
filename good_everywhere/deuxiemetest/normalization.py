@@ -99,18 +99,14 @@ if __name__ == "__main__":
 
     image = PIL.Image.open("/data/miniworld/bruges/train/1_x.png").convert("RGB").copy()
     image = numpy.uint8(numpy.asarray(image))
-    debughisto(image[:, :, 0])
 
     images = normalizations.normalize(image)
 
     for i in range(6):
         debug = images[3 * i : 3 * i + 3, :, :]
         debug = numpy.uint8(numpy.transpose(debug, axes=(1, 2, 0)))
-        debughisto(debug[0])
         debug = PIL.Image.fromarray(debug)
         debug.save("build/test8_" + str(i) + ".png")
-
-    quit()
 
     import rasterio
 
