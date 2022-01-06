@@ -37,7 +37,7 @@ def printhisto(histo):
     return histo
 
 
-def computehisto(image, removelarge=True):
+def computehisto(image):
     keys = set(image.flatten())
     source = {}
     for k in keys:
@@ -50,18 +50,21 @@ def computehisto(image, removelarge=True):
 
 
 def histogrammatching(source, cible):
-    j = 0
-    matching = {}
-    for i in source:
-        matching[i] = j
-        cible[j] -= source[i]
-        if cible[j] < 0.0:
-            j += 1
-            if j > 255:
-                j = 255
+    print(numpy.int16(cible * 1000))
+    quit()
 
-    for i in matching:
-        matching[i] = int(matching[i])
+    j, flag = 0, True
+    matching = {}
+    while len(source) != 0:
+        i = next(iter(source))
+        if flag or cible[j] > source[i]:
+            matching[i] = j
+            flag = False
+            cible[j] -= source[i]
+            del source[i]
+        else:
+            j = min(j + 1, 255)
+            flag = True
 
     inversematching = {}
     for i in matching:
@@ -106,7 +109,7 @@ class ManyHistogram:
         source = [computehisto(image[:, :, i]) for i in range(3)]
         for i in range(5):
             for ch in range(3):
-                tmp = histogrammatching(source[ch], self.cibles[i].copy())
+                tmp = histogrammatching(source[ch].copy(), self.cibles[i].copy())
                 out[i * 3 + ch] = convert(image[:, :, ch], tmp)
 
         out[15] = minmax(image[:, :, 0])
