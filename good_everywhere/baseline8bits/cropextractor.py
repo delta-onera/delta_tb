@@ -32,6 +32,7 @@ class CropExtractor(threading.Thread):
         threading.Thread.__init__(self)
         self.path = path
         self.NB = 0
+        self.isrunning = False
         while os.path.exists(self.path + str(self.NB) + "_x.png"):
             self.NB += 1
 
@@ -60,11 +61,11 @@ class CropExtractor(threading.Thread):
     ###############################################################
 
     def getCrop(self):
-        assert self.maxsize != 0
+        assert self.isrunning
         return self.q.get(block=True)
 
     def run(self):
-        assert self.maxsize != 0
+        self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
         tilesize = self.tilesize
 

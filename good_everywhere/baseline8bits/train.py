@@ -49,10 +49,6 @@ net.train()
 
 
 print("train")
-if len(sys.argv) == 2 and sys.argv[1] == "penalizemin":
-    print("mode penalize min")
-else:
-    print("mode baseline")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
@@ -61,7 +57,6 @@ else:
 nbbatchs = 200000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
-worse = set([i for i in range(stats.shape[0])])
 miniworld.start()
 
 for i in range(nbbatchs):
@@ -75,13 +70,6 @@ for i in range(nbbatchs):
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
     CE = criterion(z, y.long())
     CE = CE * D
-    CE = torch.mean(CE, dim=1)
-    CE = torch.mean(CE, dim=1)
-
-    assert CE.shape[0] == len(batchchoise)
-    for j in range(CE.shape[0]):
-        if batchchoise[j] in worse:
-            CE[j] *= 6.0
     CE = torch.mean(CE)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
@@ -125,14 +113,6 @@ for i in range(nbbatchs):
             print("training stops after reaching high training accuracy")
             os._exit(0)
         else:
-            if len(sys.argv) == 2 and sys.argv[1] == "penalizemin":
-                perfs = [dataloader.perf(stats[j])[0] for j in range(stats.shape[0])]
-                tmp = perfs[:]
-                sorted(tmp)
-                threshold = tmp[stats.shape[0] // 3 + 1]
-                worse = set([j for j in range(stats.shape[0]) if perfs[j] <= threshold])
-                print("penalty increased for", worse)
-
             stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 
 print("training stops after reaching time limit")

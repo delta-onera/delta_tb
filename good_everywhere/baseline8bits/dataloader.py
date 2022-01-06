@@ -31,8 +31,9 @@ def perf(cm):
 
 
 class MiniWorld:
-    def __init__(self, flag, custom=None, tilesize=128):
-        assert flag in ["train", "test", "custom"]
+    def __init__(self, flag, tilesize=128, custom=None):
+        assert flag in ["train", "test"]
+        self.tilesize = tilesize
 
         whereIam = os.uname()[1]
         if whereIam == "wdtim719z":
@@ -42,36 +43,61 @@ class MiniWorld:
         if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
             self.root = "/scratchf/miniworld/"
 
-        self.cities = os.listdir(self.root)
-        self.tilesize = tilesize
+        existingcities = os.listdir(self.root)
+        if flag != "custom":
+            expectedcities = [
+                "Arlington",
+                "austin",
+                "bruges",
+                "christchurch",
+                "Fordon",
+                "Grzedy",
+                "NewHaven",
+                "Norfolk",
+                "potsdam",
+                "Predocin",
+                "Rokietnica",
+                "Seekonk",
+                "Zajeziorze",
+                "Atlanta",
+                "Austin",
+                "chicago",
+                "DC",
+                "Gajlity",
+                "Jedrzejow",
+                "kitsap",
+                "NewYork",
+                "Preczow",
+                "SanFrancisco",
+                "tyrol-w",
+                "vienna",
+            ]
+            for city in expectedcities:
+                if city not in existingcities:
+                    print("missing city", city)
+                    quit()
+            self.city = expectedcities
 
-        if flag == "custom":
-            self.cities = custom
-        else:
             if flag == "train":
                 self.cities = [s + "/train/" for s in self.cities]
             else:
                 self.cities = [s + "/test/" for s in self.cities]
+        else:
+            self.cities = custom
 
         print("loading data from", self.cities)
 
         self.data = {}
         for city in self.cities:
-            if flag != "test":
-                self.data[city] = cropextractor.CropExtractor(
-                    self.root + city, tilesize=tilesize
-                )
-            else:
-                self.data[city] = cropextractor.CropExtractor(
-                    self.root + city, maxsize=0, tilesize=tilesize
-                )
-        self.run = False
+            self.data[city] = cropextractor.CropExtractor(
+                self.root + city, tilesize=tilesize
+            )
 
     def start(self):
-        assert not self.run
-        self.run = True
-        for city in self.cities:
-            self.data[city].start()
+        if not self.run:
+            self.run = True
+            for city in self.cities:
+                self.data[city].start()
 
     def getbatch(self, batchsize):
         assert self.run
