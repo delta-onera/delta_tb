@@ -36,58 +36,6 @@ def debughisto(image):
     print(s)
 
 
-def printhisto(histo):
-    s = "histo"
-    for i in histo:
-        histo[i] = int(1000 * histo[i])
-        s += "\t" + str(histo[i])
-    print(s)
-    return histo
-
-
-def computehisto(image):
-    keys = set(image.flatten())
-    source = {}
-    for k in keys:
-        source[k] = numpy.sum(numpy.int32(image == k))
-
-    sourcesum = 1.0 / image.shape[0] / image.shape[1]
-    for k in keys:
-        source[k] *= sourcesum
-    return source
-
-
-def histogrammatchingold(source, cible):
-    j, flag = 0, True
-    matching = {}
-    while len(source) != 0:
-        i = next(iter(source))
-        if flag or cible[j] > source[i]:
-            matching[i] = j
-            flag = False
-            cible[j] -= source[i]
-            del source[i]
-        else:
-            j = min(j + 1, 255)
-            flag = True
-
-    inversematching = {}
-    for i in matching:
-        inversematching[matching[i]] = int(i)
-
-    for i in range(256):
-        if i not in inversematching:
-            inversematching[i] = inversematching[i - 1]
-    return inversematching
-
-
-def convert(image, matching):
-    output = numpy.int16(numpy.zeros(image.shape))
-    for i in range(255):
-        output += numpy.int16(image > matching[i + 1])
-    return minmax(output, removeborder=False)
-
-
 def histogrammatching(image, tmpl):
     # inspired from scikit-image/blob/main/skimage/exposure/histogram_matching.py
     tmpl_quantiles, tmpl_val = tmpl
@@ -113,7 +61,7 @@ class ManyHistogram:
         centers = [256 // 4, 256 // 2, 256 * 3 // 4]
         for c in range(3):
             for i in range(256):
-                self.cibles[c][i] = 20.0 * math.exp(-((centers[c] - i) ** 2) / 255) + 1
+                self.cibles[c][i] = 15.0 * math.exp(-((centers[c] - i) ** 2) / 255) + 1
 
         for i in range(256):
             self.cibles[3][i] = 256 // 2 - abs(i - 256 // 2) + 2
@@ -126,27 +74,6 @@ class ManyHistogram:
             quantiles = numpy.cumsum(self.cibles[i])
             quantiles = quantiles / quantiles[-1]
             self.cumsum.append((quantiles, vals))
-
-        self.cibles = numpy.float32(self.cibles)
-        for i in range(5):
-            self.cibles[i] = self.cibles[i] / numpy.sum(self.cibles[i])
-
-    def normalizeold(self, image):
-        image = numpy.int32(image)
-        out = numpy.zeros((18, image.shape[0], image.shape[1]))
-        out = numpy.int16(out)
-
-        source = [computehisto(image[:, :, i]) for i in range(3)]
-        for i in range(5):
-            for ch in range(3):
-                tmp = histogrammatchingold(source[ch].copy(), self.cibles[i].copy())
-                out[i * 3 + ch] = convert(image[:, :, ch], tmp)
-
-        out[15] = minmax(image[:, :, 0])
-        out[16] = minmax(image[:, :, 1])
-        out[17] = minmax(image[:, :, 2])
-
-        return out
 
     def normalize(self, image):
         image = numpy.int32(image)
@@ -182,32 +109,6 @@ if __name__ == "__main__":
         debughisto(debug[0])
         debug = PIL.Image.fromarray(debug)
         debug.save("build/test8_" + str(i) + ".png")
-
-    print("debug")
-    image = PIL.Image.open("/data/miniworld/bruges/train/1_x.png").convert("RGB").copy()
-    image = numpy.uint8(numpy.asarray(image))
-
-    vals, src_counts = numpy.unique(image[:, :, 0].flatten(), return_counts=True)
-    quantiles = numpy.cumsum(src_counts)
-    quantiles = quantiles / quantiles[-1]
-    R = histogrammatching(image[:, :, 0], (quantiles, vals))
-    R = numpy.uint8(R)
-    print(numpy.sum(numpy.absolute(R-image[:, :, 0])))
-    debughisto(R)
-
-    vals, src_counts = numpy.unique(image[:, :, 1].flatten(), return_counts=True)
-    quantiles = numpy.cumsum(src_counts)
-    quantiles = quantiles / quantiles[-1]
-    G = histogrammatching(image[:, :, 1], (quantiles, vals))
-
-    vals, src_counts = numpy.unique(image[:, :, 2].flatten(), return_counts=True)
-    quantiles = numpy.cumsum(src_counts)
-    quantiles = quantiles / quantiles[-1]
-    B = histogrammatching(image[:, :, 2], (quantiles, vals))
-
-    RGB = numpy.stack([R, G, B], axis=-1)
-    debug = PIL.Image.fromarray(numpy.uint8(RGB))
-    debug.save("build/debug.png")
 
     quit()
 
