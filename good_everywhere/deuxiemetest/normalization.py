@@ -58,7 +58,7 @@ class ManyHistogram:
     def __init__(self):
         self.cibles = numpy.zeros((5, 256))
 
-        centers = [256 // 4, 256 // 2, 256 * 3 // 4]
+        centers = [256 // 3, 256 // 2, 256 * 2 // 3]
         for c in range(3):
             for i in range(256):
                 self.cibles[c][i] = 15.0 * math.exp(-((centers[c] - i) ** 2) / 255) + 1
@@ -99,10 +99,10 @@ if __name__ == "__main__":
 
     image = PIL.Image.open("/data/miniworld/bruges/train/1_x.png").convert("RGB").copy()
     image = numpy.uint8(numpy.asarray(image))
+    debughisto(image[:, :, 0])
 
     images = normalizations.normalize(image)
 
-    debughisto(image[:,:,0])
     for i in range(6):
         debug = images[3 * i : 3 * i + 3, :, :]
         debug = numpy.uint8(numpy.transpose(debug, axes=(1, 2, 0)))
