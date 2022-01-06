@@ -88,6 +88,7 @@ class MiniWorld:
         print("loading data from", self.cities)
 
         self.data = {}
+        self.run = False
         for city in self.cities:
             self.data[city] = cropextractor.CropExtractor(
                 self.root + city, tilesize=tilesize
