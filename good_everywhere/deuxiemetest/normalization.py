@@ -87,7 +87,7 @@ class ManyHistogram:
         centers = [256 // 3, 256 // 2, 256 * 2 // 3]
         for c in range(3):
             for i in range(256):
-                self.cibles[c][i] += 10.0 * math.exp(-((centers[c] - i) ** 2) / 255)
+                self.cibles[c][i] = 10.0 * math.exp(-((centers[c] - i) ** 2) / 255) + 1
 
         for i in range(256):
             self.cibles[3][i] = 256 // 2 - abs(i - 256 // 2) + 2
@@ -126,10 +126,6 @@ if __name__ == "__main__":
     image = numpy.uint8(numpy.asarray(image))
 
     images = normalizations.normalize(image)
-
-    printhisto(computehisto(image[:, :, 0]))
-    printhisto(computehisto(images[:, :, 0]))
-    quit()
 
     for i in range(6):
         debug = images[3 * i : 3 * i + 3, :, :]
