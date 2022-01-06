@@ -50,9 +50,6 @@ def computehisto(image):
 
 
 def histogrammatching(source, cible):
-    print(numpy.int16(cible * 1000))
-    quit()
-
     j, flag = 0, True
     matching = {}
     while len(source) != 0:
