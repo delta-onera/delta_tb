@@ -76,7 +76,7 @@ class MiniWorld:
                 if city not in existingcities:
                     print("missing city", city)
                     quit()
-            self.city = expectedcities
+            self.cities = expectedcities
 
             if flag == "train":
                 self.cities = [s + "/train/" for s in self.cities]
