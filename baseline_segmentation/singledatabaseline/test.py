@@ -32,10 +32,9 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 
 import segmentation_models_pytorch as smp
 import cropextractor
-import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+dataset = cropextractor.CropExtractor(sys.argv[1] + "/test/")
 
 print("load model")
 with torch.no_grad():
@@ -57,46 +56,36 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+cm = torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for k, city in enumerate(miniworld.cities):
-        print(k, city)
-        for i in range(miniworld.data[city].NB):
-            x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
-            x, y = x.cuda(), y.cuda()
+    for i in range(dataset.data[city].NB):
+        x, y = dataset.getImageAndLabel(i, torchformat=True)
+        x, y = x.cuda(), y.cuda()
 
-            h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
-            globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
-            power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
-            x = power2resize(x)
+        h, w = y.shape[0], y.shape[1]
+        D = dataloader.distancetransform(y)
+        globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
+        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
+        x = power2resize(x)
 
-            z = largeforward(net, x.unsqueeze(0))
-            z = globalresize(z)
-            z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
+        z = largeforward(net, x.unsqueeze(0))
+        z = globalresize(z)
+        z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+        for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
-            if False:
-                nextI = len(os.listdir("build"))
-                debug = cropextractor.torchTOpil(globalresize(x))
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_x.png")
-                debug = (2.0 * y - 1) * D * 127 + 127
-                debug = debug.cpu().numpy()
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_y.png")
-                debug = z.cpu().numpy() * 255
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_z.png")
+        if True:
+            nextI = len(os.listdir("build"))
+            debug = cropextractor.torchTOpil(globalresize(x))
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_x.png")
+            debug = (2.0 * y - 1) * D * 127 + 127
+            debug = debug.cpu().numpy()
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_y.png")
+            debug = z.cpu().numpy() * 255
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_z.png")
 
-        print("perf=", dataloader.perf(cm[k]))
-        numpy.savetxt("build/tmp.txt", dataloader.perf(cm).cpu().numpy())
-
-print("-------- results ----------")
-for k, city in enumerate(miniworld.cities):
-    print(city, dataloader.perf(cm[k]))
-
-cm = torch.sum(cm, dim=0)
-print("miniworld", dataloader.perf(cm))
+    print("perf=", dataloader.perf(cm[k]))

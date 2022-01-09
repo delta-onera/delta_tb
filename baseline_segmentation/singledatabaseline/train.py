@@ -13,29 +13,16 @@ else:
     print("no cuda")
     quit()
 
-whereIam = os.uname()[1]
-if whereIam == "ldtis706z":
-    sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/pytorch-image-models")
-    sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
-if whereIam == "wdtim719z":
-    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
-    sys.path.append("/home/optimom/github/pytorch-image-models")
-    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
-    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/d/achanhon/github/pytorch-image-models")
-    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
+sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
+sys.path.append("/home/achanhon/github/pytorch-image-models")
+sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
+sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
 import cropextractor
-import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="train")
+dataset = cropextractor.CropExtractor(sys.argv[1] + "/train/")
 
 print("define model")
 net = smp.Unet(
@@ -50,17 +37,14 @@ net.train()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-if whereIam in ["ldtis706z", "wdtim719z"]:
-    batchsize = 16
-else:
-    batchsize = 32
-nbbatchs = 200000
+batchsize = 16
+nbbatchs = 50000
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
-miniworld.start()
+stats = torch.zeros((2, 2)).cuda()
+dataset.start()
 
 for i in range(nbbatchs):
-    x, y, batchchoise = miniworld.getbatch(batchsize)
+    x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
@@ -94,11 +78,8 @@ for i in range(nbbatchs):
 
     with torch.no_grad():
         z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
-        for j in range(batchsize):
-            cm = torch.zeros(2, 2).cuda()
-            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[a][b] = torch.sum((z[j] == a).float() * (y[j] == b).float() * D[j])
-            stats[batchchoise[j]] += cm
+        for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            stats[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
     if i % 100 == 99:
         print(i, "/200000", printloss / 100)
@@ -106,14 +87,13 @@ for i in range(nbbatchs):
 
     if i % 1000 == 999:
         torch.save(net, "build/model.pth")
-        cm = torch.sum(stats, dim=0)
         perf = dataloader.perf(cm)
         print("perf", perf)
         if perf[0] > 92:
             print("training stops after reaching high training accuracy")
             os._exit(0)
         else:
-            stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+            stats = torch.zeros((2, 2)).cuda()
 
 print("training stops after reaching time limit")
 os._exit(0)

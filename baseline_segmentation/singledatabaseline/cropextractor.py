@@ -8,6 +8,22 @@ import torch
 import random
 
 
+def distancetransform(y, size=4):
+    yy = 2.0 * y.unsqueeze(0) - 1
+    yyy = torch.nn.functional.avg_pool2d(
+        yy, kernel_size=2 * size + 1, stride=1, padding=size
+    )
+    D = 1.0 - 0.5 * (yy - yyy).abs()
+    return D[0]
+
+
+def perf(cm):
+    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
+    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
+    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
+    return torch.Tensor((iou0 + iou1, accu))
+
+
 def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
@@ -63,6 +79,14 @@ class CropExtractor(threading.Thread):
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
+
+    def getBatch(self, batchsize):
+        tilesize = self.tilesize
+        x = torch.zeros(batchsize, 3, self.tilesize, tilesize)
+        y = torch.zeros(batchsize, tilesize, tilesize)
+        for i in range(batchsize):
+            x[i], y[i] = self.getCrop()
+        return x, y
 
     def run(self):
         self.isrunning = True
