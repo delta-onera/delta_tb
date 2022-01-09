@@ -63,7 +63,7 @@ with torch.no_grad():
         x, y = x.cuda(), y.cuda()
 
         h, w = y.shape[0], y.shape[1]
-        D = dataloader.distancetransform(y)
+        D = cropextractor.distancetransform(y)
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
         power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
         x = power2resize(x)
@@ -88,4 +88,4 @@ with torch.no_grad():
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_z.png")
 
-    print("perf=", dataloader.perf(cm[k]))
+    print("perf=", cropextractor.perf(cm[k]))

@@ -48,7 +48,7 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    D = dataloader.distancetransform(y)
+    D = cropextractor.distancetransform(y)
     nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
     weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
@@ -87,7 +87,7 @@ for i in range(nbbatchs):
 
     if i % 1000 == 999:
         torch.save(net, "build/model.pth")
-        perf = dataloader.perf(cm)
+        perf = cropextractor.perf(cm)
         print("perf", perf)
         if perf[0] > 92:
             print("training stops after reaching high training accuracy")
