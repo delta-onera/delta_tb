@@ -87,7 +87,7 @@ for i in range(nbbatchs):
 
     if i % 1000 == 999:
         torch.save(net, "build/model.pth")
-        perf = cropextractor.perf(cm)
+        perf = cropextractor.perf(stats)
         print("perf", perf)
         if perf[0] > 92:
             print("training stops after reaching high training accuracy")

@@ -58,7 +58,7 @@ def largeforward(net, image, tilesize=128, stride=64):
 
 cm = torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for i in range(dataset.data[city].NB):
+    for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
         x, y = x.cuda(), y.cuda()
 
