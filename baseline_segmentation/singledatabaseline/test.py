@@ -73,7 +73,7 @@ with torch.no_grad():
         z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
         for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-            cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+            cm[a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
         if True:
             nextI = len(os.listdir("build"))
@@ -88,4 +88,4 @@ with torch.no_grad():
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_z.png")
 
-    print("perf=", cropextractor.perf(cm[k]))
+    print("perf=", cropextractor.perf(cm))
