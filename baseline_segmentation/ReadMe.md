@@ -16,6 +16,8 @@ python3 run.py [path]
 - image names should be {i}_x.png and mask name should be {i}_y.png
 - with i a range of integer starting from 0
 - *all other data are ignored* (in particular if there is "0_x.png, 1_x.png, 3_x.png" then "3_x.png" is ignored as the range stop at 1 but if 2_x.png is added then all images are used)
+- mask should be image 0 corresponds to background and other value to the class of interest
+- you could find in potsdam.zip a post processed version of the famous ISPRS POTSDAM dataset with suitable data structure
 
 ## feature
 
