@@ -46,30 +46,30 @@ net.train()
 
 print("load data")
 cities = [
-            "potsdam",
-            "christchurch",
-            "toulouse",
-            "austin",
-            "chicago",
-            "kitsap",
-            "tyrol-w",
-            "vienna",
-            "bruges",
-            "Arlington",
-            "Austin",
-            "DC",
-            "NewYork",
-            "SanFrancisco",
-            "Atlanta",
-            "NewHaven",
-            "Norfolk",
-            "Seekonk",
-        ]
+    "potsdam",
+    "christchurch",
+    "toulouse",
+    "austin",
+    "chicago",
+    "kitsap",
+    "tyrol-w",
+    "vienna",
+    "bruges",
+    "Arlington",
+    "Austin",
+    "DC",
+    "NewYork",
+    "SanFrancisco",
+    "Atlanta",
+    "NewHaven",
+    "Norfolk",
+    "Seekonk",
+]
 assert len(sys.argv) >= 2
 assert sys.argv[1] in cities
 
-cities = [city+"/train/" for city in cities if city!=sys.argv[1]]
-    
+cities = [city + "/train/" for city in cities if city != sys.argv[1]]
+
 miniworld = dataloader.MiniWorld(flag="custom", custom=cities)
 miniworld.start()
 
