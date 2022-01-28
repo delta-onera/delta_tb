@@ -61,6 +61,10 @@ cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
+
+        if city not in ["christchurch/test/", "Fordon/test/", "potsdam/test/"]:
+            continue
+
         for i in range(miniworld.data[city].NB):
             x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda()
@@ -78,7 +82,7 @@ with torch.no_grad():
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
-            if False:
+            if True:
                 nextI = len(os.listdir("build"))
                 debug = cropextractor.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
