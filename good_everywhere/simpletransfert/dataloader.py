@@ -5,7 +5,7 @@ import PIL
 from PIL import Image
 import torch
 import random
-import cropextractor
+import normalization
 
 
 def distancetransform(y, size=4):
@@ -30,87 +30,87 @@ def perf(cm):
         return out
 
 
-class MiniWorld:
+class HandMadeNormalization:
+    def __init__(self, flag="minmax"):
+        self.flag = flag
+
+        self.cibles = numpy.ones((4, 256))
+        self.cible[1][0 : 256 // 2] = 10
+        self.cible[2][256 // 4 : (3 * 256) // 4] = 10
+        self.cible[3][256 // 2 :] = 10
+
+        self.quantiles = []
+        for i in range(4):
+            quantiles = numpy.cumsum(self.cibles[i])
+            quantiles = quantiles / quantiles[-1]
+            self.quantiles.append(quantiles)
+
+    def minmax(self, image, removeborder=True):
+        values = list(image.flatten())
+        if removeborder:
+            values = sorted(values)
+            I = len(values)
+            values = values[(I * 3) // 100 : (I * 97) // 100]
+            imin = values[0]
+            imax = values[-1]
+        else:
+            imin = min(values)
+            imax = max(values)
+
+        if imin == imax:
+            return numpy.int16(256 // 2 * numpy.ones(image.shape))
+
+        out = 255.0 * (image - imin) / (imax - imin)
+        out = numpy.int16(out)
+
+        tmp = numpy.int16(out >= 255)
+        out -= 10000 * tmp
+        out *= numpy.int16(out > 0)
+        out += 255 * tmp
+        return out
+
+    def histogrammatching(image, tmpl_quantiles):
+        # inspired from scikit-image/blob/main/skimage/exposure/histogram_matching.py
+        _, src_indices, src_counts = numpy.unique(
+            image.flatten(), return_inverse=True, return_counts=True
+        )
+
+        # ensure single value can not distord the histogram
+        cut = numpy.ones(src_counts.shape) * image.shape[0] * image.shape[1] / 20
+        src_counts = numpy.minimum(src_counts, cut)
+        src_quantiles = numpy.cumsum(src_counts)
+        src_quantiles = src_quantiles / src_quantiles[-1]
+
+        interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, numpy.arange(256))
+        return interp_a_values[src_indices].reshape(image.shape)
+
+    def __call__(self, image, flag=None):
+        if flag is None:
+            flag = self.flag
+
+        if flag == "minmax":
+            return self.minmax(image)
+
+        if flag == "flat":
+            return self.minmax(
+                self.histogrammatching(image, self.quantiles[0]), removeborder=False
+            )
+
+        if flag == "gaussian_left":
+            return self.minmax(
+                self.histogrammatching(image, self.quantiles[1]), removeborder=False
+            )
+        if flag == "gaussian":
+            return self.minmax(
+                self.histogrammatching(image, self.quantiles[2]), removeborder=False
+            )
+        if flag == "gaussian_right":
+            return self.minmax(
+                self.histogrammatching(image, self.quantiles[3]), removeborder=False
+            )
+
+
+class PhysicalData:
     def __init__(self, flag, tilesize=128, custom=None):
         assert flag in ["train", "test"]
         self.tilesize = tilesize
-
-        whereIam = os.uname()[1]
-        if whereIam == "wdtim719z":
-            self.root = "/data/miniworld/"
-        if whereIam == "ldtis706z":
-            self.root = "/media/achanhon/bigdata/data/miniworld/"
-        if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-            self.root = "/scratchf/miniworld/"
-
-        existingcities = os.listdir(self.root)
-        if flag != "custom":
-            expectedcities = [
-                "Arlington",
-                "austin",
-                "bruges",
-                "christchurch",
-                "Fordon",
-                "Grzedy",
-                "NewHaven",
-                "Norfolk",
-                "potsdam",
-                "Predocin",
-                "Rokietnica",
-                "Seekonk",
-                "Zajeziorze",
-                "Atlanta",
-                "Austin",
-                "chicago",
-                "DC",
-                "Gajlity",
-                "Jedrzejow",
-                "kitsap",
-                "NewYork",
-                "Preczow",
-                "SanFrancisco",
-                "tyrol-w",
-                "vienna",
-            ]
-            for city in expectedcities:
-                if city not in existingcities:
-                    print("missing city", city)
-                    quit()
-            self.cities = expectedcities
-
-            if flag == "train":
-                self.cities = [s + "/train/" for s in self.cities]
-            else:
-                self.cities = [s + "/test/" for s in self.cities]
-        else:
-            self.cities = custom
-
-        print("loading data from", self.cities)
-
-        self.data = {}
-        self.run = False
-        for city in self.cities:
-            self.data[city] = cropextractor.CropExtractor(
-                self.root + city, tilesize=tilesize
-            )
-
-    def start(self):
-        if not self.run:
-            self.run = True
-            for city in self.cities:
-                self.data[city].start()
-
-    def getbatch(self, batchsize):
-        assert self.run
-
-        tilesize = self.tilesize
-        priority = numpy.ones(len(self.cities))
-        priority /= numpy.sum(priority)
-
-        batchchoice = numpy.random.choice(len(self.cities), batchsize, p=priority)
-
-        x = torch.zeros(batchsize, 3, tilesize, tilesize)
-        y = torch.zeros(batchsize, tilesize, tilesize)
-        for i in range(batchsize):
-            x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
-        return x, y, batchchoice
