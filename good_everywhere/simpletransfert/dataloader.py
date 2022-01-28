@@ -82,7 +82,9 @@ class HandMadeNormalization:
         src_quantiles = src_quantiles / src_quantiles[-1]
 
         interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, numpy.arange(256))
-        return interp_a_values[src_indices].reshape(image.shape)
+        return self.minmax(
+            interp_a_values[src_indices].reshape(image.shape), removeborder=False
+        )
 
     def __call__(self, image, flag=None):
         if flag is None:
@@ -92,25 +94,18 @@ class HandMadeNormalization:
             return self.minmax(image)
 
         if flag == "flat":
-            return self.minmax(
-                self.histogrammatching(image, self.quantiles[0]), removeborder=False
-            )
+            return self.histogrammatching(image, self.quantiles[0])
 
         if flag == "gaussian_left":
-            return self.minmax(
-                self.histogrammatching(image, self.quantiles[1]), removeborder=False
-            )
+            return self.histogrammatching(image, self.quantiles[1])
         if flag == "gaussian":
-            return self.minmax(
-                self.histogrammatching(image, self.quantiles[2]), removeborder=False
-            )
+            return self.histogrammatching(image, self.quantiles[2])
         if flag == "gaussian_right":
-            return self.minmax(
-                self.histogrammatching(image, self.quantiles[3]), removeborder=False
-            )
+            return self.histogrammatching(image, self.quantiles[3])
 
+		print("bad option in HandMadeNormalization()")
+		quit()
 
 class PhysicalData:
-    def __init__(self, flag, tilesize=128, custom=None):
-        assert flag in ["train", "test"]
-        self.tilesize = tilesize
+    def __init__(self, ):
+		
