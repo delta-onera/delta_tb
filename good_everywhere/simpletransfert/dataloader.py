@@ -2,10 +2,10 @@ import os
 import sys
 import numpy
 import PIL
-from PIL import Image
+from PIL import Image, ImageDraw
 import rasterio
 import torch
-
+import json
 
 def distancetransform(y, size=4):
     yy = 2.0 * y.unsqueeze(0) - 1
@@ -136,36 +136,46 @@ class Toulouse:
         return x, y
 
 
-class SPACENET:
-    def __init__(self, path="/data/SEMCITY_TOULOUSE/"):
-        self.NB = 4
+class SPACENET2:
+    def __init__(self, path="/data/"):
+        
         self.path = path
-        self.files = [
-            ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
-        ]
+        
+        self.NB = 4
 
     def getImageAndLabel(self, i):
-        assert i < self.NB
+        with rasterio.open(self.path + x) as src:
+            affine = src.transform
+            r =      np.int16(src.read(1))
+            g =      np.int16(src.read(2))
+            b =      np.int16(src.read(3))
 
-        with rasterio.open(self.path + self.files[i][0]) as src:
-            r = numpy.uint16(src.read(4))
-            g = numpy.uint16(src.read(3))
-            b = numpy.uint16(src.read(2))
-            x = numpy.stack([r, g, b], axis=-1)
+		x = np.stack([r, g, b], axis=2)
+		
+        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
+        draw = ImageDraw.Draw(mask)
+        with open(self.path + y, "r") as infile:
+            text = json.load(infile)
+        shapes = text["features"]
+        
+        for shape in shapes:
+            polygonXYZ = shape["geometry"]["coordinates"][0]
+            if type(polygonXYZ) != type([]):
+                continue
+            if len(polygonXYZ) < 3:
+                continue
+            polygon = [
+                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
+            ]
+            polygon = [(y, x) for x, y in polygon]
+            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
-        y = numpy.uint8(np.asarray(y))
-        y = (
-            numpy.uint8(y[:, :, 0] == 238)
-            * np.uint8(y[:, :, 1] == 118)
-            * np.uint8(y[:, :, 2] == 33)
-            * 255
-        )
-        return x, y
+        y = numpy.uint8(np.asarray(mask))
+        
+        return x,y
 
+               
+        
 
 class PhysicalData(HandMadeNormalization):
     def __init__(self, names=None, path="/data/", flag="minmax"):
