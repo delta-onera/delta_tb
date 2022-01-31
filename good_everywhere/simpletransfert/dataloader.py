@@ -82,9 +82,8 @@ class HandMadeNormalization:
         src_quantiles = src_quantiles / src_quantiles[-1]
 
         interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, numpy.arange(256))
-        return self.minmax(
-            interp_a_values[src_indices].reshape(image.shape), removeborder=False
-        )
+        tmp = interp_a_values[src_indices].reshape(image.shape)
+        return self.minmax(tmp, removeborder=False)
 
     def __call__(self, image, flag=None):
         if flag is None:
@@ -103,9 +102,20 @@ class HandMadeNormalization:
         if flag == "gaussian_right":
             return self.histogrammatching(image, self.quantiles[3])
 
-		print("bad option in HandMadeNormalization()")
-		quit()
+        print("bad option in HandMadeNormalization()")
+        quit()
+
 
 class PhysicalData:
-    def __init__(self, ):
-		
+    def __init__(self, path, name, flag):
+        self.path = path
+        self.name = name
+        self.flag = flag
+
+        if self.name == "semcity_toulouse":
+            self.files = [
+                ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+            ]
