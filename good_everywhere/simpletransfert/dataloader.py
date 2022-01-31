@@ -178,7 +178,7 @@ class PhysicalData(HandMadeNormalization):
         if names is not None:
             self.cities = names
         else:
-            self.cities = ["toulouse", "paris", "rio", "shangai", "karthoum", "vegas"]
+            self.cities = ["toulouse", "paris", "shangai", "karthoum", "vegas"]
 
         self.NB = {}
         self.files = {}

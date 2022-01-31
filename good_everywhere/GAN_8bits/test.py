@@ -35,7 +35,7 @@ import cropextractor
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.PhysicalData(flag == "minmax")
 
 print("load model")
 with torch.no_grad():
@@ -62,11 +62,8 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
 
-        if city not in ["christchurch/test/", "Fordon/test/", "potsdam/test/"]:
-            continue
-
-        for i in range(miniworld.data[city].NB):
-            x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
+        for i in range(miniworld.NB[city]):
+            x, y = miniworld.getImageAndLabel(city, i, torchformat=True)
             x, y = x.cuda(), y.cuda()
 
             h, w = y.shape[0], y.shape[1]
