@@ -3,9 +3,8 @@ import sys
 import numpy
 import PIL
 from PIL import Image
+import rasterio
 import torch
-import random
-import normalization
 
 
 def distancetransform(y, size=4):
@@ -106,16 +105,104 @@ class HandMadeNormalization:
         quit()
 
 
-class PhysicalData:
-    def __init__(self, path, name, flag):
+class Toulouse:
+    def __init__(self, path="/data/SEMCITY_TOULOUSE/"):
+        self.NB = 4
+        self.path = path
+        self.files = [
+            ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+        ]
+
+    def getImageAndLabel(self, i):
+        assert i < self.NB
+
+        with rasterio.open(self.path + self.files[i][0]) as src:
+            r = numpy.uint16(src.read(4))
+            g = numpy.uint16(src.read(3))
+            b = numpy.uint16(src.read(2))
+            x = numpy.stack([r, g, b], axis=-1)
+
+        vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
+        y = numpy.uint8(np.asarray(y))
+        y = (
+            numpy.uint8(y[:, :, 0] == 238)
+            * np.uint8(y[:, :, 1] == 118)
+            * np.uint8(y[:, :, 2] == 33)
+            * 255
+        )
+        return x, y
+
+
+class SPACENET:
+    def __init__(self, path="/data/SEMCITY_TOULOUSE/"):
+        self.NB = 4
+        self.path = path
+        self.files = [
+            ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+        ]
+
+    def getImageAndLabel(self, i):
+        assert i < self.NB
+
+        with rasterio.open(self.path + self.files[i][0]) as src:
+            r = numpy.uint16(src.read(4))
+            g = numpy.uint16(src.read(3))
+            b = numpy.uint16(src.read(2))
+            x = numpy.stack([r, g, b], axis=-1)
+
+        vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
+        y = numpy.uint8(np.asarray(y))
+        y = (
+            numpy.uint8(y[:, :, 0] == 238)
+            * np.uint8(y[:, :, 1] == 118)
+            * np.uint8(y[:, :, 2] == 33)
+            * 255
+        )
+        return x, y
+
+
+class PhysicalData(HandMadeNormalization):
+    def __init__(self, names=None, path="/data/", flag="minmax"):
+        super().__init__(flag)
+
         self.path = path
         self.name = name
         self.flag = flag
 
-        if self.name == "semcity_toulouse":
-            self.files = [
+        if names is not None:
+            self.cities = names
+        else:
+            self.cities = ["toulouse", "paris", "rio", "shangai", "karthoum", "vegas"]
+
+        self.NB = {}
+        self.files = {}
+
+        if "toulouse" in self.cities:
+            self.NB["toulouse"] = 4
+            self.files["toulouse"] = [
                 ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
                 ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
                 ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
                 ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
             ]
+
+    def getImageAndLabel(self, city, i, torchformat=False):
+        assert i < self.NB[city]
+
+        image = PIL.Image.open(self.files[city][i][0]).convert("RGB").copy()
+        image = numpy.uint8(numpy.asarray(image))
+
+        label = PIL.Image.open(self.files[city][i][1]).convert("L").copy()
+        label = numpy.uint8(numpy.asarray(label))
+        label = numpy.uint8(label != 0)
+
+        if torchformat:
+            return pilTOtorch(image), torch.Tensor(label)
+        else:
+            return image, label
