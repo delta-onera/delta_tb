@@ -202,9 +202,6 @@ class SPACENET2:
 class PhysicalData(HandMadeNormalization):
     def __init__(self, names=None, flag="minmax"):
         super().__init__(flag)
-
-        self.path = path
-        self.name = name
         self.flag = flag
 
         if names is not None:
