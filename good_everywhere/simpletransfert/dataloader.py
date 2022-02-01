@@ -38,80 +38,93 @@ def perf(cm):
         return out
 
 
-class HandMadeNormalization:
-    def __init__(self, flag="minmax"):
-        self.flag = flag
+def minmax(x, xmin, xmax):
+    out = 255 * (x - xmin) / (xmax - xmin)
 
-        self.cibles = numpy.ones((4, 256))
-        self.cibles[1][0 : 256 // 2] = 10
-        self.cibles[2][256 // 4 : (3 * 256) // 4] = 10
-        self.cibles[3][256 // 2 :] = 10
+    tmp = numpy.int16(out >= 255)  # the large ones
+    out -= 10000 * tmp  # makes the larger small
+    out *= numpy.int16(out > 0)  # put small at 0
+    out += 255 * tmp  # restore large at 255
 
-        self.quantiles = []
-        for i in range(4):
-            quantiles = numpy.cumsum(self.cibles[i])
-            quantiles = quantiles / quantiles[-1]
-            self.quantiles.append(quantiles)
+    return numpy.int16(out)
 
-    def minmax(self, image, removeborder=True):
-        values = list(image.flatten())
-        if removeborder:
-            values = sorted(values)
-            I = len(values)
-            values = values[(I * 3) // 100 : (I * 97) // 100]
-            imin = values[0]
-            imax = values[-1]
-        else:
-            imin = min(values)
-            imax = max(values)
 
-        if imin == imax:
-            return numpy.int16(256 // 2 * numpy.ones(image.shape))
+class MinMax:
+    def __init__(self, data):
+        self.imin = numpy.zeros(3)
+        self.imax = numpy.zeros(3)
 
-        out = 255.0 * (image - imin) / (imax - imin)
-        out = numpy.int16(out)
+        values = ([0], [0], [0])
+        for i in range(data.NB):
+            x, _ = data.getImageAndLabel(i)
+            for ch in range(3):
+                values[ch] += list(x[:, :, ch])
 
-        tmp = numpy.int16(out >= 255)
-        out -= 10000 * tmp
-        out *= numpy.int16(out > 0)
-        out += 255 * tmp
-        return out
+        for ch in range(3):
+            values[ch] = sorted(values[ch])
+            I = len(values[ch])
+            values[ch] = values[ch][(I * 3) // 100 : (I * 97) // 100]
+            self.imin[ch] = values[ch][0]
+            self.imax[ch] = values[ch][-1]
 
-    def histogrammatching(image, tmpl_quantiles):
-        # inspired from scikit-image/blob/main/skimage/exposure/histogram_matching.py
-        _, src_indices, src_counts = numpy.unique(
-            image.flatten(), return_inverse=True, return_counts=True
-        )
+    def normalize(self, image):
+        out = numpy.zeros(image.shape)
+        for ch in range(3):
+            out[:, :, ch] = minmax(image[:, :, ch], imin[ch], imax[ch])
+        return numpy.int16(out)
 
-        # ensure single value can not distord the histogram
-        cut = numpy.ones(src_counts.shape) * image.shape[0] * image.shape[1] / 20
-        src_counts = numpy.minimum(src_counts, cut)
-        src_quantiles = numpy.cumsum(src_counts)
-        src_quantiles = src_quantiles / src_quantiles[-1]
 
-        interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, numpy.arange(256))
-        tmp = interp_a_values[src_indices].reshape(image.shape)
-        return self.minmax(tmp, removeborder=False)
+class HistogramBased:
+    def __init__(self, data, mode="flat"):
+        self.XP = numpy.zeros((3, 256))
+        self.FP = numpy.arange(256)
 
-    def normalize(self, image, flag=None):
-        if flag is None:
-            flag = self.flag
+        target = numpy.ones(256)
+        if mode == "center":
+            target[256 // 4 : (3 * 256) // 4] = 10
+        if mode == "left":
+            target[0 : 256 // 2] = 10
+        if mode == "right":
+            target[256 // 2 :] = 10
+        quantiles = numpy.cumsum(target)
+        quantiles = quantiles / quantiles[-1]
 
-        if flag == "minmax":
-            return self.minmax(image)
+        VERYLARGEIMAGE = numpy.int16(numpy.zeros((1, 650, 3)))
+        for i in range(data.NB):
+            x, _ = data.getImageAndLabel(i)
+            VERYLARGEIMAGE = numpy.concatenate((VERYLARGEIMAGE, x), axis=0)
 
-        if flag == "flat":
-            return self.histogrammatching(image, self.quantiles[0])
+        for ch in range(3):
+            GRAY = VERYLARGEIMAGE[:, :, ch].flatten()
+            _, src_indices, src_counts = numpy.unique(
+                gray, return_inverse=True, return_counts=True
+            )
 
-        if flag == "gaussian_left":
-            return self.histogrammatching(image, self.quantiles[1])
-        if flag == "gaussian":
-            return self.histogrammatching(image, self.quantiles[2])
-        if flag == "gaussian_right":
-            return self.histogrammatching(image, self.quantiles[3])
+            # ensure single value can not distord the histogram
+            cut = (
+                numpy.ones(src_counts.shape)
+                * VERYLARGEIMAGE.shape[0]
+                * VERYLARGEIMAGE.shape[1]
+                / 20
+            )
+            src_counts = numpy.minimum(src_counts, cut)
+            src_quantiles = numpy.cumsum(src_counts)
+            src_quantiles = src_quantiles / src_quantiles[-1]
 
-        print("bad option in HandMadeNormalization()")
-        quit()
+            interp_a_values = numpy.interp(
+                src_quantiles, tmpl_quantiles, numpy.arange(256)
+            )
+
+            for i in range(255):
+                tmp = numpy.int16(interp_a_values >= i)
+                last = numpy.amax(GRAY * tmp)
+                self.XP[ch][i] = last + 1
+
+    def normalize(self, image):
+        out = numpy.zeros(image.shape)
+        for ch in range(3):
+            out[:, :, ch] = numpy.interp(image[:, :, ch], self.XP[ch], self.FP)
+        return numpy.int16(out)
 
 
 class Toulouse:
@@ -201,9 +214,8 @@ class SPACENET2:
         return x, y
 
 
-class PhysicalData(HandMadeNormalization):
+class PhysicalData:
     def __init__(self, names=None, flag="minmax"):
-        super().__init__(flag)
         self.flag = flag
 
         if names is not None:
@@ -213,6 +225,7 @@ class PhysicalData(HandMadeNormalization):
 
         self.data = {}
         self.NB = {}
+        self.normalization = {}
         for name in self.cities:
             if name == "toulouse":
                 self.data["toulouse"] = Toulouse()
@@ -220,10 +233,15 @@ class PhysicalData(HandMadeNormalization):
                 self.data[name] = SPACENET2(name)
             self.NB[name] = self.data[name].NB
 
+            if self.flag != "minmax":
+                self.normalization[name] = HistogramBased(self.data[name], mode=flag)
+            else:
+                self.normalization[name] = MinMax(self.data[name])
+
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        x = self.normalize(x)
+        x = self.normalization[city].normalize(x)
 
         if torchformat:
             return pilTOtorch(x), torch.Tensor(y)
