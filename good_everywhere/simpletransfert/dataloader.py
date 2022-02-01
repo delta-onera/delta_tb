@@ -135,13 +135,10 @@ class Toulouse:
             x = numpy.stack([r, g, b], axis=-1)
 
         y = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
-        y = numpy.uint8(numpy.asarray(y))
-        y = (
-            numpy.uint8(y[:, :, 0] == 238)
-            * numpy.uint8(y[:, :, 1] == 118)
-            * numpy.uint8(y[:, :, 2] == 33)
-            * 255
-        )
+        y = numpy.asarray(y)
+        y = (y[:, :, 0] == 238) * (y[:, :, 1] == 118) * (y[:, :, 2] == 33)
+        y = numpy.uint8((y != 0) * 255)
+
         return x, y
 
 
