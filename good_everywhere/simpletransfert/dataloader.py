@@ -89,8 +89,8 @@ class HistogramBased:
         quantiles = numpy.cumsum(target)
         quantiles = quantiles / quantiles[-1]
 
-        VERYLARGEIMAGE = numpy.int16(numpy.zeros((1, 650, 3)))
-        for i in range(data.NB):
+        VERYLARGEIMAGE, _ = data.getImageAndLabel(0)
+        for i in range(1, data.NB):
             x, _ = data.getImageAndLabel(i)
             VERYLARGEIMAGE = numpy.concatenate((VERYLARGEIMAGE, x), axis=0)
 
@@ -101,19 +101,12 @@ class HistogramBased:
             )
 
             # ensure single value can not distord the histogram
-            cut = (
-                numpy.ones(src_counts.shape)
-                * VERYLARGEIMAGE.shape[0]
-                * VERYLARGEIMAGE.shape[1]
-                / 20
-            )
+            cut = numpy.ones(src_counts.shape) * GRAY.shape[0] * GRAY.shape[1] / 20
             src_counts = numpy.minimum(src_counts, cut)
             src_quantiles = numpy.cumsum(src_counts)
             src_quantiles = src_quantiles / src_quantiles[-1]
 
-            interp_a_values = numpy.interp(
-                src_quantiles, tmpl_quantiles, numpy.arange(256)
-            )
+            interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, self.FP)
 
             for i in range(255):
                 tmp = numpy.int16(interp_a_values >= i)
@@ -221,7 +214,7 @@ class PhysicalData:
         if names is not None:
             self.cities = names
         else:
-            self.cities = spacenet2name() + ["toulouse"]
+            self.cities = ["toulouse"] + spacenet2name()
 
         self.data = {}
         self.NB = {}
