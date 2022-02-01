@@ -136,8 +136,7 @@ class Toulouse:
 
         y = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
         y = numpy.asarray(y)
-        y = (y[:, :, 0] == 238) * (y[:, :, 1] == 118) * (y[:, :, 2] == 33)
-        y = numpy.uint8((y != 0) * 255)
+        y = numpy.uint8((y[:, :, 0] == 238) * (y[:, :, 1] == 118) * (y[:, :, 2] == 33))
 
         return x, y
 
@@ -196,7 +195,7 @@ class SPACENET2:
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        y = numpy.uint8(numpy.asarray(mask))
+        y = numpy.uint8(numpy.asarray(mask) != 0)
         return x, y
 
 
