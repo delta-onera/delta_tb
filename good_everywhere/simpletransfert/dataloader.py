@@ -160,12 +160,12 @@ class SPACENET2:
         tmp = [name for name in tmp if "buildings_" + name + ".geojson" in tmp2]
 
         self.files = sorted(tmp)
-        NB = len(self.files)
-        if NB == 0:
+        self.NB = len(self.files)
+        if self.NB == 0:
             print("wrong path")
             quit()
         else:
-            print(NB)
+            print(self.NB)
 
     def getImageAndLabel(self, i):
         assert i < self.NB
