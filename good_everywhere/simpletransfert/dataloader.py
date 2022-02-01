@@ -210,11 +210,13 @@ class PhysicalData(HandMadeNormalization):
             self.cities = ["toulouse"] + spacenet2name()
 
         self.data = {}
+        self.NB = {}
         for name in self.cities:
             if name == "toulouse":
                 self.data["toulouse"] = Toulouse()
             if name in spacenet2name():
                 self.data[name] = SPACENET2(name)
+            self.NB[name] = self.data[name].NB
 
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
