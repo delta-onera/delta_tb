@@ -155,11 +155,8 @@ class SPACENET2:
 
         self.NB = 0
         tmp = os.listdir(self.path + self.name + "/RGB-PanSharpen")
-        print(tmp)
         tmp = [name[:-4] for name in tmp if name[-4:] == ".tif"]
-        print(tmp)
         tmp = [name[15:] for name in tmp]
-        print(tmp)
         tmp2 = os.listdir(self.path + self.name + "/geojson/buildings")
         tmp = [name for name in tmp if "buildings_" + name + ".geojson" in tmp2]
 
