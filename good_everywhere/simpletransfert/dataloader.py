@@ -115,7 +115,7 @@ class HandMadeNormalization:
 
 
 class Toulouse:
-    def __init__(self, path="/scratchf/SEMCITY_TOULOUSE"):
+    def __init__(self, path="/scratchf/SEMCITY_TOULOUSE/"):
         self.NB = 4
         self.path = path
         self.files = [
