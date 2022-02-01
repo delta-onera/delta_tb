@@ -135,11 +135,11 @@ class Toulouse:
             x = numpy.stack([r, g, b], axis=-1)
 
         vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
-        y = numpy.uint8(np.asarray(y))
+        y = numpy.uint8(numpy.asarray(y))
         y = (
             numpy.uint8(y[:, :, 0] == 238)
-            * np.uint8(y[:, :, 1] == 118)
-            * np.uint8(y[:, :, 2] == 33)
+            * numpy.uint8(y[:, :, 1] == 118)
+            * numpy.uint8(y[:, :, 2] == 33)
             * 255
         )
         return x, y
@@ -172,10 +172,10 @@ class SPACENET2:
 
         with rasterio.open(self.path + self.name + x) as src:
             affine = src.transform
-            r = np.int16(src.read(1))
-            g = np.int16(src.read(2))
-            b = np.int16(src.read(3))
-        x = np.stack([r, g, b], axis=2)
+            r = numpy.int16(src.read(1))
+            g = numpy.int16(src.read(2))
+            b = numpy.int16(src.read(3))
+        x = numpy.stack([r, g, b], axis=2)
 
         mask = Image.new("RGB", (r.shape[1], r.shape[0]))
         draw = ImageDraw.Draw(mask)
@@ -195,7 +195,7 @@ class SPACENET2:
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        y = numpy.uint8(np.asarray(mask))
+        y = numpy.uint8(numpy.asarray(mask))
         return x, y
 
 
