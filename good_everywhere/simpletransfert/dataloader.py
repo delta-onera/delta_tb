@@ -120,9 +120,9 @@ class Toulouse:
         self.path = path
         self.files = [
             ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
-            ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+            ("TLS_BDSD_M_04.tif", "TLS_GT_04.tif"),
+            ("TLS_BDSD_M_07.tif", "TLS_GT_07.tif"),
+            ("TLS_BDSD_M_08.tif", "TLS_GT_08.tif"),
         ]
 
     def getImageAndLabel(self, i):
