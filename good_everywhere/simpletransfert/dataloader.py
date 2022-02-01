@@ -43,9 +43,9 @@ class HandMadeNormalization:
         self.flag = flag
 
         self.cibles = numpy.ones((4, 256))
-        self.cible[1][0 : 256 // 2] = 10
-        self.cible[2][256 // 4 : (3 * 256) // 4] = 10
-        self.cible[3][256 // 2 :] = 10
+        self.cibles[1][0 : 256 // 2] = 10
+        self.cibles[2][256 // 4 : (3 * 256) // 4] = 10
+        self.cibles[3][256 // 2 :] = 10
 
         self.quantiles = []
         for i in range(4):
