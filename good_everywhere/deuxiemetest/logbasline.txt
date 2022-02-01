@@ -3,97 +3,97 @@ loading data from ['paris/test/', 'tyrol-w/test/', 'bruges/test/', 'Atlanta/test
 load model
 test
 0 paris/test/
-perf= tensor([79.9580, 93.0920])
+perf= tensor([80.5269, 93.5236])
 1 tyrol-w/test/
-perf= tensor([88.7390, 98.9678])
+perf= tensor([90.0963, 99.1231])
 2 bruges/test/
-perf= tensor([82.4772, 92.9708])
+perf= tensor([83.0644, 93.3264])
 3 Atlanta/test/
-perf= tensor([87.6308, 95.9521])
+perf= tensor([87.5095, 95.9645])
 4 chicago/test/
-perf= tensor([77.5013, 87.8073])
+perf= tensor([76.4358, 87.2829])
 5 Gajlity/test/
-perf= tensor([78.0018, 99.9059])
+perf= tensor([79.8238, 99.9221])
 6 Rokietnica/test/
-perf= tensor([90.7372, 99.9374])
+perf= tensor([90.0177, 99.9357])
 7 shanghai/test/
 perf= tensor([49.9997, 99.9993])
 8 Predocin/test/
-perf= tensor([88.6949, 99.8804])
+perf= tensor([88.1434, 99.8724])
 9 khartoum/test/
 perf= tensor([49.9997, 99.9993])
 10 Seekonk/test/
-perf= tensor([84.6230, 98.4533])
+perf= tensor([86.2509, 98.7028])
 11 austin/test/
-perf= tensor([88.8307, 97.6143])
+perf= tensor([89.3850, 97.7689])
 12 Arlington/test/
-perf= tensor([81.9778, 96.2441])
+perf= tensor([83.4389, 96.6788])
 13 Zajeziorze/test/
-perf= tensor([88.2005, 99.6910])
+perf= tensor([88.5369, 99.7030])
 14 toulouse/test/
-perf= tensor([86.0220, 94.1368])
+perf= tensor([86.0839, 94.2178])
 15 potsdam/test/
-perf= tensor([84.1823, 92.7156])
+perf= tensor([85.2497, 93.4411])
 16 rio/test/
 perf= tensor([49.9997, 99.9994])
 17 Preczow/test/
-perf= tensor([89.8564, 99.4648])
+perf= tensor([90.6817, 99.5208])
 18 SanFrancisco/test/
-perf= tensor([84.0299, 91.6442])
+perf= tensor([84.2342, 91.7649])
 19 vienna/test/
-perf= tensor([82.9666, 95.8126])
+perf= tensor([83.4406, 95.9645])
 20 vegas/test/
-perf= tensor([83.9864, 99.2342])
+perf= tensor([71.0633, 97.9080])
 21 NewHaven/test/
-perf= tensor([76.8862, 93.4262])
+perf= tensor([77.8343, 93.7708])
 22 Jedrzejow/test/
-perf= tensor([87.3938, 99.7507])
+perf= tensor([87.7020, 99.7569])
 23 DC/test/
-perf= tensor([80.9788, 90.2998])
+perf= tensor([81.2477, 90.5181])
 24 kitsap/test/
-perf= tensor([79.8353, 98.6267])
+perf= tensor([80.8012, 98.7504])
 25 Fordon/test/
-perf= tensor([76.9870, 99.9932])
+perf= tensor([68.2320, 99.9899])
 26 NewYork/test/
-perf= tensor([85.2858, 94.5858])
+perf= tensor([86.1878, 95.0235])
 27 Austin/test/
-perf= tensor([89.4889, 96.6844])
+perf= tensor([89.9377, 96.8467])
 28 Norfolk/test/
-perf= tensor([86.3697, 96.9977])
+perf= tensor([86.5107, 97.0756])
 29 christchurch/test/
-perf= tensor([89.8163, 99.9910])
+perf= tensor([79.1101, 99.9729])
 30 Grzedy/test/
-perf= tensor([91.1656, 99.9782])
+perf= tensor([92.8364, 99.9831])
 -------- results ----------
-paris/test/ tensor([79.9580, 93.0920])
-tyrol-w/test/ tensor([88.7390, 98.9678])
-bruges/test/ tensor([82.4772, 92.9708])
-Atlanta/test/ tensor([87.6308, 95.9521])
-chicago/test/ tensor([77.5013, 87.8073])
-Gajlity/test/ tensor([78.0018, 99.9059])
-Rokietnica/test/ tensor([90.7372, 99.9374])
+paris/test/ tensor([80.5269, 93.5236])
+tyrol-w/test/ tensor([90.0963, 99.1231])
+bruges/test/ tensor([83.0644, 93.3264])
+Atlanta/test/ tensor([87.5095, 95.9645])
+chicago/test/ tensor([76.4358, 87.2829])
+Gajlity/test/ tensor([79.8238, 99.9221])
+Rokietnica/test/ tensor([90.0177, 99.9357])
 shanghai/test/ tensor([49.9997, 99.9993])
-Predocin/test/ tensor([88.6949, 99.8804])
+Predocin/test/ tensor([88.1434, 99.8724])
 khartoum/test/ tensor([49.9997, 99.9993])
-Seekonk/test/ tensor([84.6230, 98.4533])
-austin/test/ tensor([88.8307, 97.6143])
-Arlington/test/ tensor([81.9778, 96.2441])
-Zajeziorze/test/ tensor([88.2005, 99.6910])
-toulouse/test/ tensor([86.0220, 94.1368])
-potsdam/test/ tensor([84.1823, 92.7156])
+Seekonk/test/ tensor([86.2509, 98.7028])
+austin/test/ tensor([89.3850, 97.7689])
+Arlington/test/ tensor([83.4389, 96.6788])
+Zajeziorze/test/ tensor([88.5369, 99.7030])
+toulouse/test/ tensor([86.0839, 94.2178])
+potsdam/test/ tensor([85.2497, 93.4411])
 rio/test/ tensor([49.9997, 99.9994])
-Preczow/test/ tensor([89.8564, 99.4648])
-SanFrancisco/test/ tensor([84.0299, 91.6442])
-vienna/test/ tensor([82.9666, 95.8126])
-vegas/test/ tensor([83.9864, 99.2342])
-NewHaven/test/ tensor([76.8862, 93.4262])
-Jedrzejow/test/ tensor([87.3938, 99.7507])
-DC/test/ tensor([80.9788, 90.2998])
-kitsap/test/ tensor([79.8353, 98.6267])
-Fordon/test/ tensor([76.9870, 99.9932])
-NewYork/test/ tensor([85.2858, 94.5858])
-Austin/test/ tensor([89.4889, 96.6844])
-Norfolk/test/ tensor([86.3697, 96.9977])
-christchurch/test/ tensor([89.8163, 99.9910])
-Grzedy/test/ tensor([91.1656, 99.9782])
-miniworld tensor([86.8283, 97.8108])
+Preczow/test/ tensor([90.6817, 99.5208])
+SanFrancisco/test/ tensor([84.2342, 91.7649])
+vienna/test/ tensor([83.4406, 95.9645])
+vegas/test/ tensor([71.0633, 97.9080])
+NewHaven/test/ tensor([77.8343, 93.7708])
+Jedrzejow/test/ tensor([87.7020, 99.7569])
+DC/test/ tensor([81.2477, 90.5181])
+kitsap/test/ tensor([80.8012, 98.7504])
+Fordon/test/ tensor([68.2320, 99.9899])
+NewYork/test/ tensor([86.1878, 95.0235])
+Austin/test/ tensor([89.9377, 96.8467])
+Norfolk/test/ tensor([86.5107, 97.0756])
+christchurch/test/ tensor([79.1101, 99.9729])
+Grzedy/test/ tensor([92.8364, 99.9831])
+miniworld tensor([87.0260, 97.8776])
