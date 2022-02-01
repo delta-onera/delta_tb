@@ -134,7 +134,7 @@ class Toulouse:
             b = numpy.uint16(src.read(2))
             x = numpy.stack([r, g, b], axis=-1)
 
-        vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
+        y = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
         y = numpy.uint8(numpy.asarray(y))
         y = (
             numpy.uint8(y[:, :, 0] == 238)
