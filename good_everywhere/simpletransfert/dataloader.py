@@ -218,7 +218,7 @@ class PhysicalData(HandMadeNormalization):
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        self.normalize(x)
+        x = self.normalize(x)
 
         if torchformat:
             return pilTOtorch(x), torch.Tensor(y)
