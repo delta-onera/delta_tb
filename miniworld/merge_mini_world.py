@@ -130,7 +130,7 @@ def scratchfilespacenet1(root, XY, output):
 
         mask.save(output + str(i) + "_y.png")
 
-        image = image = PIL.Image.open(root + "/" + x).convert("RGB").copy()
+        image = PIL.Image.open(root + "/" + x).convert("RGB").copy()
         image.save(output + "/" + str(i) + "_x.png")
 
         i += 1

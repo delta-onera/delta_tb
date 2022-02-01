@@ -71,6 +71,7 @@ class MiniWorld:
                 "SanFrancisco",
                 "tyrol-w",
                 "vienna",
+                "rio",
             ]
             for city in expectedcities:
                 if city not in existingcities:

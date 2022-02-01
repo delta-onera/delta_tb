@@ -2,18 +2,9 @@ import os
 import sys
 import numpy
 import PIL
-from PIL import Image, ImageDraw
+from PIL import Image
 import rasterio
 import torch
-import json
-
-
-def pilTOtorch(x):
-    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
-
-
-def torchTOpil(x):
-    return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
 def distancetransform(y, size=4):
@@ -93,7 +84,7 @@ class HandMadeNormalization:
         tmp = interp_a_values[src_indices].reshape(image.shape)
         return self.minmax(tmp, removeborder=False)
 
-    def normalize(self, image, flag=None):
+    def __call__(self, image, flag=None):
         if flag is None:
             flag = self.flag
 
@@ -115,7 +106,7 @@ class HandMadeNormalization:
 
 
 class Toulouse:
-    def __init__(self, path="/scratchf/SEMCITY_TOULOUSE"):
+    def __init__(self, path="/data/SEMCITY_TOULOUSE/"):
         self.NB = 4
         self.path = path
         self.files = [
@@ -145,62 +136,39 @@ class Toulouse:
         return x, y
 
 
-def spacenet2name():
-    tmp = ["2_Vegas", "4_Shanghai", "3_Paris", "5_Khartoum"]
-    return ["AOI_" + name + "_Train" for name in tmp]
-
-
-class SPACENET2:
-    def __init__(self, name, path="/scratchf/DATASETS/SPACENET2/train/"):
+class SPACENET:
+    def __init__(self, path="/data/SEMCITY_TOULOUSE/"):
+        self.NB = 4
         self.path = path
-        self.name = name
-        assert name in spacenet2name()
-
-        self.NB = 0
-        tmp = os.listdir(self.path + self.name + "/RGB-PanSharpen")
-        tmp = [name for name in tmp if name[-4:] == ".tif"]
-        tmp2 = os.listdir(self.path + self.name + "/geojson/buildings/buildings")
-        tmp = [name for name in tmp if name + ".geojson" in tmp2]
-
-        self.files = sorted(tmp)
-        NB = len(self.files)
+        self.files = [
+            ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
+            ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+        ]
 
     def getImageAndLabel(self, i):
         assert i < self.NB
-        x = "/RGB-PanSharpen/" + self.files[i] + ".tif"
-        y = "/geojson/buildings/buildings/" + self.files[i] + ".geojson"
 
-        with rasterio.open(self.path + self.name + x) as src:
-            affine = src.transform
-            r = np.int16(src.read(1))
-            g = np.int16(src.read(2))
-            b = np.int16(src.read(3))
-        x = np.stack([r, g, b], axis=2)
+        with rasterio.open(self.path + self.files[i][0]) as src:
+            r = numpy.uint16(src.read(4))
+            g = numpy.uint16(src.read(3))
+            b = numpy.uint16(src.read(2))
+            x = numpy.stack([r, g, b], axis=-1)
 
-        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
-        draw = ImageDraw.Draw(mask)
-        with open(self.path + self.name + y, "r") as infile:
-            text = json.load(infile)
-        shapes = text["features"]
-
-        for shape in shapes:
-            polygonXYZ = shape["geometry"]["coordinates"][0]
-            if type(polygonXYZ) != type([]):
-                continue
-            if len(polygonXYZ) < 3:
-                continue
-            polygon = [
-                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
-            ]
-            polygon = [(y, x) for x, y in polygon]
-            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
-
-        y = numpy.uint8(np.asarray(mask))
+        vt = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
+        y = numpy.uint8(np.asarray(y))
+        y = (
+            numpy.uint8(y[:, :, 0] == 238)
+            * np.uint8(y[:, :, 1] == 118)
+            * np.uint8(y[:, :, 2] == 33)
+            * 255
+        )
         return x, y
 
 
 class PhysicalData(HandMadeNormalization):
-    def __init__(self, names=None, flag="minmax"):
+    def __init__(self, names=None, path="/data/", flag="minmax"):
         super().__init__(flag)
 
         self.path = path
@@ -210,21 +178,31 @@ class PhysicalData(HandMadeNormalization):
         if names is not None:
             self.cities = names
         else:
-            self.cities = ["toulouse"] + spacenet2name()
+            self.cities = ["toulouse", "paris", "shangai", "karthoum", "vegas"]
 
-        self.data = {}
-        for name in self.cities:
-            if name == "toulouse":
-                self.data["toulouse"] = Toulouse()
-            if name in spacenet2name():
-                self.data[name] = SPACENET2(name)
+        self.NB = {}
+        self.files = {}
+
+        if "toulouse" in self.cities:
+            self.NB["toulouse"] = 4
+            self.files["toulouse"] = [
+                ("TLS_BDSD_M_03.tif", "TLS_GT_03.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_04.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_07.tif"),
+                ("TLS_BDSD_M_03.tif", "TLS_GT_08.tif"),
+            ]
 
     def getImageAndLabel(self, city, i, torchformat=False):
-        x, y = self.data[city].getImageAndLabel(i)
+        assert i < self.NB[city]
 
-        self.normalize(x)
+        image = PIL.Image.open(self.files[city][i][0]).convert("RGB").copy()
+        image = numpy.uint8(numpy.asarray(image))
+
+        label = PIL.Image.open(self.files[city][i][1]).convert("L").copy()
+        label = numpy.uint8(numpy.asarray(label))
+        label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(x), torch.Tensor(y)
+            return pilTOtorch(image), torch.Tensor(label)
         else:
-            return x, y
+            return image, label
