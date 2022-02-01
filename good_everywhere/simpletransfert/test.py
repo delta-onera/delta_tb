@@ -80,7 +80,7 @@ with torch.no_grad():
 
             if True:
                 nextI = len(os.listdir("build"))
-                debug = cropextractor.torchTOpil(globalresize(x))
+                debug = dataloader.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
