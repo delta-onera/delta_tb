@@ -159,7 +159,7 @@ class SPACENET2:
         self.NB = 0
         tmp = os.listdir(self.path + self.name + "/RGB-PanSharpen")
         tmp = [name for name in tmp if name[-4:] == ".tif"]
-        tmp2 = os.listdir(self.path + self.name + "/geojson/buildings/buildings")
+        tmp2 = os.listdir(self.path + self.name + "/geojson/buildings")
         tmp = [name for name in tmp if name + ".geojson" in tmp2]
 
         self.files = sorted(tmp)
@@ -168,7 +168,7 @@ class SPACENET2:
     def getImageAndLabel(self, i):
         assert i < self.NB
         x = "/RGB-PanSharpen/" + self.files[i] + ".tif"
-        y = "/geojson/buildings/buildings/" + self.files[i] + ".geojson"
+        y = "/geojson/buildings/" + self.files[i] + ".geojson"
 
         with rasterio.open(self.path + self.name + x) as src:
             affine = src.transform
