@@ -129,9 +129,9 @@ class Toulouse:
         assert i < self.NB
 
         with rasterio.open(self.path + self.files[i][0]) as src:
-            r = numpy.uint16(src.read(4))
-            g = numpy.uint16(src.read(3))
-            b = numpy.uint16(src.read(2))
+            r = numpy.int16(src.read(4))
+            g = numpy.int16(src.read(3))
+            b = numpy.int16(src.read(2))
             x = numpy.stack([r, g, b], axis=-1)
 
         y = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
