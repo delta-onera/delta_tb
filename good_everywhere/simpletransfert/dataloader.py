@@ -197,7 +197,7 @@ class SPACENET2:
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        y = numpy.uint8(numpy.asarray(mask) != 0)
+        y = numpy.uint8(numpy.asarray(mask)[:, :, 0] != 0)
         return x, y
 
 
@@ -209,7 +209,7 @@ class PhysicalData(HandMadeNormalization):
         if names is not None:
             self.cities = names
         else:
-            self.cities = ["toulouse"] + spacenet2name()
+            self.cities = spacenet2name() + ["toulouse"]
 
         self.data = {}
         self.NB = {}
