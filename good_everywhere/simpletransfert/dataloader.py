@@ -60,7 +60,7 @@ class MinMax:
         for i in range(data.NB):
             x, _ = data.getImageAndLabel(i)
             for ch in range(3):
-                values[ch] += list(x[:, :, ch])
+                values[ch] += list(x[:, :, ch].flatten())
 
         for ch in range(3):
             values[ch] = sorted(values[ch])
