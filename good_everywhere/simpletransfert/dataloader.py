@@ -93,22 +93,22 @@ class HistogramBased:
         quantiles = numpy.cumsum(target)
         quantiles = quantiles / quantiles[-1]
 
+        values = {}
         for ch in range(3):
-            tmp, _ = data.getImageAndLabel(0)
-            VERYLARGEIMAGE = tmp[:, :, ch].flatten()
+            values[ch] = [0]
+        for i in range(data.NB):
+            x, _ = data.getImageAndLabel(i)
+            for ch in range(3):
+                values[ch] += list(x[:, :, ch].flatten())
 
-            for i in range(1, data.NB):
-                tmp, _ = data.getImageAndLabel(i)
-                VERYLARGEIMAGE = numpy.concatenate(
-                    (VERYLARGEIMAGE, tmp[:, :, ch]), axis=0
-                )
-
+        for ch in range(3):
+            tmp = numpy.asarray(values[ch])
             _, src_indices, src_counts = numpy.unique(
-                VERYLARGEIMAGE, return_inverse=True, return_counts=True
+                tmp, return_inverse=True, return_counts=True
             )
 
             # ensure single value can not distord the histogram
-            cut = numpy.ones(src_counts.shape) * VERYLARGEIMAGE.shape[0] / 20
+            cut = numpy.ones(src_counts.shape) * tmp.shape[0] / 20
             src_counts = numpy.minimum(src_counts, cut)
             src_quantiles = numpy.cumsum(src_counts)
             src_quantiles = src_quantiles / src_quantiles[-1]
@@ -116,8 +116,8 @@ class HistogramBased:
             interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, self.FP)
 
             for i in range(255):
-                tmp = numpy.int16(interp_a_values >= i)
-                last = numpy.amax(GRAY * tmp)
+                tmpi = numpy.int16(interp_a_values >= i)
+                last = numpy.amax(tmpi * tmp)
                 self.XP[ch][i] = last + 1
 
     def normalize(self, image):
