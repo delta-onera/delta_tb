@@ -120,6 +120,7 @@ class HistogramBased:
                 tmpi = numpy.int16(wtf >= i)
                 last = numpy.amax(tmpi * tmp)
                 self.XP[ch][i] = last + 1
+            print(self.XP[ch])
 
     def normalize(self, image):
         out = numpy.zeros(image.shape)
