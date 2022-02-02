@@ -72,7 +72,7 @@ class MinMax:
     def normalize(self, image):
         out = numpy.zeros(image.shape)
         for ch in range(3):
-            out[:, :, ch] = minmax(image[:, :, ch], imin[ch], imax[ch])
+            out[:, :, ch] = minmax(image[:, :, ch], self.imin[ch], self.imax[ch])
         return numpy.int16(out)
 
 
