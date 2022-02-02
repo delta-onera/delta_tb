@@ -113,7 +113,7 @@ class HistogramBased:
             src_quantiles = numpy.cumsum(src_counts)
             src_quantiles = src_quantiles / src_quantiles[-1]
 
-            interp_a_values = numpy.interp(src_quantiles, tmpl_quantiles, self.FP)
+            interp_a_values = numpy.interp(src_quantiles, quantiles, self.FP)
 
             for i in range(255):
                 tmpi = numpy.int16(interp_a_values >= i)
