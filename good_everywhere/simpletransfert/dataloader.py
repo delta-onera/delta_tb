@@ -101,7 +101,7 @@ class HistogramBased:
         for ch in range(3):
             GRAY = VERYLARGEIMAGE[:, :, ch].flatten()
             _, src_indices, src_counts = numpy.unique(
-                gray, return_inverse=True, return_counts=True
+                GRAY, return_inverse=True, return_counts=True
             )
 
             # ensure single value can not distord the histogram
