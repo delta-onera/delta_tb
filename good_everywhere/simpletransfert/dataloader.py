@@ -51,6 +51,7 @@ def minmax(x, xmin, xmax):
 
 class MinMax:
     def __init__(self, data):
+        print("MinMax")
         self.imin = numpy.zeros(3)
         self.imax = numpy.zeros(3)
 
@@ -78,6 +79,7 @@ class MinMax:
 
 class HistogramBased:
     def __init__(self, data, mode="flat"):
+        print("HistogramBased", mode)
         self.XP = numpy.zeros((3, 256))
         self.FP = numpy.arange(256)
 
@@ -124,6 +126,7 @@ class HistogramBased:
 
 class Toulouse:
     def __init__(self, path="/scratchf/SEMCITY_TOULOUSE/"):
+        print("Toulouse")
         self.NB = 4
         self.path = path
         self.files = [
@@ -156,6 +159,7 @@ def spacenet2name():
 
 class SPACENET2:
     def __init__(self, name, path="/scratchf/DATASETS/SPACENET2/train/"):
+        print("SPACENET2", name)
         self.path = path
         self.name = name
         assert name in spacenet2name()
