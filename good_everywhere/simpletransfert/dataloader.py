@@ -116,8 +116,8 @@ class HistogramBased:
             interp_a_values = numpy.interp(src_quantiles, quantiles, self.FP)
             wtf = interp_a_values[src_indices]
 
-            for i in range(255):
-                tmpi = numpy.int16(wtf >= i)
+            for i in range(256):
+                tmpi = numpy.int16(wtf < i + 1)
                 last = numpy.amax(tmpi * tmp)
                 self.XP[ch][i] = last + 1
             print(self.XP[ch])
