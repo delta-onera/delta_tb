@@ -34,7 +34,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-miniworld = dataloader.PhysicalData(name=["2_Vegas"], flag="flat")
+miniworld = dataloader.PhysicalData(names=["2_Vegas"], flag="flat")
 
 print("load model")
 with torch.no_grad():
