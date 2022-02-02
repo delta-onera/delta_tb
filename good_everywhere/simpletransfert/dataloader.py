@@ -216,7 +216,7 @@ class PhysicalData:
         if names is not None:
             self.cities = names
         else:
-            self.cities = ["toulouse"] + spacenet2name()
+            self.cities = ["toulouse"]  # + spacenet2name()
 
         self.data = {}
         self.NB = {}
