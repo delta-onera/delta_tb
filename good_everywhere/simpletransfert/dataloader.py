@@ -54,7 +54,9 @@ class MinMax:
         self.imin = numpy.zeros(3)
         self.imax = numpy.zeros(3)
 
-        values = ([0], [0], [0])
+        values = {}
+        for ch in range(3):
+            values[ch] = [0]
         for i in range(data.NB):
             x, _ = data.getImageAndLabel(i)
             for ch in range(3):
