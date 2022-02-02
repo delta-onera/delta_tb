@@ -49,26 +49,36 @@ def minmax(x, xmin, xmax):
     return numpy.int16(out)
 
 
+def collectValues(data, maxlength=1000000):
+    values = [[0], [0], [0]]
+    for i in range(data.NB):
+        x, _ = data.getImageAndLabel(i)
+        for ch in range(3):
+            values[ch] += list(x[::2, ::2, ch].flatten())
+        if len(values[0]) > maxlength:
+            for ch in range(3):
+                random.shuffle(values[ch])
+                values[ch] = values[ch][0 : maxlength // 2]
+
+    out = numpy.zeros((3, len(values[0])))
+    for ch in range(3):
+        out[ch][:] = values[ch]
+    return numpy.int16(out)
+
+
 class MinMax:
     def __init__(self, data):
+        values = collectValues(data)
+
         print("MinMax")
         self.imin = numpy.zeros(3)
         self.imax = numpy.zeros(3)
-
-        values = {}
         for ch in range(3):
-            values[ch] = [0]
-        for i in range(data.NB):
-            x, _ = data.getImageAndLabel(i)
-            for ch in range(3):
-                values[ch] += list(x[:, :, ch].flatten())
-
-        for ch in range(3):
-            values[ch] = sorted(values[ch])
-            I = len(values[ch])
-            values[ch] = values[ch][(I * 3) // 100 : (I * 97) // 100]
-            self.imin[ch] = values[ch][0]
-            self.imax[ch] = values[ch][-1]
+            tmp = sorted(list(values[ch]))
+            I = len(tmp)
+            tmp = tmp[(I * 3) // 100 : (I * 97) // 100]
+            self.imin[ch] = tmp[0]
+            self.imax[ch] = tmp[-1]
 
     def normalize(self, image):
         out = numpy.zeros(image.shape)
@@ -79,6 +89,8 @@ class MinMax:
 
 class HistogramBased:
     def __init__(self, data, mode="flat"):
+        values = collectValues(data)
+
         print("HistogramBased", mode)
         self.XP = numpy.zeros((3, 256))
         self.FP = numpy.arange(256)
@@ -92,14 +104,6 @@ class HistogramBased:
             target[256 // 2 :] = 10
         quantiles = numpy.cumsum(target)
         quantiles = quantiles / quantiles[-1]
-
-        values = {}
-        for ch in range(3):
-            values[ch] = [0]
-        for i in range(data.NB):
-            x, _ = data.getImageAndLabel(i)
-            for ch in range(3):
-                values[ch] += list(x[:, :, ch].flatten())
 
         for ch in range(3):
             tmp = numpy.asarray(values[ch])
@@ -120,7 +124,6 @@ class HistogramBased:
                 tmpi = numpy.int16(wtf < i + 1)
                 last = numpy.amax(tmpi * tmp)
                 self.XP[ch][i] = last + 1
-            print(self.XP[ch])
 
     def normalize(self, image):
         out = numpy.zeros(image.shape)
@@ -225,7 +228,7 @@ class PhysicalData:
         if names is not None:
             self.cities = names
         else:
-            self.cities = ["toulouse"]  # + spacenet2name()
+            self.cities = spacenet2name() + ["toulouse"]
 
         self.data = {}
         self.NB = {}
