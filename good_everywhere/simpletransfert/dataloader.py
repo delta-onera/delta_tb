@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw
 import rasterio
 import torch
 import json
+import random
 
 
 def pilTOtorch(x):
