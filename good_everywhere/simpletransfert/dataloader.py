@@ -93,19 +93,22 @@ class HistogramBased:
         quantiles = numpy.cumsum(target)
         quantiles = quantiles / quantiles[-1]
 
-        VERYLARGEIMAGE, _ = data.getImageAndLabel(0)
-        for i in range(1, data.NB):
-            x, _ = data.getImageAndLabel(i)
-            VERYLARGEIMAGE = numpy.concatenate((VERYLARGEIMAGE, x), axis=0)
-
         for ch in range(3):
-            GRAY = VERYLARGEIMAGE[:, :, ch].flatten()
+            tmp, _ = data.getImageAndLabel(0)
+            VERYLARGEIMAGE = tmp[:, :, ch].flatten()
+
+            for i in range(1, data.NB):
+                tmp, _ = data.getImageAndLabel(i)
+                VERYLARGEIMAGE = numpy.concatenate(
+                    (VERYLARGEIMAGE, tmp[:, :, ch]), axis=0
+                )
+
             _, src_indices, src_counts = numpy.unique(
-                GRAY, return_inverse=True, return_counts=True
+                VERYLARGEIMAGE, return_inverse=True, return_counts=True
             )
 
             # ensure single value can not distord the histogram
-            cut = numpy.ones(src_counts.shape) * GRAY.shape[0] * GRAY.shape[1] / 20
+            cut = numpy.ones(src_counts.shape) * VERYLARGEIMAGE.shape[0] / 20
             src_counts = numpy.minimum(src_counts, cut)
             src_quantiles = numpy.cumsum(src_counts)
             src_quantiles = src_quantiles / src_quantiles[-1]
