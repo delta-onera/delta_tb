@@ -50,7 +50,7 @@ def minmax(x, xmin, xmax):
     return numpy.int16(out)
 
 
-def collectValues(data, maxlength=1000000):
+def collectValues(data, maxlength=10000000):
     values = [[0], [0], [0]]
     for i in range(data.NB):
         x, _ = data.getImageAndLabel(i)
