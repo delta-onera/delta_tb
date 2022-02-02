@@ -214,7 +214,7 @@ class SPACENET2:
 
 
 class PhysicalData:
-    def __init__(self, names=None, flag="flat"):
+    def __init__(self, names=None, flag="minmax"):
         self.flag = flag
 
         if names is not None:
