@@ -68,8 +68,7 @@ def collectValues(data, maxlength=100000000):
 
 
 class MinMax:
-    def __init__(self, data):
-        values = collectValues(data)
+    def __init__(self, values):
 
         print("MinMax")
         self.imin = numpy.zeros(3)
@@ -89,8 +88,7 @@ class MinMax:
 
 
 class HistogramBased:
-    def __init__(self, data, mode="flat"):
-        values = collectValues(data)
+    def __init__(self, values, mode="flat"):
 
         print("HistogramBased", mode)
         self.XP = numpy.zeros((3, 256))
@@ -239,17 +237,21 @@ class PhysicalData:
                 self.data["toulouse"] = Toulouse()
             if name in spacenet2name():
                 self.data[name] = SPACENET2(name)
-            self.NB[name] = self.data[name].NB
 
-            if self.flag != "minmax":
-                self.normalization[name] = HistogramBased(self.data[name], mode=flag)
-            else:
-                self.normalization[name] = MinMax(self.data[name])
+            self.NB[name] = self.data[name].NB
+            values = collectValues(self.data[name])
+
+            self.normalization[name] = {}
+            self.normalization[name]["minmax"] = MinMax(values.copy())
+            for mode in ["flat", "center", "left", "right"]:
+                self.normalization[name][mode] = HistogramBased(
+                    values.copy(), mode=flag
+                )
 
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        x = self.normalization[city].normalize(x)
+        x = self.normalization[city][self.flag].normalize(x)
 
         if torchformat:
             return pilTOtorch(x), torch.Tensor(y)
