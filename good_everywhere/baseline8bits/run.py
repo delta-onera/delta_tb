@@ -22,7 +22,7 @@ if whereIam == "wdtim719z":
 if whereIam == "ldtis706z":
     os.system("python3 -u train.py")
     os.system("python3 -u test.py")
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
     os.system("/d/jcastillo/anaconda3/bin/python -u train.py")
     os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
 
