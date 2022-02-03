@@ -2,7 +2,15 @@ import os
 import sys
 
 whereIam = os.uname()[1]
-assert whereIam in ["wdtim719z", "calculon", "astroboy", "flexo", "bender", "ldtis706z"]
+assert whereIam in [
+    "wdtim719z",
+    "calculon",
+    "astroboy",
+    "flexo",
+    "bender",
+    "ldtis706z",
+    "baymax",
+]
 
 os.system("rm -rf __pycache__")
 os.system("rm -rf build")

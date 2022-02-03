@@ -40,7 +40,7 @@ class MiniWorld:
             self.root = "/data/miniworld/"
         if whereIam == "ldtis706z":
             self.root = "/media/achanhon/bigdata/data/miniworld/"
-        if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+        if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
             self.root = "/scratchf/miniworld/"
 
         existingcities = os.listdir(self.root)

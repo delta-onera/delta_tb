@@ -24,7 +24,7 @@ if whereIam == "wdtim719z":
     sys.path.append("/home/optimom/github/pytorch-image-models")
     sys.path.append("/home/optimom/github/pretrained-models.pytorch")
     sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
+if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
     sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
     sys.path.append("/d/achanhon/github/pytorch-image-models")
     sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
@@ -62,7 +62,7 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
 
-        if city not in ["christchurch/test/", "Fordon/test/", "potsdam/test/"]:
+        if city not in ["christchurch/test/", "pologne/test/", "potsdam/test/"]:
             continue
 
         for i in range(miniworld.data[city].NB):
