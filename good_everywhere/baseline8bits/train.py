@@ -61,7 +61,7 @@ miniworld.start()
 
 for i in range(nbbatchs):
     x, y, batchchoise = miniworld.getbatch(batchsize)
-    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
+    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.int().cuda()
     z = net(x)
 
     D = dataloader.distancetransform(y)
@@ -70,9 +70,9 @@ for i in range(nbbatchs):
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
     CE = criterion(z, y.long())
     CE = CE * D
-    for i in range(batchsize):
-        if batchchoise[i] <= 3:
-            CE[i] *= 2
+    for j in range(batchsize):
+        if batchchoise[j] <= 3:
+            CE[j] *= 2
     CE = torch.mean(CE)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
@@ -96,7 +96,6 @@ for i in range(nbbatchs):
     optimizer.step()
 
     with torch.no_grad():
-        batchchoise = numpy.int16(batchchoise.cpu().numpy())
         z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
         for j in range(batchsize):
             cm = torch.zeros(2, 2).cuda()
