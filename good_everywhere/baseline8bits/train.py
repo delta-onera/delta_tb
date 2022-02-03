@@ -103,7 +103,7 @@ for i in range(nbbatchs):
                 cm[a][b] = torch.sum((z[j] == a).float() * (y[j] == b).float() * D[j])
             stats[batchchoise[j]] += cm
 
-    if i % 100 == 99 or True:
+    if i % 100 == 99:
         print(i, "/200000", printloss / 100)
         printloss = torch.zeros(1).cuda()
 
