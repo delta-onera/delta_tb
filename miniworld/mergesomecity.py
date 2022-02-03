@@ -15,9 +15,18 @@ citiesTOmerge = [
 outputname = "pologne"
 
 
-os.makedirs(rootminiworld + name)
-os.makedirs(rootminiworld + name + "/train")
-os.makedirs(rootminiworld + name + "/test")
+rootminiworld = "/data/miniworld/"
+
+citiesTOmerge = [
+    "potsdam",
+    "bruges",
+]
+outputname = "potsdambruges"
+
+
+os.makedirs(rootminiworld + outputname)
+os.makedirs(rootminiworld + outputname + "/train")
+os.makedirs(rootminiworld + outputname + "/test")
 
 for flag in ["/train/", "/test/"]:
     NBTOT = 0
@@ -32,26 +41,8 @@ for flag in ["/train/", "/test/"]:
             quit()
 
         for i in range(NB):
-            os.system(
-                "cp "
-                + path
-                + str(i)
-                + "_x.png "
-                + rootminiworld
-                + name
-                + flag
-                + str(NBTOT)
-                + "_x.png"
-            )
-            os.system(
-                "cp "
-                + path
-                + str(i)
-                + "_y.png "
-                + rootminiworld
-                + name
-                + flag
-                + str(NBTOT)
-                + "_y.png"
-            )
+            pathin = path + str(i)
+            pathout = rootminiworld + outputname + flag + str(NBTOT)
+            os.system("cp " + pathin + "_x.png " + pathout + "_x.png")
+            os.system("cp " + pathin + "_y.png " + pathout + "_y.png")
             NBTOT += 1
