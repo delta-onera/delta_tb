@@ -46,29 +46,22 @@ class MiniWorld:
         existingcities = os.listdir(self.root)
         if flag != "custom":
             expectedcities = [
-                "Arlington",
-                "austin",
-                "bruges",
+                "potsdam",
                 "christchurch",
-                "Fordon",
-                "Grzedy",
+                "bruges",
+                "pologne",
+                "Arlington",
                 "NewHaven",
                 "Norfolk",
-                "potsdam",
-                "Predocin",
-                "Rokietnica",
                 "Seekonk",
-                "Zajeziorze",
                 "Atlanta",
                 "Austin",
-                "chicago",
                 "DC",
-                "Gajlity",
-                "Jedrzejow",
-                "kitsap",
                 "NewYork",
-                "Preczow",
                 "SanFrancisco",
+                "chicago",
+                "kitsap",
+                "austin",
                 "tyrol-w",
                 "vienna",
                 "rio",
@@ -105,9 +98,9 @@ class MiniWorld:
         assert self.run
 
         tilesize = self.tilesize
-        priority = numpy.ones(len(self.cities))
+        priority = numpy.asarray([2, 4, 2, 4] + [1] * 9 + [2] * 5 + [3])
+        assert priority.shape[0] == len(self.cities)
         priority /= numpy.sum(priority)
-
         batchchoice = numpy.random.choice(len(self.cities), batchsize, p=priority)
 
         x = torch.zeros(batchsize, 3, tilesize, tilesize)
