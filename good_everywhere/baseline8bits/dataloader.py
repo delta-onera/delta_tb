@@ -99,7 +99,6 @@ class MiniWorld:
 
         tilesize = self.tilesize
         priority = numpy.asarray([2, 4, 2, 4] + [1] * 9 + [2] * 5 + [3])
-        assert priority.shape[0] == len(self.cities)
         priority = numpy.float32(priority) / numpy.sum(priority)
         batchchoice = numpy.random.choice(len(self.cities), batchsize, p=priority)
 
@@ -107,4 +106,4 @@ class MiniWorld:
         y = torch.zeros(batchsize, tilesize, tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
-        return x, y, batchchoice
+        return x, y, torch.Tensor(batchchoice)
