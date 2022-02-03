@@ -245,7 +245,7 @@ class PhysicalData:
             self.normalization[name]["minmax"] = MinMax(values.copy())
             for mode in ["flat", "center", "left", "right"]:
                 self.normalization[name][mode] = HistogramBased(
-                    values.copy(), mode=flag
+                    values.copy(), mode=mode
                 )
 
     def getImageAndLabel(self, city, i, torchformat=False):
