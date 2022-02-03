@@ -14,16 +14,6 @@ citiesTOmerge = [
 ]
 outputname = "pologne"
 
-
-rootminiworld = "/data/miniworld/"
-
-citiesTOmerge = [
-    "potsdam",
-    "bruges",
-]
-outputname = "potsdambruges"
-
-
 os.makedirs(rootminiworld + outputname)
 os.makedirs(rootminiworld + outputname + "/train")
 os.makedirs(rootminiworld + outputname + "/test")
