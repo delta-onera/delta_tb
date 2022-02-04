@@ -338,7 +338,7 @@ class PhysicalData:
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        if name not in digitanie_name() + ["digitanie_toulouse"]:
+        if city not in digitanie_name() + ["digitanie_toulouse"]:
             x = self.normalization[city][self.flag].normalize(x)
 
         if torchformat:
