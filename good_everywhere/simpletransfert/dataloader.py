@@ -220,6 +220,53 @@ class SPACENET2:
         return x, y
 
 
+########################################################################
+######################### PRIVATE CNES DATASET #########################
+
+
+def digitanie_name():
+    tmp = ["Toulouse", "Biartitz", "Strasbourg", "Paris"]
+    return ["AOI_" + name + "_Train" for name in tmp]
+
+
+class DIGITANIE:
+    def __init__(self, name, path="/scratchf/PRIVATE/DIGITANIE/"):
+        print(DIGITANIE, name)
+        self.path = path
+
+        tmp = path + name + "/" + name.lower() + "_"
+        self.NB = 0
+        while os.path.exists(tmp + str(self.NB + 1) + "_c.tif"):
+            self.NB += 1
+
+        if self.NB == 0:
+            print("wrong path")
+            quit()
+
+    def getImageAndLabel(self, i):
+        assert i < self.NB
+
+        tmp = path + name + "/" + name.lower() + "_"
+        xpath = tmp + str(i + 1) + "_img_c.tif"
+        ypath = tmp + str(i + 1) + "_c.tif"
+
+        with rasterio.open(xpath) as src:
+            r = numpy.int16(src.read(1) * 255)
+            g = numpy.int16(src.read(2) * 255)
+            b = numpy.int16(src.read(3) * 255)
+            x = numpy.stack([r, g, b], axis=-1)
+
+        y = PIL.Image.open(ypath).convert("L").copy()
+        y = numpy.asarray(y)
+        y = numpy.uint8((y[:, :] == 4))
+
+        return x, y
+
+
+######################### PRIVATE CNES DATASET #########################
+########################################################################
+
+
 class PhysicalData:
     def __init__(self, names=None, flag="minmax"):
         self.flag = flag
@@ -227,7 +274,7 @@ class PhysicalData:
         if names is not None:
             self.cities = names
         else:
-            self.cities = spacenet2name() + ["toulouse"]
+            self.cities = digitanie_name()  # + spacenet2name() + ["toulouse"]
 
         self.data = {}
         self.NB = {}
@@ -237,8 +284,13 @@ class PhysicalData:
                 self.data["toulouse"] = Toulouse()
             if name in spacenet2name():
                 self.data[name] = SPACENET2(name)
+            if name in digitanie_name():
+                self.data[name] = DIGITANIE(name)
 
             self.NB[name] = self.data[name].NB
+
+            if name in digitanie_name():
+                continue
             values = collectValues(self.data[name])
 
             self.normalization[name] = {}
@@ -251,7 +303,8 @@ class PhysicalData:
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        x = self.normalization[city][self.flag].normalize(x)
+        if name not in digitanie_name():
+            x = self.normalization[city][self.flag].normalize(x)
 
         if torchformat:
             return pilTOtorch(x), torch.Tensor(y)
