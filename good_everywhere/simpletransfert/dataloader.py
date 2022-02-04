@@ -232,6 +232,7 @@ class DIGITANIE:
     def __init__(self, name, path="/scratchf/PRIVATE/DIGITANIE/"):
         print("DIGITANIE", name)
         self.path = path
+        self.name = name
 
         tmp = path + name + "/" + name.lower() + "_tuile_"
         self.NB = 0
