@@ -225,7 +225,7 @@ class SPACENET2:
 
 
 def digitanie_name():
-    return ["Biartitz", "Strasbourg", "Paris"]
+    return ["Biarritz", "Strasbourg", "Paris"]
 
 
 class DIGITANIE:
@@ -239,7 +239,7 @@ class DIGITANIE:
             self.NB += 1
 
         if self.NB == 0:
-            print("wrong path")
+            print("wrong path", tmp)
             quit()
 
     def getImageAndLabel(self, i):
