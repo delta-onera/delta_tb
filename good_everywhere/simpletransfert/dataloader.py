@@ -245,7 +245,7 @@ class DIGITANIE:
     def getImageAndLabel(self, i):
         assert i < self.NB
 
-        tmp = path + name + "/" + name.lower() + "_"
+        tmp = self.path + self.name + "/" + self.name.lower() + "_tuile_"
         xpath = tmp + str(i + 1) + "_img_c.tif"
         ypath = tmp + str(i + 1) + "_c.tif"
 
