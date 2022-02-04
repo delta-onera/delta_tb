@@ -225,8 +225,7 @@ class SPACENET2:
 
 
 def digitanie_name():
-    tmp = ["Biartitz", "Strasbourg", "Paris"]
-    return ["AOI_" + name + "_Train" for name in tmp]
+    return ["Biartitz", "Strasbourg", "Paris"]
 
 
 class DIGITANIE:
