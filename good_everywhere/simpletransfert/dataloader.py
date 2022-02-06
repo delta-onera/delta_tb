@@ -220,6 +220,85 @@ class SPACENET2:
         return x, y
 
 
+########################################################################
+######################### PRIVATE CNES DATASET #########################
+
+
+def digitanie_name():
+    return ["Biarritz", "Strasbourg", "Paris"]
+
+
+class DIGITANIE:
+    def __init__(self, name, path="/scratchf/PRIVATE/DIGITANIE/"):
+        print("DIGITANIE", name)
+        self.path = path
+        self.name = name
+
+        tmp = path + name + "/" + name.lower() + "_tuile_"
+        self.NB = 0
+        while os.path.exists(tmp + str(self.NB + 1) + "_c.tif"):
+            self.NB += 1
+
+        if self.NB == 0:
+            print("wrong path", tmp)
+            quit()
+
+    def getImageAndLabel(self, i):
+        assert i < self.NB
+
+        tmp = self.path + self.name + "/" + self.name.lower() + "_tuile_"
+        xpath = tmp + str(i + 1) + "_img_c.tif"
+        ypath = tmp + str(i + 1) + "_c.tif"
+
+        with rasterio.open(xpath) as src:
+            r = numpy.int16(src.read(1) * 255)
+            g = numpy.int16(src.read(2) * 255)
+            b = numpy.int16(src.read(3) * 255)
+            x = numpy.stack([r, g, b], axis=-1)
+
+        y = PIL.Image.open(ypath).convert("L").copy()
+        y = numpy.asarray(y)
+        y = numpy.uint8((y[:, :] == 4))
+
+        return x, y
+
+
+class DIGITANIE_TOULOUSE:
+    def __init__(self, path="/scratchf/PRIVATE/DIGITANIE/Toulouse/"):
+        print("DIGITANIE_TOULOUSE")
+        self.path = path
+
+        self.files = [
+            ("tlse_arenes_c.tif", "tlse_arenes_img_c.tif"),
+            ("tlse_bagatelle_c.tif", "tlse_bagatelle_img_c.tif"),
+            ("tlse_cepiere_c.tif", "tlse_cepiere_img_c.tif"),
+            ("tlse_empalot_c.tif", "tlse_empalot_img_c.tif"),
+            ("tlse_mirail_c.tif", "tlse_mirail_img_c.tif"),
+            ("tlse_montaudran_c.tif", "tlse_montaudran_img_c.tif"),
+            ("tlse_zenith_c.tif", "tlse_zenith_img_c.tif"),
+        ]
+        self.NB = len(self.files)
+
+    def getImageAndLabel(self, i):
+        assert i < self.NB
+
+        with rasterio.open(self.path + self.files[i][1]) as src:
+            r = numpy.int16(src.read(1) * 255)
+            g = numpy.int16(src.read(2) * 255)
+            b = numpy.int16(src.read(3) * 255)
+            x = numpy.stack([r, g, b], axis=-1)
+
+        y = PIL.Image.open(self.path + self.files[i][0]).convert("L").copy()
+        y = numpy.asarray(y)
+        y = numpy.uint8((y[:, :] == 4))
+
+        return x, y
+
+
+######################### PRIVATE CNES DATASET #########################
+########################################################################
+
+
 class PhysicalData:
     def __init__(self, names=None, flag="minmax"):
         self.flag = flag
@@ -227,7 +306,8 @@ class PhysicalData:
         if names is not None:
             self.cities = names
         else:
-            self.cities = spacenet2name() + ["toulouse"]
+            self.cities = digitanie_name() + ["digitanie_toulouse"]
+            # + spacenet2name() + ["toulouse"]
 
         self.data = {}
         self.NB = {}
@@ -237,8 +317,15 @@ class PhysicalData:
                 self.data["toulouse"] = Toulouse()
             if name in spacenet2name():
                 self.data[name] = SPACENET2(name)
+            if name in digitanie_name():
+                self.data[name] = DIGITANIE(name)
+            if name == "digitanie_toulouse":
+                self.data[name] = DIGITANIE_TOULOUSE()
 
             self.NB[name] = self.data[name].NB
+
+            if name in digitanie_name() + ["digitanie_toulouse"]:
+                continue
             values = collectValues(self.data[name])
 
             self.normalization[name] = {}
@@ -251,7 +338,8 @@ class PhysicalData:
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 
-        x = self.normalization[city][self.flag].normalize(x)
+        if city not in digitanie_name() + ["digitanie_toulouse"]:
+            x = self.normalization[city][self.flag].normalize(x)
 
         if torchformat:
             return pilTOtorch(x), torch.Tensor(y)
