@@ -104,7 +104,7 @@ for i in range(nbbatchs):
             stats[batchchoise[j]] += cm
 
     if i % 100 == 99:
-        print(i, "/200000", printloss / 100)
+        print(i, "/", nbbatchs, printloss / 100)
         printloss = torch.zeros(1).cuda()
 
     if i % 1000 == 999:
