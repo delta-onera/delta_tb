@@ -12,6 +12,17 @@ assert whereIam in [
     "baymax",
 ]
 
+if whereIam == "wdtim719z":
+    root = "/data/"
+if whereIam == "ldtis706z":
+    root = "/media/achanhon/bigdata/data/"
+if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
+    root = "/scratchf/"
+
+if not os.path.exists(root + "miniworld"):
+    print("miniworld not found")
+    quit()
+
 os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
