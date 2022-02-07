@@ -70,10 +70,9 @@ for i in range(nbbatchs):
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
     CE = criterion(z, y.long())
     CE = CE * D
-    for j in range(batchsize):
-        if batchchoise[j] <= 3:
-            CE[j] *= 2
-    CE = torch.mean(CE)
+    tmp = (batchchoise <= 3).int().unsqueeze(1)
+    tmp += 1
+    CE = torch.mean(CE * tmp)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
     dice = criteriondice(z, y.long())
