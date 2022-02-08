@@ -6,7 +6,7 @@ import json
 import csv
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworldtmp/"
+rootminiworld = "/scratchf/miniworld2/"
 TARGET_RESOLUTION = 50.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
@@ -15,6 +15,7 @@ TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 TODO["inria"] = root + "DATASETS/INRIA/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
+TODO["landcover"] = root + "DATASETS/landcover.ai.v1/"
 
 
 def makepath(name):
@@ -244,243 +245,103 @@ if "airs" in availabledata:
         tmp = rootminiworld + "christchurch/" + flag
         resizeall(tmp, TODO["AIRS"] + flag2, XY, 7.5)
 
+if "landcover" in availabledata:
+    print("export landcover")
+    makepath("pologne")
+
+    allname = os.listdir(TODO["landcover"] + "/masks")
+    allname = [name for name in allname if ".tif" in name]
+
+    half = [
+        "N-33-119-C-c-3-3.tif",
+        "N-33-60-D-c-4-2.tif",
+        "N-33-60-D-d-1-2.tif",
+        "N-33-96-D-d-1-1.tif",
+        "N-34-61-B-a-1-1.tif",
+        "N-34-66-C-c-4-3.tif",
+        "N-34-97-C-b-1-2.tif",
+        "N-34-97-D-c-2-4.tif",
+    ]
+    half = sorted(half)
+    allname = sorted([name for name in allname if name not in half])
+
+    split = int(len(allname) * 0.66)
+    names = {}
+    names["train"] = allname[0:split] + half[0:4]
+    names["test"] = allname[split:] + half[4:]
+
+    for flag in ["train", "test"]:
+        for i, name in enumerate(names[flag]):
+            x = PIL.Image.open(TODO["landcover"] + "images/" + name)
+            y = PIL.Image.open(TODO["isprs"] + "masks/" + name)
+
+            x = numpy.uint8(numpy.asarray(x.convert("RGB").copy()))
+            y = numpy.asarray(y.convert("RGB").copy())
+            y = (y[:, :, 0] == 0) * (y[:, :, 1] == 0) * (y[:, :, 2] == 255) * 255
+
+            if name in half:
+                x, y = resizenumpy(image=x, label=y, resolution=50)
+            else:
+                x, y = resizenumpy(image=x, label=y, resolution=25)
+
+            tmp = rootminiworld + "pologne/" + flag
+            x.save(tmp + "/" + str(i) + "_x.png")
+            y.save(tmp + "/" + str(i) + "_y.png")
+
 
 import rasterio
 
 
-def scratchfilespacenet1(root, XY, output):
-    i = 0
-    for name in XY:
+def resize_spacenet1(outpath, inpath, XY):
+    for i, name in enumerate(XY):
         x, y = XY[name]
 
-        with open(root + y, "r") as infile:
-            text = json.load(infile)
-        shapes = text["features"]
-
-        with rasterio.open(root + x) as src:
+        with rasterio.open(inpath + x) as src:
             affine = src.transform
             r = numpy.int16(src.read(1))
 
         mask = Image.new("RGB", (r.shape[1], r.shape[0]))
-
         draw = ImageDraw.Draw(mask)
+
+        with open(inpath + y, "r") as infile:
+            text = json.load(infile)
+        shapes = text["features"]
         for shape in shapes:
             polygonXYZ = shape["geometry"]["coordinates"][0]
             if type(polygonXYZ) != type([]):
                 continue
             if len(polygonXYZ) < 3:
                 continue
-            polygon = [
-                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
-            ]
+            polygon = []
+            for xyz in polygonXYZ:
+                polygon.append(rasterio.transform.rowcol(affine, xyz[0], xyz[1]))
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        mask.save(output + str(i) + "_y.png")
-
         image = PIL.Image.open(root + "/" + x).convert("RGB").copy()
-        image.save(output + "/" + str(i) + "_x.png")
 
-        i += 1
+        image, label = resize(image=image, label=mask)
+        mask.save(outpath + str(i) + "_y.png")
+        image.save(outpath + "/" + str(i) + "_x.png")
 
 
 if "spacenet1" in availabledata:
     print("export spacenet1")
     makepath("rio")
 
-    allname = os.listdir(root + "SPACENET1/train/3band")
+    allname = os.listdir(TODO["spacenet1"] + "3band")
     allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
     allname = sorted([name[5:-4] for name in allname])
     split = int(len(allname) * 0.66)
     names = {}
     names["train"] = allname[0:split]
-    names["test"] = allname[split : len(allname)]
-
-    print("start file processing")
-    for flag in ["train", "test"]:
-        XY = {}
-        for name in names[flag]:
-            XY[name] = (
-                "3band/3band" + name + ".tif",
-                "geojson/Geo" + name + ".geojson",
-            )
-        scratchfilespacenet1(rootminiworld + "rio/", TODO["spacenet1"], XY, +flag + "/")
-
-
-def scratchfilespacenet2(root, XY, output, pivots):
-    i = 0
-    for name in XY:
-        x, y = XY[name]
-
-        with open(root + y, "r") as infile:
-            text = json.load(infile)
-        shapes = text["features"]
-
-        with rasterio.open(root + x) as src:
-            affine = src.transform
-            r = histogramnormalization(
-                numpy.int16(src.read(1)), verbose=False, pivot=pivots["r"]
-            )
-            g = histogramnormalization(
-                numpy.int16(src.read(2)), verbose=False, pivot=pivots["g"]
-            )
-            b = histogramnormalization(
-                numpy.int16(src.read(3)), verbose=False, pivot=pivots["b"]
-            )
-
-        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
-
-        draw = ImageDraw.Draw(mask)
-        for shape in shapes:
-            polygonXYZ = shape["geometry"]["coordinates"][0]
-            if type(polygonXYZ) != type([]):
-                continue
-            if len(polygonXYZ) < 3:
-                continue
-            polygon = [
-                rasterio.transform.rowcol(affine, xyz[0], xyz[1]) for xyz in polygonXYZ
-            ]
-            polygon = [(y, x) for x, y in polygon]
-            draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
-
-        mask = mask.resize(
-            (
-                int(mask.size[0] * 30.0 / 50),
-                int(mask.size[1] * 30.0 / 50),
-            ),
-            PIL.Image.NEAREST,
-        )
-        mask.save(output + str(i) + "_y.png")
-
-        x = numpy.stack([r, g, b], axis=2)
-        image = Image.fromarray(x)
-        image = image.resize((mask.size[0], mask.size[1]), PIL.Image.BILINEAR)
-
-        image.save(output + str(i) + "_x.png")
-
-        i += 1
-
-
-if "semcity" in availabledata:
-    print("export toulouse")
-    makepath("toulouse")
-
-    hack = ""
-    if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
-        hack = "../"
-
-    names = {}
-    names["train"] = ["04", "08"]
-    names["test"] = ["03", "07"]
+    names["test"] = allname[split:]
 
     for flag in ["train", "test"]:
         XY = {}
         for name in names[flag]:
+            XY[name] = [" ", " "]
+            XY[name][0] = "3band/3band"  # + name + ".tif"
+            XY[name][1] = "geojson/Geo" + name + ".geojson"
 
-            ###physical image which requires normalization
-            src = rasterio.open(
-                root + hack + "SEMCITY_TOULOUSE/TLS_BDSD_M_" + name + ".tif"
-            )
-            r = histogramnormalization(numpy.int16(src.read(4)))
-            g = histogramnormalization(numpy.int16(src.read(3)))
-            b = histogramnormalization(numpy.int16(src.read(2)))
-
-            x = numpy.stack([r, g, b], axis=2)
-
-            y = (
-                PIL.Image.open(root + hack + "SEMCITY_TOULOUSE/TLS_GT_" + name + ".tif")
-                .convert("RGB")
-                .copy()
-            )
-            y = numpy.uint8(numpy.asarray(y))
-            y = (
-                numpy.uint8(y[:, :, 0] == 238)
-                * numpy.uint8(y[:, :, 1] == 118)
-                * numpy.uint8(y[:, :, 2] == 33)
-                * 255
-            )
-
-            XY[name] = (x, y)
-
-        resizeram(XY, rootminiworld + "toulouse/" + flag, 50)
-
-if "spacenet2" in availabledata:
-    print("export spacenet2")
-    towns = [
-        ("2_Vegas", "vegas"),
-        ("3_Paris", "paris"),
-        ("4_Shanghai", "shanghai"),
-        ("5_Khartoum", "khartoum"),
-    ]
-    for town, out in towns:
-        makepath(out)
-
-        allname = os.listdir(
-            root + "SPACENET2/train/AOI_" + town + "_Train/RGB-PanSharpen"
-        )
-        allname = [name for name in allname if name[-4 : len(name)] == ".tif"]
-        allname = sorted([name[14:-4] for name in allname])
-        split = int(len(allname) * 0.66)
-        names = {}
-        names["train"] = allname[0:split]
-
-        print("collect stats for normalization")
-        pivots = {}
-        for c in ["r", "g", "b"]:
-            pivots[c] = []
-
-        for i in range(0, len(names["train"]), 4):
-            with rasterio.open(
-                root
-                + "SPACENET2/train/AOI_"
-                + town
-                + "_Train/RGB-PanSharpen/RGB-PanSharpen"
-                + names["train"][i]
-                + ".tif"
-            ) as src:
-                r = numpy.int16(src.read(1))
-                g = numpy.int16(src.read(2))
-                b = numpy.int16(src.read(3))
-                pivots["r"] += list(r.flatten())
-                pivots["g"] += list(g.flatten())
-                pivots["b"] += list(b.flatten())
-
-        print("compute global pivots for normalization")
-        for c in ["r", "g", "b"]:
-            pivots[c] = [v for v in pivots[c] if v >= 2]
-            pivots[c] = sorted(pivots[c])
-            n = len(pivots[c])
-            pivots[c] = pivots[c][0 : int((100 - 4) * n / 100)]
-            pivots[c] = pivots[c][int(4 * n / 100) :]
-
-            n = len(pivots[c])
-            k = n // 255
-
-            pivots[c] = [0] + [pivots[c][i] for i in range(0, n, k)]
-
-            assert len(pivots[c]) >= 255
-
-        names["test"] = allname[split : len(allname)]
-
-        print("start file processing")
-        for flag in ["train", "test"]:
-            XY = {}
-            for name in names[flag]:
-                XY[name] = (
-                    "AOI_"
-                    + town
-                    + "_Train/RGB-PanSharpen/RGB-PanSharpen"
-                    + name
-                    + ".tif",
-                    "AOI_"
-                    + town
-                    + "_Train/geojson/buildings/buildings"
-                    + name
-                    + ".geojson",
-                )
-            scratchfilespacenet2(
-                root + "SPACENET2/train/",
-                XY,
-                rootminiworld + out + "/" + flag + "/",
-                pivots,
-            )
+        resize_spacenet1(rootminiworld + "rio/", TODO["spacenet1"], XY)
