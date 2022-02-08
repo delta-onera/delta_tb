@@ -10,12 +10,12 @@ rootminiworld = "/scratchf/miniworld2/"
 TARGET_RESOLUTION = 50.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
-TODO["dfc"] = root + "DATASETS/DFC2015/"
+TODO["dfc"] = root + "DFC2015/"
 TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
-TODO["inria"] = root + "DATASETS/INRIA/"
+TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
-TODO["landcover"] = root + "DATASETS/landcover.ai.v1/"
+TODO["landcover"] = root + "landcover.ai.v1/"
 
 
 def makepath(name):
@@ -341,7 +341,7 @@ if "spacenet1" in availabledata:
         XY = {}
         for name in names[flag]:
             XY[name] = [" ", " "]
-            XY[name][0] = "3band/3band"  # + name + ".tif"
+            XY[name][0] = "3band/3band" + name + ".tif"
             XY[name][1] = "geojson/Geo" + name + ".geojson"
 
         resize_spacenet1(rootminiworld + "rio/", TODO["spacenet1"], XY)
