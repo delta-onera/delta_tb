@@ -54,7 +54,7 @@ if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
 else:
     batchsize = 32
-nbbatchs = 200000
+nbbatchs = 400000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 miniworld.start()
@@ -70,10 +70,9 @@ for i in range(nbbatchs):
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
     CE = criterion(z, y.long())
     CE = CE * D
-    for j in range(batchsize):
-        if batchchoise[j] <= 3:
-            CE[j] *= 2
-    CE = torch.mean(CE)
+    tmp = (batchchoise <= 3).int().unsqueeze(1)
+    tmp += 1
+    CE = torch.mean(CE * tmp)
 
     criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
     dice = criteriondice(z, y.long())
@@ -104,7 +103,7 @@ for i in range(nbbatchs):
             stats[batchchoise[j]] += cm
 
     if i % 100 == 99:
-        print(i, "/200000", printloss / 100)
+        print(i, "/", nbbatchs, printloss / 100)
         printloss = torch.zeros(1).cuda()
 
     if i % 1000 == 999:
