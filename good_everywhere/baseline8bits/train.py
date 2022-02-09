@@ -70,7 +70,7 @@ for i in range(nbbatchs):
     criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
     CE = criterion(z, y.long())
     CE = CE * D
-    tmp = (batchchoise <= 3).int().unsqueeze(1)
+    tmp = (batchchoise <= 3).int().unsqueeze(1).unsqueeze(1).unsqueeze(1)
     tmp += 1
     CE = torch.mean(CE * tmp)
 
