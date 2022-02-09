@@ -35,7 +35,7 @@ import cropextractor
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.MiniWorld(flag="train")
 
 print("load model")
 with torch.no_grad():
@@ -62,7 +62,7 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
 
-        if city not in ["christchurch/test/", "pologne/test/", "potsdam/test/"]:
+        if city not in ["christchurch/train/", "pologne/train/", "potsdam/train/"]:
             continue
 
         for i in range(miniworld.data[city].NB):
