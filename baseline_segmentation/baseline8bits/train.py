@@ -54,7 +54,7 @@ if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
 else:
     batchsize = 32
-nbbatchs = 400000
+nbbatchs = 600000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 miniworld.start()
