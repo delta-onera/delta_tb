@@ -49,7 +49,7 @@ net.train()
 
 
 print("train")
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
 else:
