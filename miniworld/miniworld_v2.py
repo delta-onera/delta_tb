@@ -7,6 +7,11 @@ import csv
 
 root = "/scratchf/"
 rootminiworld = "/scratchf/miniworld2/"
+
+if os.path_exists(rootminiworld):
+    os.system("rm -rf " + rootminiworld)
+    os.makedirs(rootminiworld)
+
 TARGET_RESOLUTION = 50.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
