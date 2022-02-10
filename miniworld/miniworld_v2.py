@@ -14,13 +14,13 @@ if os.path.exists(rootminiworld):
 
 TARGET_RESOLUTION = 50.0
 TODO = {}
+# TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 TODO["dfc"] = root + "DFC2015/"
 TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 TODO["landcover"] = root + "landcover.ai.v1/"
-TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 
 
 def makepath(name):
@@ -60,8 +60,8 @@ def resizeall(outpath, inpath, XY, resolution):
 
         image, label = resize(image=image, label=label, resolution=resolution)
 
-        image.save(output + "/" + str(i) + "_x.png")
-        label.save(output + "/" + str(i) + "_y.png")
+        image.save(outpath + "/" + str(i) + "_x.png")
+        label.save(outpath + "/" + str(i) + "_y.png")
 
 
 def resizeallram(outpath, XY, resolution):
@@ -70,8 +70,8 @@ def resizeallram(outpath, XY, resolution):
 
         image, label = resizenumpy(image=image, label=label, resolution=resolution)
 
-        image.save(output + "/" + str(i) + "_x.png")
-        label.save(output + "/" + str(i) + "_y.png")
+        image.save(outpath + "/" + str(i) + "_x.png")
+        label.save(outpath + "/" + str(i) + "_y.png")
 
 
 def resize_BRADBURY_BUILDING_HEIGHT(outpath, inpath, resolution):
