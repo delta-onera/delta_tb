@@ -13,7 +13,7 @@ else:
     if len(sys.argv) == 2 and sys.argv[1] == "nohup":
         os.system("nohup /d/achanhon/miniconda/bin/python test.py &")
     else:
-        os.system(sys.argv + " test.py")
+        os.system(sys.argv[1] + " test.py")
 
 
 os.system("rm -rf __pycache__")
