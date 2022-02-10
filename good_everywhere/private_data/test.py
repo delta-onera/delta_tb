@@ -31,11 +31,10 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import cropextractor
 import dataloader
 
 print("load data")
-miniworld = dataloader.PhysicalData(flag == "minmax")
+miniworld = dataloader.PhysicalData()
 
 print("load model")
 with torch.no_grad():
@@ -81,7 +80,7 @@ with torch.no_grad():
 
             if True:
                 nextI = len(os.listdir("build"))
-                debug = cropextractor.torchTOpil(globalresize(x))
+                debug = dataloader.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
