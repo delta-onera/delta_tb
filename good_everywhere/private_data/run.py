@@ -10,6 +10,10 @@ os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 if len(sys.argv) == 1:
     os.system("/d/achanhon/miniconda/bin/python test.py")
 else:
-    os.system(sys.argv[1])  # for nohup + CUDA_VISIBLE_DEVICES=xxx
+    if len(sys.argv) == 2 and sys.argv[1] == "nohup":
+        os.system("nohup /d/achanhon/miniconda/bin/python test.py &")
+    else:
+        os.system(sys.argv + " test.py")
+
 
 os.system("rm -rf __pycache__")
