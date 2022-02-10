@@ -18,9 +18,9 @@ TODO = {}
 # TODO["dfc"] = root + "DFC2015/"
 # TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 # TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
+# TODO["landcover"] = root + "landcover.ai.v1/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
-TODO["landcover"] = root + "landcover.ai.v1/"
 
 
 def makepath(name):
@@ -289,7 +289,7 @@ if "airs" in TODO:
         allname = os.listdir(TODO["airs"] + flag2 + "/image")
         for name in allname:
             XY[name] = ["image/" + name[0:-4], "label/" + name[0:-4] + "_vis"]
-            XY[name] = [XY[i][0] + ".tif", XY[i][1] + ".tif"]
+            XY[name] = [XY[name][0] + ".tif", XY[name][1] + ".tif"]
         tmp = rootminiworld + "christchurch/" + flag
         resizeall(tmp, TODO["airs"] + flag2, XY, 7.5)
 
