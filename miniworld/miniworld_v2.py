@@ -8,7 +8,7 @@ import csv
 root = "/scratchf/"
 rootminiworld = "/scratchf/miniworld2/"
 
-if os.path_exists(rootminiworld):
+if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
     os.makedirs(rootminiworld)
 
