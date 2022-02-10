@@ -115,9 +115,16 @@ for i in range(nbbatchs):
                 cm[a][b] = torch.sum((z[j] == a).float() * (y[j] == b).float() * D[j])
             stats[batchchoise[j]] += cm
 
-    if i % 100 == 99:
+	if i<10:
+		print(i, "/", nbbatchs, printloss)
+	if (i<10000 and i % 100 == 99):
         print(i, "/", nbbatchs, printloss / 100)
         printloss = torch.zeros(1).cuda()
+    if (i>=10000 and i % 300 == 99):
+        print(i, "/", nbbatchs, printloss / 300)
+        printloss = torch.zeros(1).cuda()	
+    
+    
 
     if i % 1000 == 999:
         torch.save(net, "build/model.pth")
