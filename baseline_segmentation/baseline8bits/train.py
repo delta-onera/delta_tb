@@ -88,7 +88,7 @@ for i in range(nbbatchs):
     CE = torch.mean(CE * tmp)
 
     tmp = torch.stack([tmp, tmp], dim=1)
-    dice = diceloss(z, y.long(), tmp)
+    dice = diceloss(y.long(), z, tmp)
     loss = CE + dice
 
     with torch.no_grad():
