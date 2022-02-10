@@ -14,13 +14,13 @@ if os.path.exists(rootminiworld):
 
 TARGET_RESOLUTION = 50.0
 TODO = {}
-TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 TODO["dfc"] = root + "DFC2015/"
 TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 TODO["landcover"] = root + "landcover.ai.v1/"
+TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 
 
 def makepath(name):
@@ -146,7 +146,7 @@ if "bradbery" in TODO:
                 resize_BRADBURY_BUILDING_HEIGHT(out, inpath, resolution[town])
 
 
-if "dfc" in availabledata:
+if "dfc" in TODO:
     print("export dfc 2015 bruges")
     makepath("bruges")
 
@@ -168,7 +168,7 @@ if "dfc" in availabledata:
         resizeallram(rootminiworld + "bruges/" + flag, XY, 5)
 
 
-if "isprs" in availabledata:
+if "isprs" in TODO:
     print("export isprs potsdam")
     makepath("potsdam")
 
@@ -217,7 +217,7 @@ if "isprs" in availabledata:
         resizeallram(rootminiworld + "potsdam/" + flag, XY, 5)
 
 
-if "inria" in availabledata:
+if "inria" in TODO:
     print("export inria")
     towns = ["austin", "chicago", "kitsap", "tyrol-w", "vienna"]
     for town in towns:
@@ -237,7 +237,7 @@ if "inria" in availabledata:
         tmp = rootminiworld + town + "/test/"
         resizeall(tmp, TODO[inria], XY, 30)
 
-if "airs" in availabledata:
+if "airs" in TODO:
     print("export airs")
     makepath("christchurch")
 
@@ -250,7 +250,7 @@ if "airs" in availabledata:
         tmp = rootminiworld + "christchurch/" + flag
         resizeall(tmp, TODO["AIRS"] + flag2, XY, 7.5)
 
-if "landcover" in availabledata:
+if "landcover" in TODO:
     print("export landcover")
     makepath("pologne")
 
@@ -330,7 +330,7 @@ def resize_spacenet1(outpath, inpath, XY):
         image.save(outpath + "/" + str(i) + "_x.png")
 
 
-if "spacenet1" in availabledata:
+if "spacenet1" in TODO:
     print("export spacenet1")
     makepath("rio")
 
