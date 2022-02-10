@@ -15,8 +15,8 @@ if os.path.exists(rootminiworld):
 TARGET_RESOLUTION = 50.0
 TODO = {}
 # TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
-TODO["dfc"] = root + "DFC2015/"
-TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
+# TODO["dfc"] = root + "DFC2015/"
+# TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
@@ -228,14 +228,14 @@ if "inria" in TODO:
             XY[i] = ["images/" + town + str(i), "gt/" + town + str(i)]
             XY[i] = [XY[i][0] + ".tif", XY[i][1] + ".tif"]
         tmp = rootminiworld + town + "/train/"
-        resizeall(tmp, TODO[inria], XY, 30)
+        resizeall(tmp, TODO["inria"], XY, 30)
 
         XY = {}
         for i in range(21, 21 + 15):
             XY[i] = ["images/" + town + str(i), "gt/" + town + str(i)]
             XY[i] = [XY[i][0] + ".tif", XY[i][1] + ".tif"]
         tmp = rootminiworld + town + "/test/"
-        resizeall(tmp, TODO[inria], XY, 30)
+        resizeall(tmp, TODO["inria"], XY, 30)
 
 if "airs" in TODO:
     print("export airs")
