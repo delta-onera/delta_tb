@@ -14,7 +14,7 @@ def distancetransform(y, size=4):
         yy, kernel_size=2 * size + 1, stride=1, padding=size
     )
     D = 1.0 - 0.5 * (yy - yyy).abs()
-    tmp = torch.ones(D.shape)
+    tmp = torch.ones(D.shape).cuda()
     D = torch.minimum(tmp, (y == 0).float() * 0.3 + D)
     return D[0]
 
