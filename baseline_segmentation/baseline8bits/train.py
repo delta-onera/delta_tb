@@ -49,6 +49,19 @@ net.train()
 
 
 print("train")
+
+
+def diceloss(y, z, D):
+    eps = 1e-7
+    y = torch.nn.functional.one_hot(y, num_classes=2)
+    y = y.transpose(2, 3).transpose(1, 2).float()
+    z = z.log_softmax(dim=1).exp()
+
+    intersection = torch.sum(y * z * D)
+    cardinality = torch.sum((y + z) * D).clamp_min(eps)
+    return (2.0 * intersection + eps) / (cardinality + eps)
+
+
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 if whereIam in ["ldtis706z", "wdtim719z"]:
     batchsize = 16
@@ -57,6 +70,9 @@ else:
 nbbatchs = 600000
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+weights = torch.Tensor([1, 10]).cuda()
+crossentropy = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
+
 miniworld.start()
 
 for i in range(nbbatchs):
@@ -65,18 +81,15 @@ for i in range(nbbatchs):
     z = net(x)
 
     D = dataloader.distancetransform(y)
-    nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
-    weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
-    criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-    CE = criterion(z, y.long())
-    CE = CE * D
     tmp = (batchchoise <= 3).int().unsqueeze(1)
-    tmp += 1
+    tmp = D * (tmp + 1)
+
+    CE = crossentropy(z, y.long())
     CE = torch.mean(CE * tmp)
 
-    criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
-    dice = criteriondice(z, y.long())
-    loss = CE + 0.1 * dice
+    tmp = torch.stack([tmp, tmp], dim=1)
+    dice = diceloss(z, y.long(), tmp)
+    loss = CE + dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
