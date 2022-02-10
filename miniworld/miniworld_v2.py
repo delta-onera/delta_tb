@@ -48,8 +48,8 @@ def resizenumpy(image=None, label=None, resolution=50.0):
     if label is not None:
         label = PIL.Image.fromarray(numpy.uint8(label))
 
-    x, y = resize(image=image, label=label, resolution=resolution)
-    return x, y
+    image, label = resize(image=image, label=label, resolution=resolution)
+    return image, label
 
 
 def resizeall(outpath, inpath, XY, resolution):
@@ -81,9 +81,9 @@ def resize_BRADBURY_BUILDING_HEIGHT(outpath, inpath, resolution):
         )
 
     image = PIL.Image.open(inpath[0]).convert("RGB").copy()
-    mask = Image.new("RGB", image.size)
+    label = Image.new("RGB", image.size)
 
-    draw = ImageDraw.Draw(mask)
+    draw = ImageDraw.Draw(label)
     with open(inpath[1], newline="") as csvfile:
         csvlines = csv.reader(csvfile, delimiter=",")
         for line in csvlines:
@@ -305,8 +305,8 @@ def resize_spacenet1(outpath, inpath, XY):
             affine = src.transform
             r = numpy.int16(src.read(1))
 
-        mask = Image.new("RGB", (r.shape[1], r.shape[0]))
-        draw = ImageDraw.Draw(mask)
+        label = Image.new("RGB", (r.shape[1], r.shape[0]))
+        draw = ImageDraw.Draw(label)
 
         with open(inpath + y, "r") as infile:
             text = json.load(infile)
@@ -325,8 +325,8 @@ def resize_spacenet1(outpath, inpath, XY):
 
         image = PIL.Image.open(root + "/" + x).convert("RGB").copy()
 
-        image, label = resize(image=image, label=mask)
-        mask.save(outpath + str(i) + "_y.png")
+        image, label = resize(image=image, label=label)
+        label.save(outpath + str(i) + "_y.png")
         image.save(outpath + "/" + str(i) + "_x.png")
 
 
