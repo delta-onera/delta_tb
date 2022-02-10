@@ -82,7 +82,7 @@ for i in range(nbbatchs):
 
     D = dataloader.distancetransform(y)
     tmp = (batchchoise <= 3).int() + 1
-    tmp = D * tmp.unsqueeze(1)
+    tmp = D * tmp.unsqueeze(1).unsqueeze(1)
 
     CE = crossentropy(z, y.long())
     CE = torch.mean(CE * tmp)
