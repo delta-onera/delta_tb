@@ -117,10 +117,10 @@ for i in range(nbbatchs):
 
     if i < 10:
         print(i, "/", nbbatchs, printloss)
-    if i < 10000 and i % 100 == 99:
+    if i < 1000 and i % 100 == 99:
         print(i, "/", nbbatchs, printloss / 100)
         printloss = torch.zeros(1).cuda()
-    if i >= 10000 and i % 300 == 299:
+    if i >= 1000 and i % 300 == 299:
         print(i, "/", nbbatchs, printloss / 300)
         printloss = torch.zeros(1).cuda()
 
