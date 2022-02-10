@@ -1,6 +1,3 @@
-########################################################################
-######################### PRIVATE CNES DATASET #########################
-
 import os
 import sys
 import numpy
@@ -41,12 +38,16 @@ def perf(cm):
         return out
 
 
+########################################################################
+######################### PRIVATE CNES DATASET #########################
+
+
 def digitanie_name():
     return ["Biarritz", "Strasbourg", "Paris"]
 
 
 class DIGITANIE:
-    def __init__(self, name, path="/scratchf/PRIVATE/DIGITANIE/"):
+    def __init__(self, name, path):
         print("DIGITANIE", name)
         self.path = path
         self.name = name
@@ -81,7 +82,7 @@ class DIGITANIE:
 
 
 class DIGITANIE_TOULOUSE:
-    def __init__(self, path="/scratchf/PRIVATE/DIGITANIE/Toulouse/"):
+    def __init__(self, path):
         print("DIGITANIE_TOULOUSE")
         self.path = path
 
@@ -114,3 +115,30 @@ class DIGITANIE_TOULOUSE:
 
 ######################### PRIVATE CNES DATASET #########################
 ########################################################################
+
+
+class DigitanieALL:
+    def __init__(self, names=None, path="/scratchf/PRIVATE/DIGITANIE/"):
+        if names is not None:
+            self.cities = names
+        else:
+            self.cities = digitanie_name() + ["digitanie_toulouse"]
+
+        self.data = {}
+        self.NB = {}
+        self.normalization = {}
+        for name in self.cities:
+            if name in digitanie_name():
+                self.data[name] = DIGITANIE(name, path)
+            if name == "digitanie_toulouse":
+                self.data[name] = DIGITANIE_TOULOUSE(path + "Toulouse")
+
+            self.NB[name] = self.data[name].NB
+
+    def getImageAndLabel(self, city, i, torchformat=False):
+        x, y = self.data[city].getImageAndLabel(i)
+
+        if torchformat:
+            return pilTOtorch(x), torch.Tensor(y)
+        else:
+            return x, y

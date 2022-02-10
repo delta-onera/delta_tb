@@ -34,7 +34,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-miniworld = dataloader.PhysicalData()
+miniworld = dataloader.DigitanieALL()
 
 print("load model")
 with torch.no_grad():
