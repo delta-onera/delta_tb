@@ -17,7 +17,7 @@ TODO = {}
 # TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 # TODO["dfc"] = root + "DFC2015/"
 # TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
-TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
+# TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 TODO["landcover"] = root + "landcover.ai.v1/"
@@ -237,19 +237,6 @@ if "inria" in TODO:
         tmp = rootminiworld + town + "/test/"
         resizeall(tmp, TODO["inria"], XY, 30)
 
-if "airs" in TODO:
-    print("export airs")
-    makepath("christchurch")
-
-    for flag, flag2 in [("test", "val"), ("train", "train")]:
-        XY = {}
-        allname = os.listdir(TODO["AIRS"] + flag2 + "/image")
-        for name in allname:
-            XY[name] = ["image/" + name[0:-4], "label/" + name[0:-4] + "_vis"]
-            XY[name] = [XY[i][0] + ".tif", XY[i][1] + ".tif"]
-        tmp = rootminiworld + "christchurch/" + flag
-        resizeall(tmp, TODO["AIRS"] + flag2, XY, 7.5)
-
 if "landcover" in TODO:
     print("export landcover")
     makepath("pologne")
@@ -278,7 +265,7 @@ if "landcover" in TODO:
     for flag in ["train", "test"]:
         for i, name in enumerate(names[flag]):
             x = PIL.Image.open(TODO["landcover"] + "images/" + name)
-            y = PIL.Image.open(TODO["isprs"] + "masks/" + name)
+            y = PIL.Image.open(TODO["landcover"] + "masks/" + name)
 
             x = numpy.uint8(numpy.asarray(x.convert("RGB").copy()))
             y = numpy.asarray(y.convert("RGB").copy())
@@ -292,6 +279,19 @@ if "landcover" in TODO:
             tmp = rootminiworld + "pologne/" + flag
             x.save(tmp + "/" + str(i) + "_x.png")
             y.save(tmp + "/" + str(i) + "_y.png")
+
+if "airs" in TODO:
+    print("export airs")
+    makepath("christchurch")
+
+    for flag, flag2 in [("test", "val"), ("train", "train")]:
+        XY = {}
+        allname = os.listdir(TODO["airs"] + flag2 + "/image")
+        for name in allname:
+            XY[name] = ["image/" + name[0:-4], "label/" + name[0:-4] + "_vis"]
+            XY[name] = [XY[i][0] + ".tif", XY[i][1] + ".tif"]
+        tmp = rootminiworld + "christchurch/" + flag
+        resizeall(tmp, TODO["airs"] + flag2, XY, 7.5)
 
 
 import rasterio
