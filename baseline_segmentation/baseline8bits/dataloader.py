@@ -15,7 +15,7 @@ def distancetransform(y, size=4):
     )
     D = 1.0 - 0.5 * (yy - yyy).abs()
     tmp = torch.ones(D.shape)
-    D = torch.mininum(tmp, (y == 0).float() * 0.3 + D)
+    D = torch.minimum(tmp, (y == 0).float() * 0.3 + D)
     return D[0]
 
 
