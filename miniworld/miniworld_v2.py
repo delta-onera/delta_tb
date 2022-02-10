@@ -43,8 +43,8 @@ def resizenumpy(image=None, label=None, resolution=50.0):
     if label is not None:
         label = PIL.Image.fromarray(numpy.uint8(label))
 
-    image, label = resize(image=image, label=label, resolution=resolution)
-    return image, label
+    x, y = resize(image=image, label=label, resolution=resolution)
+    return x, y
 
 
 def resizeall(outpath, inpath, XY, resolution):
