@@ -80,7 +80,7 @@ for epoch in range(nbepoch):
                 stats[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
             if i % 100 == 99:
-                print(i, "/200000", printloss / 100)
+                print(printloss / 100)
                 printloss = torch.zeros(1).cuda()
 
         if epoch > nbepoch * 0.1:

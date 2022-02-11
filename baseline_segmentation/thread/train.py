@@ -79,13 +79,13 @@ for i in range(nbbatchs):
             stats[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
         if i % 100 == 99:
-            print(i, "/200000", printloss / 100)
+            print(printloss / 100)
             printloss = torch.zeros(1).cuda()
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
             perf = cropextractor.perf(stats)
-            print("perf", perf)
+            print(i, "perf", perf)
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
