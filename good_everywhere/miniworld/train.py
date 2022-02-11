@@ -58,16 +58,16 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise = dataset.getBatch(batchsize)
-    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
+    x, y, batchchoise, goodlabel = dataset.getBatch(batchsize)
+    x, y = x.cuda(), y.cuda()
     z = net(x)
 
     D = dataloader.distancetransform(y.float())
-    tmp = (batchchoise <= 3).int() + 1
-    tmp = D * tmp.unsqueeze(1).unsqueeze(1)
+    batchchoise, goodlabel = batchchoise.cuda(), goodlabel.cuda()
+
+    tmp = D * goodlabel.unsqueeze(1).unsqueeze(1)
     CE = criterion(z, y)
-    CE = CE * D
-    CE = torch.mean(CE)
+    CE = torch.mean(CE * tmp)
 
     tmp = torch.stack([tmp, tmp], dim=1)
     dice = diceloss(y, z, tmp)
