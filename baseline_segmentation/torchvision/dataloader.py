@@ -71,8 +71,9 @@ class CropExtractor:
     ###############################################################
 
     def getCrop(self, nbtiles, batchsize):
-        X, Y = []
+        X, Y = [],[]
         nbpertile = int(nbtiles / self.NB + 1)
+        tilesize=self.tilesize
 
         for i in range(self.NB):
             image, label = self.getImageAndLabel(i, torchformat=False)
@@ -86,9 +87,9 @@ class CropExtractor:
                 mask = label[r : r + tilesize, c : c + tilesize]
                 x, y = symetrie(im.copy(), mask.copy(), flag[j])
                 X.append(x)
-                Y.append(Y)
+                Y.append(y)
 
-        X = torch.stack([torch.Tensor(np.transpose(x, axes=(2, 0, 1))) for x in X])
+        X = torch.stack([torch.Tensor(numpy.transpose(x, axes=(2, 0, 1))) for x in X])
         Y = torch.stack([torch.from_numpy(y).long() for y in Y])
         dataset = torch.utils.data.TensorDataset(X, Y)
         dataloader = torch.utils.data.DataLoader(
