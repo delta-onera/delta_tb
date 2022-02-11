@@ -215,14 +215,14 @@ class SPACENET2:
 if "spacenet2" in TODO:
     print("export spacenet2")
 
-    for name, namesimple in spacenet2name():
+    for name, namesimple in zip(spacenet2name()):
         data = SPACENET2(name, TODO["spacenet2"])
         normalize = MinMax()
         for i in range(data.NB):
             x, _ = data.getImageAndLabel(i)
             normalize.add(x)
 
-        normalise.froze()
+        normalize.froze()
 
         train, test = 0, 0
         for i in range(data.NB):
