@@ -196,7 +196,7 @@ class MiniWorld:
             for city in self.cities:
                 self.data[city].start()
 
-    def getbatch(self, batchsize):
+    def getBatch(self, batchsize):
         assert self.run
         batchchoice = numpy.random.choice(self.NB, batchsize, p=self.priority)
 
