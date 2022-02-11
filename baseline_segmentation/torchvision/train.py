@@ -64,7 +64,7 @@ for epoch in range(nbepoch):
         x, y = x.cuda(), y.cuda()
         z = net(x)
 
-        D = cropextractor.distancetransform(y)
+        D = dataloader.distancetransform(y)
         CE = criterion(z, y.long())
         CE = CE * D
         CE = torch.mean(CE)
@@ -98,7 +98,7 @@ for epoch in range(nbepoch):
         optimizer.step()
 
     torch.save(net, "build/model.pth")
-    perf = cropextractor.perf(stats)
+    perf = dataloader.perf(stats)
     print("perf", perf)
     if perf[0] > 92:
         print("training stops after reaching high training accuracy")

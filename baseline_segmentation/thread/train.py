@@ -63,12 +63,11 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    D = cropextractor.distancetransform(y)
+    D = dataloader.distancetransform(y)
     CE = criterion(z, y.long())
     CE = CE * D
     CE = torch.mean(CE)
 
-    criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
     dice = criteriondice(z, y.long())
     loss = CE + dice
 
@@ -84,7 +83,7 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = cropextractor.perf(stats)
+            perf = dataloader.perf(stats)
             print(i, "perf", perf)
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")

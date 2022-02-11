@@ -71,9 +71,9 @@ class CropExtractor:
     ###############################################################
 
     def getCrop(self, nbtiles, batchsize):
-        X, Y = [],[]
+        X, Y = [], []
         nbpertile = int(nbtiles / self.NB + 1)
-        tilesize=self.tilesize
+        tilesize = self.tilesize
 
         for i in range(self.NB):
             image, label = self.getImageAndLabel(i, torchformat=False)
