@@ -70,7 +70,7 @@ class CropExtractor:
 
     ###############################################################
 
-    def getCrop(self, nbtiles):
+    def getCrop(self, nbtiles, batchsize):
         X, Y = []
         nbpertile = int(nbtiles / self.NB + 1)
 
