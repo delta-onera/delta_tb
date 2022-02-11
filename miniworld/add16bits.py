@@ -38,7 +38,7 @@ def minmax(x, xmin, xmax):
 
 
 class MinMax:
-    def __init__(self, maxlength=100000000):
+    def __init__(self, maxlength=200000000):
         self.values = [[0], [0], [0]]
         self.maxlength = maxlength
 
@@ -50,7 +50,7 @@ class MinMax:
         if len(self.values[0]) > self.maxlength:
             for ch in range(3):
                 random.shuffle(self.values[ch])
-                self.values[ch] = self.values[ch][0 : maxlength // 2]
+                self.values[ch] = self.values[ch][0 : self.maxlength // 2]
 
     def froze(self):
         self.imin = numpy.zeros(3)
