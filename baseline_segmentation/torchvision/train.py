@@ -64,13 +64,12 @@ for epoch in range(nbepoch):
         x, y = x.cuda(), y.cuda()
         z = net(x)
 
-        D = dataloader.distancetransform(y)
-        CE = criterion(z, y.long())
+        D = dataloader.distancetransform(y.float())
+        CE = criterion(z, y)
         CE = CE * D
         CE = torch.mean(CE)
 
-        criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
-        dice = criteriondice(z, y.long())
+        dice = criteriondice(z, y)
         loss = CE + dice
 
         with torch.no_grad():
