@@ -192,6 +192,7 @@ class MiniWorld:
                 self.priority[i] += 1
             if self.infos[name]["size"] == "large":
                 self.priority[i] += 2
+        self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
 
     def start(self):
         if not self.run:
@@ -201,12 +202,11 @@ class MiniWorld:
 
     def getbatch(self, batchsize):
         assert self.run
-
         batchchoice = numpy.random.choice(self.NB, batchsize, p=self.priority)
-        goodlabel = numpy.int16(numpy.zeros(batchsize))
 
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
+        goodlabel = numpy.int16(numpy.zeros(batchsize))
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
             goodlabel[i] = self.goodlabel[batchchoice[i]]

@@ -66,8 +66,7 @@ for epoch in range(nbepoch):
 
         D = dataloader.distancetransform(y.float())
         CE = criterion(z, y)
-        CE = CE * D
-        CE = torch.mean(CE)
+        CE = torch.mean(CE * D)
 
         dice = criteriondice(z, y)
         loss = CE + dice

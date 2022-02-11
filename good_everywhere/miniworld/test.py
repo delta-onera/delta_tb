@@ -65,9 +65,9 @@ with torch.no_grad():
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
+                cm[k][a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
-            if True:
+            if False:
                 nextI = len(os.listdir("build"))
                 debug = dataloader.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
