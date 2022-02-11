@@ -60,7 +60,7 @@ cm = torch.zeros((2, 2)).cuda()
 with torch.no_grad():
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
-        x, y = x.cuda(), y.cuda()
+        x, y = x.cuda(), y.cuda().float()
 
         h, w = y.shape[0], y.shape[1]
         D = dataloader.distancetransform(y)
