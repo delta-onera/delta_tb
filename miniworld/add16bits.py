@@ -217,8 +217,8 @@ if "spacenet2" in TODO:
     print("export spacenet2")
 
     for name, namesimple in spacenet2name():
-		makepath(namesimple)
-		
+        makepath(namesimple)
+
         data = SPACENET2(name, TODO["spacenet2"])
         normalize = MinMax()
         for i in range(data.NB):
