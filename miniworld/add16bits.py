@@ -117,9 +117,9 @@ class Toulouse:
 
         y = PIL.Image.open(self.path + self.files[i][1]).convert("RGB").copy()
         y = numpy.asarray(y)
-        y = numpy.uint8((y[:, :, 0] == 238) * (y[:, :, 1] == 118) * (y[:, :, 2] == 33))
+        y = (y[:, :, 0] == 238) * (y[:, :, 1] == 118) * (y[:, :, 2] == 33) * 255
 
-        return x, y
+        return x, numpy.uint8(y)
 
 
 if "toulouse" in TODO:
@@ -138,7 +138,7 @@ if "toulouse" in TODO:
     for i in range(data.NB):
         x, y = data.getImageAndLabel(i)
 
-        normalize.normalize(x)
+        x = normalize.normalize(x)
         x, y = numpy.uint8(x), numpy.uint8(y)
 
         x, y = resizenumpy(image=x, label=y, resolution=50)
@@ -155,7 +155,8 @@ if "toulouse" in TODO:
 def spacenet2name():
     tmp = ["2_Vegas", "4_Shanghai", "3_Paris", "5_Khartoum"]
     tmp = ["AOI_" + name + "_Train" for name in tmp]
-    return tmp, ["vegas", "shanghai", "paris", "khartoum"]
+    tmpbis = ["vegas", "shanghai", "paris", "khartoum"]
+    return [(tmp[i], tmpbis[i]) for i in range(4)]
 
 
 class SPACENET2:
@@ -163,7 +164,7 @@ class SPACENET2:
         print("SPACENET2", name)
         self.path = path
         self.name = name
-        assert name in spacenet2name()[0]
+        assert name in [name[0] for name in spacenet2name()]
 
         self.NB = 0
         tmp = os.listdir(self.path + self.name + "/RGB-PanSharpen")
@@ -210,14 +211,14 @@ class SPACENET2:
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        y = numpy.uint8(numpy.asarray(mask)[:, :, 0] != 0)
-        return x, y
+        y = numpy.asarray(mask)[:, :, 0] != 0
+        return x, numpy.uint8(y * 255)
 
 
 if "spacenet2" in TODO:
     print("export spacenet2")
 
-    for name, namesimple in zip(spacenet2name()):
+    for name, namesimple in spacenet2name():
         data = SPACENET2(name, TODO["spacenet2"])
         normalize = MinMax()
         for i in range(data.NB):
@@ -230,7 +231,7 @@ if "spacenet2" in TODO:
         for i in range(data.NB):
             x, y = data.getImageAndLabel(i)
 
-            normalize.normalize(x)
+            x = normalize.normalize(x)
             x, y = numpy.uint8(x), numpy.uint8(y)
 
             x, y = resizenumpy(image=x, label=y, resolution=30)
