@@ -25,10 +25,11 @@ training relies on crops from images
 
 testing processes the hole images by tilling WITH OVERLAP
 
+in torchvision code, first crops are extracted, then pushed into a classical pytorch dataloader
+
 in thread code, cropextractor is threaded so 2 different cropextractors can be used on 2 datasets having very different size
 **however** this comes with worse running time compared to torchvision dataloader - and - sampling with lower "randomness"
 
-in torchvision code, first crop are extracted, then pushed into a classical pytorch dataloader
 
 ## typical output on Potsdam
 
@@ -65,4 +66,4 @@ perf= tensor([85.9171, 93.3978])
 total duration 989.1485934257507
 
 
-
+durations on Potsdam are similar for both versions
