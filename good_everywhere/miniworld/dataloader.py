@@ -18,10 +18,16 @@ def distancetransform(y, size=4):
 
 
 def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-    return torch.Tensor((iou0 + iou1, accu))
+    if len(cm.shape) == 2:
+        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
+        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
+        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
+        return torch.Tensor((iou0 + iou1, accu))
+    else:
+        out = torch.zeros(cm.shape[0], 2)
+        for k in range(cm.shape[0]):
+            out[k] = perf(cm[k])
+        return out
 
 
 def symetrie(x, y, ijk):
@@ -114,11 +120,10 @@ class CropExtractor(threading.Thread):
                     self.q.put((x, y), block=True)
 
 
-
 class MiniWorld:
     def __init__(self, flag, tilesize=128, custom=None):
         assert flag in ["train", "test"]
-        
+
         self.tilesize = tilesize
         self.root = "/scratchf/miniworld/"
 
@@ -163,7 +168,7 @@ class MiniWorld:
         self.data = {}
         self.run = False
         for city in self.cities:
-            self.data[city] = CropExtractor( self.root + city, tilesize=tilesize     )
+            self.data[city] = CropExtractor(self.root + city, tilesize=tilesize)
 
     def start(self):
         if not self.run:
