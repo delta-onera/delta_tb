@@ -178,8 +178,6 @@ class SPACENET2:
         if self.NB == 0:
             print("wrong path")
             quit()
-        else:
-            print(self.NB)
 
     def getImageAndLabel(self, i):
         assert i < self.NB
