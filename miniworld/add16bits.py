@@ -137,7 +137,9 @@ if "toulouse" in TODO:
     train, test = 0, 0
     for i in range(data.NB):
         x, y = data.getImageAndLabel(i)
+
         normalize.normalize(x)
+        x, y = numpy.uint8(x), numpy.uint8(y)
 
         x, y = resizenumpy(image=x, label=y, resolution=50)
         if i % 2 == 0:
@@ -227,7 +229,9 @@ if "spacenet2" in TODO:
         train, test = 0, 0
         for i in range(data.NB):
             x, y = data.getImageAndLabel(i)
+
             normalize.normalize(x)
+            x, y = numpy.uint8(x), numpy.uint8(y)
 
             x, y = resizenumpy(image=x, label=y, resolution=30)
             if i % 2 == 0:
