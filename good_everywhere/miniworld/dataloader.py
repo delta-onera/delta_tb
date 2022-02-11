@@ -18,7 +18,7 @@ def distancetransform_(y, size=4):
 
 
 def distancetransform(y, flag, size=4):
-    D = distancetransform(y, size=size)
+    D = distancetransform_(y, size=size)
     if len(y.shape) == 2:
         if flag:
             return 0.5 * (D + torch.ones(D.shape).cuda())
