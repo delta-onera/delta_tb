@@ -34,7 +34,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-dataset = dataloader.CropExtractor(sys.argv[1] + "/test/")
+dataset = dataloader.CropExtractor(sys.argv[1])
 
 print("load model")
 with torch.no_grad():

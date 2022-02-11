@@ -1,5 +1,8 @@
 import os
 import sys
+import numpy
+import PIL
+from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -30,6 +33,9 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 import segmentation_models_pytorch as smp
 import dataloader
 
+print("load data")
+dataset = dataloader.CropExtractor(sys.argv[1])
+
 print("define model")
 net = smp.Unet(
     encoder_name="efficientnet-b7",
@@ -41,45 +47,49 @@ net = net.cuda()
 net.train()
 
 
-print("load data")
-miniworld = dataloader.MiniWorld("train")
-
 print("train")
-import collections
-import random
-
+weights = torch.Tensor([1, 10]).cuda()
+criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-meanloss = collections.deque(maxlen=200)
+printloss = torch.zeros(1).cuda()
+stats = torch.zeros((2, 2)).cuda()
+batchsize = 16
 nbepoch = 800
-batchsize = 32
 for epoch in range(nbepoch):
     print("epoch=", epoch, "/", nbepoch)
+    XY = dataset.getCrop(10000, batchsize)
 
-    XY = miniworld.getrandomtiles(10000, 128, batchsize)
-    tot, good = torch.zeros(1).cuda(), torch.zeros(1).cuda()
-
-    for x, y in XY:
+    for i, (x, y) in enumerate(XY):
         x, y = x.cuda(), y.cuda()
         z = net(x)
 
-        nb0, nb1 = torch.sum((y == 0).float()), torch.sum((y == 1).float())
-        weights = torch.Tensor([1, nb0 / (nb1 + 1)]).cuda()
-        criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
-        D = dataloader.distancetransform(y)
-        CE = criterion(z, y)
-        CE = torch.mean(CE * D)
-        dice = criteriondice(z, y)
+        D = cropextractor.distancetransform(y)
+        CE = criterion(z, y.long())
+        CE = CE * D
+        CE = torch.mean(CE)
+
+        criteriondice = smp.losses.dice.DiceLoss(mode="multiclass")
+        dice = criteriondice(z, y.long())
         loss = CE + dice
 
-        meanloss.append(loss.cpu().data.numpy())
-        if epoch > 30:
+        with torch.no_grad():
+            printloss += loss.clone().detach()
+            z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
+            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                stats[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
+
+            if i % 100 == 99:
+                print(i, "/200000", printloss / 100)
+                printloss = torch.zeros(1).cuda()
+
+        if epoch > nbepoch * 0.1:
             loss = loss * 0.5
-        if epoch > 90:
+        if epoch > nbepoch * 0.2:
             loss = loss * 0.5
-        if epoch > 160:
+        if epoch > nbepoch * 0.5:
             loss = loss * 0.5
-        if epoch > 400:
+        if epoch > nbepoch * 0.8:
             loss = loss * 0.5
 
         optimizer.zero_grad()
@@ -87,17 +97,14 @@ for epoch in range(nbepoch):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
         optimizer.step()
 
-        if random.randint(0, 30) == 0:
-            print("loss=", (sum(meanloss) / len(meanloss)))
-
-        z = (z[:, 1, :, :] > z[:, 0, :, :]).long()
-        good += torch.sum((z == y).float() * D)
-        tot += torch.sum(D)
-
     torch.save(net, "build/model.pth")
-    print("accuracy", 100 * good / tot)
-
-    if 100 * good / tot > 98:
+    perf = cropextractor.perf(stats)
+    print("perf", perf)
+    if perf[0] > 92:
         print("training stops after reaching high training accuracy")
         quit()
+    else:
+        stats = torch.zeros((2, 2)).cuda()
+
 print("training stops after reaching time limit")
+quit()
