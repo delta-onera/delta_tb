@@ -8,7 +8,12 @@ import random
 import rasterio
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworld2/"
+rootminiworld = "/scratchf/miniworld3/"
+
+if os.path.exists(rootminiworld):
+    os.system("rm -rf " + rootminiworld)
+    os.makedirs(rootminiworld)
+
 TARGET_RESOLUTION = 50.0
 TODO = {}
 TODO["toulouse"] = root + "SEMCITY_TOULOUSE/"
@@ -35,13 +40,14 @@ def minmax(x, xmin, xmax):
 class MinMax:
     def __init__(self, maxlength=100000000):
         self.values = [[0], [0], [0]]
+        self.maxlength = maxlength
 
     def add(self, image):
         assert self.values is not None
         for ch in range(3):
             self.values[ch] += list(image[:, :, ch].flatten())
 
-        if len(self.values[0]) > maxlength:
+        if len(self.values[0]) > self.maxlength:
             for ch in range(3):
                 random.shuffle(self.values[ch])
                 self.values[ch] = self.values[ch][0 : maxlength // 2]
