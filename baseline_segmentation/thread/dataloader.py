@@ -1,11 +1,11 @@
 import os
-import threading
-import queue
 import PIL
 from PIL import Image
 import numpy
 import torch
 import random
+import queue
+import threading
 
 
 def distancetransform(y, size=4):
@@ -46,18 +46,18 @@ def torchTOpil(x):
 class CropExtractor(threading.Thread):
     def __init__(self, path, maxsize=500, tilesize=128):
         threading.Thread.__init__(self)
+        self.isrunning = False
+        self.maxsize = maxsize
+
         self.path = path
         self.NB = 0
-        self.isrunning = False
+        self.tilesize = tilesize
         while os.path.exists(self.path + str(self.NB) + "_x.png"):
             self.NB += 1
 
         if self.NB == 0:
             print("wrong path", self.path)
             quit()
-
-        self.tilesize = tilesize
-        self.maxsize = maxsize
 
     def getImageAndLabel(self, i, torchformat=False):
         assert i < self.NB
@@ -99,9 +99,11 @@ class CropExtractor(threading.Thread):
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
 
-                RC = numpy.random.rand(16, 2)
-                flag = numpy.random.randint(0, 2, size=(16, 3))
-                for j in range(16):
+                ntile = min(image.shape[0] * image.shape[1] // 128 / 128 // 10 + 1, 128)
+
+                RC = numpy.random.rand(ntile, 2)
+                flag = numpy.random.randint(0, 2, size=(ntile, 3))
+                for j in range(ntile):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
                     im = image[r : r + tilesize, c : c + tilesize, :]

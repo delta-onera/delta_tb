@@ -31,10 +31,10 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
     sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import cropextractor
+import dataloader
 
 print("load data")
-dataset = cropextractor.CropExtractor(sys.argv[1] + "/test/")
+dataset = dataloader.CropExtractor(sys.argv[1] + "/test/")
 
 print("load model")
 with torch.no_grad():
@@ -63,7 +63,7 @@ with torch.no_grad():
         x, y = x.cuda(), y.cuda()
 
         h, w = y.shape[0], y.shape[1]
-        D = cropextractor.distancetransform(y)
+        D = dataloader.distancetransform(y)
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
         power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
         x = power2resize(x)
@@ -88,4 +88,4 @@ with torch.no_grad():
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_z.png")
 
-    print("perf=", cropextractor.perf(cm))
+    print("perf=", dataloader.perf(cm))

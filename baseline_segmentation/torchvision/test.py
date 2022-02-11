@@ -1,5 +1,8 @@
 import os
 import sys
+import numpy
+import PIL
+from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -30,79 +33,59 @@ if whereIam in ["calculon", "astroboy", "flexo", "bender"]:
 import segmentation_models_pytorch as smp
 import dataloader
 
+print("load data")
+dataset = dataloader.CropExtractor(sys.argv[1] + "/test/")
+
 print("load model")
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.cuda()
     net.eval()
 
-print("load data")
-miniworld = dataloader.MiniWorld("test")
 
 print("test")
-import numpy
-import PIL
-from PIL import Image
 
 
-def perf(cm):
-    if len(cm.shape) == 2:
-        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-        return torch.Tensor((iou0 + iou1, accu))
-    else:
-        out = torch.zeros(cm.shape[0], 2)
-        for k in range(cm.shape[0]):
-            out[k] = perf(cm[k])
-        return out
+def largeforward(net, image, tilesize=128, stride=64):
+    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
+    image = image.cuda()
+    for row in range(0, image.shape[2] - tilesize + 1, stride):
+        for col in range(0, image.shape[3] - tilesize + 1, stride):
+            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
+            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
+    return pred
 
 
-cm = torch.zeros((len(miniworld.towns), 2, 2)).cuda()
+cm = torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for k, town in enumerate(miniworld.towns):
-        print(k, town)
-        for i in range(miniworld.data[town].nbImages):
-            imageraw, label = miniworld.data[town].getImageAndLabel(i)
+    for i in range(dataset.NB):
+        x, y = dataset.getImageAndLabel(i, torchformat=True)
+        x, y = x.cuda(), y.cuda()
 
-            y = torch.Tensor(label).cuda()
-            h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
+        h, w = y.shape[0], y.shape[1]
+        D = dataloader.distancetransform(y)
+        globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
+        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
+        x = power2resize(x)
 
-            x = torch.Tensor(numpy.transpose(imageraw, axes=(2, 0, 1))).unsqueeze(0)
-            globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
-            power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
-            x = power2resize(x)
+        z = largeforward(net, x.unsqueeze(0))
+        z = globalresize(z)
+        z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            z = dataloader.largeforward(net, x)
-            z = globalresize(z)
-            z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
+        for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            cm[a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
-            cm[k][0][0] += torch.sum((z == 0).float() * (y == 0).float() * D)
-            cm[k][1][1] += torch.sum((z == 1).float() * (y == 1).float() * D)
-            cm[k][1][0] += torch.sum((z == 1).float() * (y == 0).float() * D)
-            cm[k][0][1] += torch.sum((z == 0).float() * (y == 1).float() * D)
+        if True:
+            nextI = len(os.listdir("build"))
+            debug = cropextractor.torchTOpil(globalresize(x))
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_x.png")
+            debug = (2.0 * y - 1) * D * 127 + 127
+            debug = debug.cpu().numpy()
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_y.png")
+            debug = z.cpu().numpy() * 255
+            debug = PIL.Image.fromarray(numpy.uint8(debug))
+            debug.save("build/" + str(nextI) + "_z.png")
 
-            if town in ["potsdam/test", "chicago/test", "Austin/test"]:
-                nextI = len(os.listdir("build"))
-                debug = globalresize(x)[0].cpu().numpy()
-                debug = numpy.transpose(debug, axes=(1, 2, 0))
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_x.png")
-                debug = (2.0 * y - 1) * D * 127 + 127
-                debug = debug.cpu().numpy()
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_y.png")
-                debug = z.cpu().numpy() * 255
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_z.png")
-
-        print("perf=", perf(cm[k]))
-        numpy.savetxt("build/logtest.txt", perf(cm).cpu().numpy())
-
-print("-------- results ----------")
-for k, town in enumerate(miniworld.towns):
-    print(town, perf(cm[k]))
-
-cm = torch.sum(cm, dim=0)
-print("miniworld", perf(cm))
+    print("perf=", dataloader.perf(cm))
