@@ -135,7 +135,7 @@ class CropExtractor(threading.Thread):
 
 class MiniWorld:
     def __init__(self, flag, tilesize=128, custom=None):
-        assert flag in ["train", "test"]
+        assert flag in ["/train/", "/test/"]
 
         self.tilesize = tilesize
         self.root = "/scratchf/miniworld/"
@@ -168,10 +168,6 @@ class MiniWorld:
                 quit()
         if custom is None:
             self.cities = self.infos.keys()
-            if flag == "train":
-                self.cities = [s + "/train/" for s in self.cities]
-            else:
-                self.cities = [s + "/test/" for s in self.cities]
         else:
             self.cities = custom
         print("correctly found", self.cities)
@@ -179,7 +175,7 @@ class MiniWorld:
         self.data = {}
         self.run = False
         for city in self.cities:
-            self.data[city] = CropExtractor(self.root + city, tilesize=tilesize)
+            self.data[city] = CropExtractor(self.root + city + flag, tilesize=tilesize)
 
         self.NB = len(self.cities)
         self.priority = numpy.ones(self.NB)

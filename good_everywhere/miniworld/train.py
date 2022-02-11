@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld("train")
+miniworld = dataloader.MiniWorld("/train/")
 
 print("define model")
 net = smp.Unet(

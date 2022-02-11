@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld("test")
+miniworld = dataloader.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
