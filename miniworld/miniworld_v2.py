@@ -19,7 +19,7 @@ TODO = {}
 # TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
 # TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 # TODO["landcover"] = root + "landcover.ai.v1/"
-TODO["airs"] = root + "DATASETS/AIRS/trainval/"
+# TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 
 
@@ -323,7 +323,7 @@ def resize_spacenet1(outpath, inpath, XY):
             polygon = [(y, x) for x, y in polygon]
             draw.polygon(polygon, fill="#ffffff", outline="#ffffff")
 
-        image = PIL.Image.open(root + "/" + x).convert("RGB").copy()
+        image = PIL.Image.open(inpath + "/" + x).convert("RGB").copy()
 
         image, label = resize(image=image, label=label)
         label.save(outpath + str(i) + "_y.png")
