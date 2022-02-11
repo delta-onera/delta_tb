@@ -132,7 +132,7 @@ if "toulouse" in TODO:
         x, _ = data.getImageAndLabel(i)
         normalize.add(x)
 
-    normalise.froze()
+    normalize.froze()
 
     train, test = 0, 0
     for i in range(data.NB):
