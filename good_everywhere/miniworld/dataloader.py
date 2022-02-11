@@ -167,7 +167,7 @@ class MiniWorld:
                 print("missing city", city)
                 quit()
         if custom is None:
-            self.cities = self.infos.keys()
+            self.cities = [name for name in self.infos]
         else:
             self.cities = custom
         print("correctly found", self.cities)
