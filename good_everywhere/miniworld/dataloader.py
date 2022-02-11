@@ -8,27 +8,26 @@ import queue
 import threading
 
 
-def distancetransform(y, size=4, flag=None):
-    if flag is None or len(y.shape) == 2:
-        yy = 2.0 * y.unsqueeze(0) - 1
-        yyy = torch.nn.functional.avg_pool2d(
-            yy, kernel_size=2 * size + 1, stride=1, padding=size
-        )
-        yy, yyy = yy[0], yyy = [0]
-    else:
-        yy = 2.0 * y - 1
-        yyy = torch.zeros(yy.shape)
-        for i in range(yy.shape[0]):
-            if flag[i]:
-                yyy[i] = torch.nn.functional.avg_pool2d(
-                    yy, kernel_size=2 * (size // 2) + 1, stride=1, padding=(size // 2)
-                )
-            else:
-                yyy[i] = torch.nn.functional.avg_pool2d(
-                    yy, kernel_size=2 * size + 1, stride=1, padding=size
-                )
+def distancetransform_(y, size=4):
+    yy = 2.0 * y.unsqueeze(0) - 1
+    yyy = torch.nn.functional.avg_pool2d(
+        yy, kernel_size=2 * size + 1, stride=1, padding=size
+    )
     D = 1.0 - 0.5 * (yy - yyy).abs()
-    return D
+    return D[0]
+
+
+def distancetransform(y, flag, size=4):
+    D = distancetransform(y, size=size)
+    if len(y.shape) == 2:
+        if flag:
+            return 0.5 * (D + torch.ones(D.shape).cuda())
+        else:
+            return D
+    else:
+        tmp = torch.ones(D.shape).cuda()
+        tmp[flag == 1, :, :] = D[flag == 1, :, :]
+        return 0.5 * (D + tmp.cuda())
 
 
 def perf(cm):
@@ -204,11 +203,11 @@ class MiniWorld:
         assert self.run
 
         batchchoice = numpy.random.choice(self.NB, batchsize, p=self.priority)
+        goodlabel = numpy.int16(numpy.zeros(batchsize))
 
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
-        goodlabel = torch.zeros(batchsize)
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
             goodlabel[i] = self.goodlabel[batchchoice[i]]
-        return x, y.long(), torch.Tensor(batchchoice).long(), goodlabel.long()
+        return x, y.long(), torch.Tensor(batchchoice).long(), goodlabel

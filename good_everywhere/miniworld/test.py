@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-dataset = dataloader.Miniworld("test")
+miniworld = dataloader.Miniworld("test")
 
 print("load model")
 with torch.no_grad():
@@ -48,13 +48,14 @@ cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
+        flag = miniworld.infos[city]["label"] == manual
 
         for i in range(miniworld.data[city].NB):
-            x, y = dataset.getImageAndLabel(i, torchformat=True)
+            x, y = miniworld.getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
+            D = dataloader.distancetransform(y, flag)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)

@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import dataloader
 
 print("load data")
-dataset = dataloader.CropExtractor(sys.argv[1])
+miniworld = dataloader.Miniworld("train")
 
 print("define model")
 net = smp.Unet(
@@ -40,10 +40,10 @@ weights = torch.Tensor([1, 10]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(dataset.cities), 2, 2)).cuda()
+stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 batchsize = 32
 nbbatchs = 400000
-dataset.start()
+miniworld.start()
 
 
 def diceloss(y, z, D):
@@ -58,18 +58,15 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, goodlabel = dataset.getBatch(batchsize)
-    x, y = x.cuda(), y.cuda()
+    x, y, batchchoise, goodlabel = miniworld.getBatch(batchsize)
+    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
-    D = dataloader.distancetransform(y.float())
-    batchchoise, goodlabel = batchchoise.cuda(), goodlabel.cuda()
-
-    tmp = D * goodlabel.unsqueeze(1).unsqueeze(1)
+    D = dataloader.distancetransform(y.float(), goodlabel)
     CE = criterion(z, y)
-    CE = torch.mean(CE * tmp)
+    CE = torch.mean(CE * D)
 
-    tmp = torch.stack([tmp, tmp], dim=1)
+    tmp = torch.stack([D, D], dim=1)
     dice = diceloss(y, z, tmp)
     loss = CE + dice
 
@@ -99,7 +96,7 @@ for i in range(nbbatchs):
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
-                stats = torch.zeros((len(dataset.cities), 2, 2)).cuda()
+                stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5
