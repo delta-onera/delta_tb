@@ -90,7 +90,7 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = dataloader.perf(stats)
+            perf = dataloader.perf(torch.sum(stats, dim=0))
             print(i, "perf", perf)
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
