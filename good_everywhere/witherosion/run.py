@@ -5,12 +5,12 @@ os.system("rm -rf build")
 os.system("rm -rf __pycache__")
 
 os.system("mkdir build")
-# os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
+os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
+# erosion 2
 # Biarritz tensor([84.5982, 96.4833])
 # Strasbourg tensor([80.4862, 94.6770])
 # Paris tensor([73.6460, 96.3646])
 # digitanie_toulouse tensor([73.3204, 92.8653])
-os.system("cp ../miniworld/build/model.pth build/")
 
 
 if len(sys.argv) == 1:
