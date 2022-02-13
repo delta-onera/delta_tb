@@ -131,7 +131,7 @@ class DigitanieALL:
             if name in digitanie_name():
                 self.data[name] = DIGITANIE(name, path)
             if name == "digitanie_toulouse":
-                self.data[name] = DIGITANIE_TOULOUSE(path + "Toulouse")
+                self.data[name] = DIGITANIE_TOULOUSE(path + "Toulouse/")
 
             self.NB[name] = self.data[name].NB
 
