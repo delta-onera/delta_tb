@@ -83,7 +83,7 @@ with torch.no_grad():
             z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
-            z = erosion(z)
+            z = erosion(z.unsqueeze(0))[0]
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
