@@ -61,7 +61,7 @@ def erosion(z, size=2):
         -z, kernel_size=2 * size + 1, stride=1, padding=size
     )
     zzz = z.clone()
-    zzz[:, size:-size, size:-size] = zz
+    zzz[:, size:-size, size:-size] = zz[:, size:-size, size:-size]
     return zzz
 
 
@@ -81,9 +81,9 @@ with torch.no_grad():
             x = power2resize(x)
 
             z = largeforward(net, x.unsqueeze(0))
+            z = erosion(z[:, 1, :, :] - z[:, 0, :, :])
             z = globalresize(z)
-            z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
-            z = erosion(z.unsqueeze(0))[0]
+            z = (z > 0).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
