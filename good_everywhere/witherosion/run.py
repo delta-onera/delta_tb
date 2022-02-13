@@ -5,7 +5,7 @@ os.system("rm -rf build")
 os.system("rm -rf __pycache__")
 
 os.system("mkdir build")
-os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
+#os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 # miniworld 30000 iter - 85% en train
 # =>
 # erosion 0
@@ -23,6 +23,8 @@ os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 # Strasbourg tensor([77.4665, 94.0275])
 # Paris tensor([74.0389, 96.9797])
 # digitanie_toulouse tensor([75.4062, 94.2751])
+
+os.system("cp ../miniworld/build/model.pth build/") #uniquement potsdam+christchurch+bradbury
 
 
 if len(sys.argv) == 1:
