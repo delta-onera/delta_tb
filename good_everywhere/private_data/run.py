@@ -5,8 +5,8 @@ os.system("rm -rf build")
 os.system("rm -rf __pycache__")
 
 os.system("mkdir build")
-# os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
-os.system("cp ../miniworld/build/model.pth build/")
+# os.system("cp ../miniworld/build/model.pth build/")
+os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 
 if len(sys.argv) == 1:
     os.system("/d/achanhon/miniconda/bin/python test.py")
