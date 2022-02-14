@@ -143,7 +143,7 @@ if "bradbery" in TODO:
                 else:
                     out = [tmp + str(i - 1) + "_x.png", tmp + str(i - 1) + "_y.png"]
 
-                resize_BRADBURY_BUILDING_HEIGHT(out, inpath, resolution[town])
+                resize_BRADBURY_BUILDING_HEIGHT(out, inpath, resolution[town] * 100)
 
 
 if "dfc" in TODO:
