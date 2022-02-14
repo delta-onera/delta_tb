@@ -326,7 +326,7 @@ def resize_spacenet1(outpath, inpath, XY):
         image = PIL.Image.open(inpath + "/" + x).convert("RGB").copy()
 
         image, label = resize(image=image, label=label)
-        label.save(outpath + str(i) + "_y.png")
+        label.save(outpath + "/" + str(i) + "_y.png")
         image.save(outpath + "/" + str(i) + "_x.png")
 
 
@@ -349,4 +349,5 @@ if "spacenet1" in TODO:
             XY[name][0] = "3band/3band" + name + ".tif"
             XY[name][1] = "geojson/Geo" + name + ".geojson"
 
-        resize_spacenet1(rootminiworld + "rio/", TODO["spacenet1"], XY)
+        tmp = rootminiworld + "rio/" + flag + "/"
+        resize_spacenet1(tmp, TODO["spacenet1"], XY)
