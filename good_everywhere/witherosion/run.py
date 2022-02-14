@@ -20,6 +20,17 @@ os.system("mkdir build")
 
 os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 # miniworld 443099 iter - 87% en train
+# erosion 0
+# Biarritz tensor([79.4944, 94.6580])
+# Strasbourg tensor([79.3251, 94.0217])
+# Paris tensor([72.1782, 96.1099])
+# digitanie_toulouse tensor([71.7173, 91.8314])
+# erosion 2
+# Biarritz tensor([85.2892, 96.7749])
+# Strasbourg tensor([79.9626, 94.5913])
+# Paris tensor([72.6626, 96.5655])
+# digitanie_toulouse tensor([74.3848, 93.2833])
+
 
 os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
 
