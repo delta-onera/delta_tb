@@ -58,7 +58,7 @@ class MinMax:
         for ch in range(3):
             tmp = sorted(self.values[ch])
             I = len(tmp)
-            tmp = tmp[(I * 3) // 100 : (I * 97) // 100]
+            tmp = tmp[(I * 5) // 100 : (I * 95) // 100]
             self.imin[ch] = tmp[0]
             self.imax[ch] = tmp[-1]
         del self.values
