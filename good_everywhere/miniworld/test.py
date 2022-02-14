@@ -51,7 +51,7 @@ with torch.no_grad():
         # flag = (miniworld.infos[city]["label"] == "manual")
 
         for i in range(miniworld.data[city].NB):
-            x, y = miniworld.getImageAndLabel(i, torchformat=True)
+            x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
