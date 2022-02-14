@@ -62,7 +62,7 @@ for i in range(nbbatchs):
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
-    D = dataloader.distancetransform(y.float(), goodlabel)
+    D = dataloader.distancetransform(y.float())
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
 
