@@ -56,7 +56,7 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-def erosion(z, size=4):
+def erosion(z, size=2):
     zz = -torch.nn.functional.max_pool2d(
         -z, kernel_size=2 * size + 1, stride=1, padding=size
     )
