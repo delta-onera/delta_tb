@@ -8,26 +8,13 @@ import queue
 import threading
 
 
-def distancetransform_(y, size=4):
+def distancetransform(y, size=4):
     yy = 2.0 * y.unsqueeze(0) - 1
     yyy = torch.nn.functional.avg_pool2d(
         yy, kernel_size=2 * size + 1, stride=1, padding=size
     )
     D = 1.0 - 0.5 * (yy - yyy).abs()
     return D[0]
-
-
-def distancetransform(y, flag, size=4):
-    D = distancetransform_(y, size=size)
-    if len(y.shape) == 2:
-        if flag:
-            return 0.5 * (D + torch.ones(D.shape).cuda())
-        else:
-            return D
-    else:
-        tmp = torch.ones(D.shape).cuda()
-        tmp[flag == 1, :, :] = D[flag == 1, :, :]
-        return 0.5 * (D + tmp.cuda())
 
 
 def perf(cm):
