@@ -40,13 +40,14 @@ def minmax(x, xmin, xmax):
 class MinMax:
     def __init__(self, decimation=10):
         self.values = [[0], [0], [0]]
+        self.decimation = decimation
 
     def add(self, image):
         assert self.values is not None
         for ch in range(3):
             tmp = list(image[:, :, ch].flatten())
             random.shuffle(tmp)
-            self.values[ch] += tmp[0 : len(tmp) // decimation]
+            self.values[ch] += tmp[0 : len(tmp) // self.decimation]
 
     def froze(self):
         self.imin = numpy.zeros(3)
