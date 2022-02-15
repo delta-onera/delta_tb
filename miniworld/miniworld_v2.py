@@ -6,13 +6,13 @@ import json
 import csv
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworld2/"
+rootminiworld = "/scratchf/miniworld_1M/"
 
 if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
     os.makedirs(rootminiworld)
 
-TARGET_RESOLUTION = 50.0
+TARGET_RESOLUTION = 100.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 TODO["dfc"] = root + "DFC2015/"
