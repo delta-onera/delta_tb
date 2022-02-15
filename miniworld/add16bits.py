@@ -38,7 +38,7 @@ def minmax(x, xmin, xmax):
 
 
 class MinMax:
-    def __init__(self, decimation=4):
+    def __init__(self, decimation=10):
         self.values = [[0], [0], [0]]
 
     def add(self, image):
@@ -46,7 +46,7 @@ class MinMax:
         for ch in range(3):
             tmp = list(image[:, :, ch].flatten())
             random.shuffle(tmp)
-            self.values[ch] += tmp[0 : len(tmp) // 4]
+            self.values[ch] += tmp[0 : len(tmp) // decimation]
 
     def froze(self):
         self.imin = numpy.zeros(3)
