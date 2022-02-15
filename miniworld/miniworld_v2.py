@@ -8,19 +8,19 @@ import csv
 root = "/scratchf/"
 rootminiworld = "/scratchf/miniworld2/"
 
-if os.path.exists(rootminiworld):
-    os.system("rm -rf " + rootminiworld)
-    os.makedirs(rootminiworld)
+# if os.path.exists(rootminiworld):
+#    os.system("rm -rf " + rootminiworld)
+#    os.makedirs(rootminiworld)
 
 TARGET_RESOLUTION = 50.0
 TODO = {}
-TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
-TODO["dfc"] = root + "DFC2015/"
-TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
-TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
+# TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
+# TODO["dfc"] = root + "DFC2015/"
+# TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
+# TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
 TODO["landcover"] = root + "landcover.ai.v1/"
-TODO["airs"] = root + "DATASETS/AIRS/trainval/"
-TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
+# TODO["airs"] = root + "DATASETS/AIRS/trainval/"
+# TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 
 
 def makepath(name):
@@ -268,8 +268,8 @@ if "landcover" in TODO:
             y = PIL.Image.open(TODO["landcover"] + "masks/" + name)
 
             x = numpy.uint8(numpy.asarray(x.convert("RGB").copy()))
-            y = numpy.asarray(y.convert("RGB").copy())
-            y = (y[:, :, 0] == 0) * (y[:, :, 1] == 0) * (y[:, :, 2] == 255) * 255
+            y = numpy.asarray(y.convert("L").copy())
+            y = np.uint8(y == 1) * 255
 
             if name in half:
                 x, y = resizenumpy(image=x, label=y, resolution=50)
