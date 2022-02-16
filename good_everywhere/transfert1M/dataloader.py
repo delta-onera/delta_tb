@@ -48,7 +48,7 @@ def resize(image, label):
 def resizenumpy(image, label):
     image = PIL.Image.fromarray(numpy.uint8(image))
     label = PIL.Image.fromarray(numpy.uint8(label))
-    image, label = resize(image=image, label=label, resolution=resolution)
+    image, label = resize(image=image, label=label)
     return numpy.asarray(image), numpy.asarray(label)
 
 
