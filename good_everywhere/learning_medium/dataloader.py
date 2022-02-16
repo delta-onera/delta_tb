@@ -144,7 +144,7 @@ class MiniWorld:
         self.infos["austin"] = {"size": "medium", "label": "osm"}
         self.infos["tyrol-w"] = {"size": "medium", "label": "osm"}
         self.infos["vienna"] = {"size": "medium", "label": "osm"}
-        self.infos["rio"] = {"size": "large", "label": "osm"}
+        # self.infos["rio"] = {"size": "large", "label": "osm"}
         # self.infos["christchurch"] = {"size": "large", "label": "manual"}
         # self.infos["pologne"] = {"size": "large", "label": "manual"}
 
