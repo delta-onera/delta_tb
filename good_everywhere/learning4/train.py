@@ -32,7 +32,7 @@ net = smp.Unet(
     classes=2,
 )
 net = net.cuda()
-net.eval()  # avoid issue with batchnorm
+net.train()
 
 
 print("train")
@@ -58,11 +58,14 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, goodlabel = miniworld.getBatch(batchsize)
+    x, y, batchchoise, _ = miniworld.getBatch(batchsize)
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
     D = dataloader.distancetransform(y.float())
+    y0, y1 = (y == 0).float(), (y == 1).float()
+    D = (D + y0 + D * y1) / 2
+
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
 
