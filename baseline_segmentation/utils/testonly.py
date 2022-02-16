@@ -9,18 +9,12 @@ if len(sys.argv) == 1:
 TODO = sys.argv[1] + "/"
 print(TODO)
 
-
-def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-    return torch.Tensor((iou0 + iou1, accu))
-
-
 found = set(os.listdir(TODO))
 names = [name for name in found if "y.png" in name]
 names = [name[:-5] for name in names]
 names = [name for name in names if name + "z.png" in found]
+
+print(names)
 
 cm = numpy.zeros((2, 2))
 
