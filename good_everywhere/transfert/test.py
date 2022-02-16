@@ -81,8 +81,8 @@ with torch.no_grad():
             x = power2resize(x)
 
             z = largeforward(net, x.unsqueeze(0))
-            z = erosion(z[:, 1, :, :] - z[:, 0, :, :])
             z = globalresize(z)
+            z = erosion(z[:, 1, :, :] - z[:, 0, :, :], size=int(sys.argv[1]))
             z = (z[0] > 0).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
