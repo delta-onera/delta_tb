@@ -62,7 +62,7 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
 
-        if city not in ["christchurch/train/", "pologne/train/", "potsdam/train/"]:
+        if city not in ["christchurch/test/", "pologne/test/", "potsdam/test/"]:
             continue
 
         for i in range(miniworld.data[city].NB):

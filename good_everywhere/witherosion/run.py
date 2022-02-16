@@ -30,6 +30,15 @@ os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 # Paris tensor([72.6626, 96.5655])
 # digitanie_toulouse tensor([74.3848, 93.2833])
 
+#miniworld converged
+#erosion 2
+#Biarritz tensor([84.5727, 96.4907, 96.1224, 73.0231])
+#Strasbourg tensor([79.0587, 94.3362, 93.6887, 64.4287])
+#Paris tensor([74.1588, 96.9264, 96.8227, 51.4949])
+#digitanie_toulouse tensor([70.7350, 91.9572, 91.2469, 50.2230])
+
+
+
 
 os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
 
