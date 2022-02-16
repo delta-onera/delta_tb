@@ -32,7 +32,7 @@ for name in names:
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
         cm[a][b] += numpy.sum(numpy.int16(z == a) * numpy.int16(y == b) * D)
 
-accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
+accu = 100.0 * (cm[0][0] + cm[1][1]) / (numpy.sum(cm) + 1)
 iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
 iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
 print(iou0 + iou1)
