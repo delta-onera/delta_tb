@@ -23,6 +23,8 @@ for name in names:
     y = PIL.Image.open(TODO + name + "y.png").convert("L").copy()
     z = PIL.Image.open(TODO + name + "z.png").convert("L").copy()
 
+    y, z = numpy.asarray(y), numpy.asarray(z)
+
     z = numpy.int16(z > 125)
     D = numpy.absolute(y - 125) / 125
     y = numpy.int16(y > 125)
