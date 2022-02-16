@@ -30,14 +30,18 @@ os.system("cp ../../baseline_segmentation/baseline8bits/build/model.pth build/")
 # Paris tensor([72.6626, 96.5655])
 # digitanie_toulouse tensor([74.3848, 93.2833])
 
-#miniworld converged
-#erosion 2
-#Biarritz tensor([84.5727, 96.4907, 96.1224, 73.0231])
-#Strasbourg tensor([79.0587, 94.3362, 93.6887, 64.4287])
-#Paris tensor([74.1588, 96.9264, 96.8227, 51.4949])
-#digitanie_toulouse tensor([70.7350, 91.9572, 91.2469, 50.2230])
-
-
+# miniworld converged
+# erosion 2
+# Biarritz tensor([84.5727, 96.4907, 96.1224, 73.0231])
+# Strasbourg tensor([79.0587, 94.3362, 93.6887, 64.4287])
+# Paris tensor([74.1588, 96.9264, 96.8227, 51.4949])
+# digitanie_toulouse tensor([70.7350, 91.9572, 91.2469, 50.2230])
+# erosion 0
+# Biarritz tensor([77.8856, 93.9718, 93.2995, 62.4716])
+# Strasbourg tensor([78.3292, 93.6979, 92.9126, 63.7459])
+# Paris tensor([73.5063, 96.4684, 96.3354, 50.6772])
+# digitanie_toulouse tensor([67.8489, 90.1676, 89.2510, 46.4468])
+# bref c'est nul !!!
 
 
 os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
