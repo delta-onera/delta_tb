@@ -57,12 +57,11 @@ def largeforward(net, image, tilesize=128, stride=64):
 
 
 def erosion(z, size=2):
-    zz = -torch.nn.functional.max_pool2d(
-        -z, kernel_size=2 * size + 1, stride=1, padding=size
+    zz = torch.nn.functional.max_pool2d(
+        z[:, 0, :, :], kernel_size=2 * size + 1, stride=1, padding=size
     )
-    zzz = z.clone()
-    zzz[:, size:-size, size:-size] = zz[:, size:-size, size:-size]
-    return zzz
+    z[:, 0, :, :] = zz
+    return z
 
 
 cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
@@ -82,8 +81,8 @@ with torch.no_grad():
 
             z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
-            z = erosion(z[:, 1, :, :] - z[:, 0, :, :], size=int(sys.argv[1]))
-            z = (z[0] > 0).float()
+            z = erosion(z, size=int(sys.argv[1]))
+            z = (z[:, 1, :, :] > z[:, 0, :, :]).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
