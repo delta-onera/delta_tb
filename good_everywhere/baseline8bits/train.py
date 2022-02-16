@@ -45,7 +45,7 @@ net = smp.Unet(
     classes=2,
 )
 net = net.cuda()
-net.eval() #avoid issue with batchnorm
+net.eval()  # avoid issue with batchnorm
 
 
 print("train")
