@@ -38,19 +38,16 @@ def minmax(x, xmin, xmax):
 
 
 class MinMax:
-    def __init__(self, maxlength=200000000):
+    def __init__(self, decimation=10):
         self.values = [[0], [0], [0]]
-        self.maxlength = maxlength
+        self.decimation = decimation
 
     def add(self, image):
         assert self.values is not None
         for ch in range(3):
-            self.values[ch] += list(image[:, :, ch].flatten())
-
-        if len(self.values[0]) > self.maxlength:
-            for ch in range(3):
-                random.shuffle(self.values[ch])
-                self.values[ch] = self.values[ch][0 : self.maxlength // 2]
+            tmp = list(image[:, :, ch].flatten())
+            random.shuffle(tmp)
+            self.values[ch] += tmp[0 : len(tmp) // self.decimation]
 
     def froze(self):
         self.imin = numpy.zeros(3)
@@ -58,7 +55,7 @@ class MinMax:
         for ch in range(3):
             tmp = sorted(self.values[ch])
             I = len(tmp)
-            tmp = tmp[(I * 3) // 100 : (I * 97) // 100]
+            tmp = tmp[(I * 5) // 100 : (I * 95) // 100]
             self.imin[ch] = tmp[0]
             self.imax[ch] = tmp[-1]
         del self.values

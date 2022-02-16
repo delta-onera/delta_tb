@@ -6,13 +6,13 @@ import json
 import csv
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworld2/"
+rootminiworld = "/scratchf/miniworld_1M/"
 
 if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
     os.makedirs(rootminiworld)
 
-TARGET_RESOLUTION = 50.0
+TARGET_RESOLUTION = 100.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 TODO["dfc"] = root + "DFC2015/"
@@ -38,7 +38,7 @@ def resize(image=None, label=None, resolution=50.0):
     if image is not None:
         image = image.resize(size, PIL.Image.BILINEAR)
     if label is not None:
-        label = image.resize(size, PIL.Image.NEAREST)
+        label = label.resize(size, PIL.Image.NEAREST)
     return image, label
 
 
@@ -143,7 +143,7 @@ if "bradbery" in TODO:
                 else:
                     out = [tmp + str(i - 1) + "_x.png", tmp + str(i - 1) + "_y.png"]
 
-                resize_BRADBURY_BUILDING_HEIGHT(out, inpath, resolution[town])
+                resize_BRADBURY_BUILDING_HEIGHT(out, inpath, resolution[town] * 100)
 
 
 if "dfc" in TODO:
@@ -268,8 +268,8 @@ if "landcover" in TODO:
             y = PIL.Image.open(TODO["landcover"] + "masks/" + name)
 
             x = numpy.uint8(numpy.asarray(x.convert("RGB").copy()))
-            y = numpy.asarray(y.convert("RGB").copy())
-            y = (y[:, :, 0] == 0) * (y[:, :, 1] == 0) * (y[:, :, 2] == 255) * 255
+            y = numpy.asarray(y.convert("L").copy())
+            y = numpy.uint8(y == 1) * 255
 
             if name in half:
                 x, y = resizenumpy(image=x, label=y, resolution=50)
@@ -326,7 +326,7 @@ def resize_spacenet1(outpath, inpath, XY):
         image = PIL.Image.open(inpath + "/" + x).convert("RGB").copy()
 
         image, label = resize(image=image, label=label)
-        label.save(outpath + str(i) + "_y.png")
+        label.save(outpath + "/" + str(i) + "_y.png")
         image.save(outpath + "/" + str(i) + "_x.png")
 
 
@@ -349,4 +349,5 @@ if "spacenet1" in TODO:
             XY[name][0] = "3band/3band" + name + ".tif"
             XY[name][1] = "geojson/Geo" + name + ".geojson"
 
-        resize_spacenet1(rootminiworld + "rio/", TODO["spacenet1"], XY)
+        tmp = rootminiworld + "rio/" + flag + "/"
+        resize_spacenet1(tmp, TODO["spacenet1"], XY)
