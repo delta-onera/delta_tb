@@ -38,6 +38,20 @@ def perf(cm):
         return out
 
 
+def resize(image, label):
+    size = (image.size[0] // 2, image.size[1] // 2)
+    image = image.resize(size, PIL.Image.BILINEAR)
+    label = label.resize(size, PIL.Image.NEAREST)
+    return image, label
+
+
+def resizenumpy(image, label):
+    image = PIL.Image.fromarray(numpy.uint8(image))
+    label = PIL.Image.fromarray(numpy.uint8(label))
+    image, label = resize(image=image, label=label, resolution=resolution)
+    return numpy.asarray(image), numpy.asarray(label)
+
+
 ########################################################################
 ######################### PRIVATE CNES DATASET #########################
 
@@ -78,7 +92,7 @@ class DIGITANIE:
         y = numpy.asarray(y)
         y = numpy.uint8((y[:, :] == 4))
 
-        return x, y
+        return resizenumpy(x, y)
 
 
 class DIGITANIE_TOULOUSE:
@@ -110,7 +124,7 @@ class DIGITANIE_TOULOUSE:
         y = numpy.asarray(y)
         y = numpy.uint8((y[:, :] == 4))
 
-        return x, y
+        return resizenumpy(x, y)
 
 
 ######################### PRIVATE CNES DATASET #########################
