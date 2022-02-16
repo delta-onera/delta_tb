@@ -102,6 +102,7 @@ with torch.no_grad():
                 debug.save("build/" + str(nextI) + "_z.png")
 
         print("perf=", dataloader.perf(cm[k]))
+        print(cm[k])
         numpy.savetxt("build/tmp.txt", dataloader.perf(cm).cpu().numpy())
 
 print("-------- results ----------")
