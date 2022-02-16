@@ -3,7 +3,6 @@ import sys
 
 os.system("rm -rf build")
 os.system("rm -rf __pycache__")
-
 os.system("mkdir build")
 
 # os.system("cp ../miniworld/build/model.pth build/")
