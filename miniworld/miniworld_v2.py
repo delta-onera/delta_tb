@@ -6,7 +6,7 @@ import json
 import csv
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworld_wtf/"
+rootminiworld = "/scratchf/miniworld_tmp/"
 
 if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
@@ -14,11 +14,11 @@ if os.path.exists(rootminiworld):
 
 TARGET_RESOLUTION = 50.0
 TODO = {}
-# TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
-# TODO["dfc"] = root + "DFC2015/"
-# TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
-# TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
-# TODO["landcover"] = root + "landcover.ai.v1/"
+TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
+TODO["dfc"] = root + "DFC2015/"
+TODO["isprs"] = root + "DATASETS/ISPRS_POTSDAM/"
+TODO["inria"] = root + "DATASETS/INRIA/AerialImageDataset/train/"
+TODO["landcover"] = root + "landcover.ai.v1/"
 TODO["airs"] = root + "DATASETS/AIRS/trainval/"
 TODO["spacenet1"] = root + "DATASETS/SPACENET1/train/"
 
