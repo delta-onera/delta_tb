@@ -22,9 +22,9 @@ def perf(cm):
         accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
         iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
         iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-        return torch.Tensor((iou0 + iou1, accu))
+        return torch.Tensor((iou0 + iou1, accu, iou0 * 2, iou1 * 2))
     else:
-        out = torch.zeros(cm.shape[0], 2)
+        out = torch.zeros(cm.shape[0], 4)
         for k in range(cm.shape[0]):
             out[k] = perf(cm[k])
         return out
@@ -129,9 +129,7 @@ class MiniWorld:
 
         self.infos = {}
         self.infos["potsdam"] = {"size": "small", "label": "manual"}
-        self.infos["christchurch"] = {"size": "large", "label": "manual"}
         self.infos["bruges"] = {"size": "small", "label": "manual"}
-        self.infos["pologne"] = {"size": "large", "label": "manual"}
         self.infos["Arlington"] = {"size": "small", "label": "osm"}
         self.infos["NewHaven"] = {"size": "small", "label": "osm"}
         self.infos["Norfolk"] = {"size": "small", "label": "osm"}
@@ -147,6 +145,11 @@ class MiniWorld:
         self.infos["tyrol-w"] = {"size": "medium", "label": "osm"}
         self.infos["vienna"] = {"size": "medium", "label": "osm"}
         self.infos["rio"] = {"size": "large", "label": "osm"}
+        self.infos["christchurch"] = {"size": "large", "label": "manual"}
+        self.infos["pologne"] = {"size": "large", "label": "manual"}
+        self.infos["shanghai"] = {"size": "large", "label": "osm"}
+        self.infos["vegas"] = {"size": "large", "label": "osm"}
+        self.infos["khartoum"] = {"size": "large", "label": "osm"}
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
