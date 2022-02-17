@@ -42,7 +42,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 batchsize = 32
-nbbatchs = 400000
+nbbatchs = 300000
 miniworld.start()
 
 
@@ -52,10 +52,10 @@ def diceloss(y, z, D):
     y = y.transpose(2, 3).transpose(1, 2).float()
     z = z.log_softmax(dim=1).exp()
 
-    intersection = y * z
-    cardinality = y + z
-    iou = (2 * intersection + eps) / (cardinality + eps)
-    return -torch.mean(iou * D)
+    intersection = y * z + eps
+    cardinality = y + z + eps
+    iou = 2 * intersection / cardinality
+    return 1.0 - torch.mean(iou * D)
 
 
 for i in range(nbbatchs):
