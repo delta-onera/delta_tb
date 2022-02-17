@@ -59,7 +59,7 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, goodlabel = miniworld.getBatch(batchsize)
+    x, y, batchchoise, _ = miniworld.getBatch(batchsize)
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 

@@ -64,9 +64,7 @@ for i in range(nbbatchs):
     z = net(x)
 
     D = dataloader.distancetransform(y.float())
-    y0, y1 = (y == 0).float(), (y == 1).float()
-    D = D * y1 + y0
-
+    D = D * (y == 1).float() + (y == 0).float()
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
 
