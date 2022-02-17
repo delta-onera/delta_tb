@@ -13,29 +13,16 @@ else:
     print("no cuda")
     quit()
 
-whereIam = os.uname()[1]
-if whereIam == "ldtis706z":
-    sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/pytorch-image-models")
-    sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
-if whereIam == "wdtim719z":
-    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
-    sys.path.append("/home/optimom/github/pytorch-image-models")
-    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
-    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
-    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/d/achanhon/github/pytorch-image-models")
-    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
+sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
+sys.path.append("/d/achanhon/github/pytorch-image-models")
+sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
+sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import cropextractor
 import dataloader
 
 print("load data")
-miniworld = dataloader.MiniWorld(flag="test")
+miniworld = dataloader.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
@@ -62,12 +49,9 @@ with torch.no_grad():
     for k, city in enumerate(miniworld.cities):
         print(k, city)
 
-        if city not in ["christchurch/test/", "pologne/test/", "potsdam/test/"]:
-            continue
-
         for i in range(miniworld.data[city].NB):
             x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
-            x, y = x.cuda(), y.cuda()
+            x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
             D = dataloader.distancetransform(y)
@@ -80,11 +64,11 @@ with torch.no_grad():
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+                cm[k][a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
-            if True:
+            if False:
                 nextI = len(os.listdir("build"))
-                debug = cropextractor.torchTOpil(globalresize(x))
+                debug = dataloader.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
