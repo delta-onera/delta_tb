@@ -105,7 +105,7 @@ class CropExtractor(threading.Thread):
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
 
-                ntile = image.shape[0] * image.shape[1] // 128 / 128 // 10 + 1
+                ntile = image.shape[0] * image.shape[1] // 131072 + 1
                 ntile = int(min(128, ntile))
 
                 RC = numpy.random.rand(ntile, 2)

@@ -105,7 +105,7 @@ class CropExtractor(threading.Thread):
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
 
-                ntile = image.shape[0] * image.shape[1] // 128 / 128 // 10 + 1
+                ntile = image.shape[0] * image.shape[1] // 131072 + 1
                 ntile = int(min(128, ntile))
 
                 RC = numpy.random.rand(ntile, 2)
@@ -139,17 +139,17 @@ class MiniWorld:
         self.infos["DC"] = {"size": "small", "label": "osm"}
         self.infos["NewYork"] = {"size": "small", "label": "osm"}
         self.infos["SanFrancisco"] = {"size": "small", "label": "osm"}
-        # self.infos["chicago"] = {"size": "medium", "label": "osm"}
+        self.infos["chicago"] = {"size": "medium", "label": "osm"}
         self.infos["kitsap"] = {"size": "medium", "label": "osm"}
-        # self.infos["austin"] = {"size": "medium", "label": "osm"}
+        self.infos["austin"] = {"size": "medium", "label": "osm"}
         self.infos["tyrol-w"] = {"size": "medium", "label": "osm"}
         self.infos["vienna"] = {"size": "medium", "label": "osm"}
-        # self.infos["rio"] = {"size": "large", "label": "osm"}
+        self.infos["rio"] = {"size": "large", "label": "osm"}
         self.infos["christchurch"] = {"size": "large", "label": "manual"}
-        # self.infos["pologne"] = {"size": "large", "label": "manual"}
-        # self.infos["shanghai"] = {"size": "large", "label": "osm"}
-        # self.infos["vegas"] = {"size": "large", "label": "osm"}
-        # self.infos["khartoum"] = {"size": "large", "label": "osm"}
+        self.infos["pologne"] = {"size": "large", "label": "manual"}
+        self.infos["shanghai"] = {"size": "large", "label": "osm"}
+        self.infos["vegas"] = {"size": "large", "label": "osm"}
+        self.infos["khartoum"] = {"size": "large", "label": "osm"}
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
