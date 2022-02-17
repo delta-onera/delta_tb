@@ -144,12 +144,12 @@ class MiniWorld:
         self.infos["austin"] = {"size": "medium", "label": "osm"}
         self.infos["tyrol-w"] = {"size": "medium", "label": "osm"}
         self.infos["vienna"] = {"size": "medium", "label": "osm"}
-        # self.infos["rio"] = {"size": "large", "label": "osm"}
+        self.infos["rio"] = {"size": "large", "label": "osm"}
+        self.infos["christchurch"] = {"size": "large", "label": "manual"}
+        self.infos["pologne"] = {"size": "large", "label": "manual"}
+        self.infos["shanghai"] = {"size": "large", "label": "osm"}
         self.infos["vegas"] = {"size": "large", "label": "osm"}
         self.infos["khartoum"] = {"size": "large", "label": "osm"}
-        self.infos["shanghai"] = {"size": "large", "label": "osm"}
-        # self.infos["christchurch"] = {"size": "large", "label": "manual"}
-        self.infos["pologne"] = {"size": "large", "label": "manual"}
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
