@@ -36,7 +36,7 @@ net.train()
 
 
 print("train")
-weights = torch.Tensor([1, 10]).cuda()
+weights = torch.Tensor([1, 1]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
@@ -54,9 +54,7 @@ def diceloss(y, z, D):
 
     inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
     union0, union1 = ((y0 + z1 * y0) * D).sum(), ((y1 + z0 * y1) * D).sum()
-
-    iou0 = (inter0 + eps) / (union0 + eps)
-    iou1 = (inter1 + eps) / (union1 + eps)
+    iou0, iou1 = (inter0 + eps) / (union0 + eps), (inter1 + eps) / (union1 + eps)
     iou = 0.5 * (iou0 + iou1)
 
     return 1 - iou
@@ -69,12 +67,9 @@ for i in range(nbbatchs):
 
     D = dataloader.distancetransform(y.float())
     D = D * (y == 1).float() + (y == 0).float()
-
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
-
-    tmp = torch.stack([D, D], dim=1)
-    dice = diceloss(y, z, tmp)
+    dice = diceloss(y, z, D)
     loss = CE + dice
 
     with torch.no_grad():
