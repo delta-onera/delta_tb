@@ -77,7 +77,7 @@ def resize(image=None, label=None, resolution=50.0):
     if image is not None:
         image = image.resize(size, PIL.Image.BILINEAR)
     if label is not None:
-        label = image.resize(size, PIL.Image.NEAREST)
+        label = label.resize(size, PIL.Image.NEAREST)
     return image, label
 
 
