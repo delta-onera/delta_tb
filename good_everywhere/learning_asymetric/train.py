@@ -53,7 +53,7 @@ def diceloss(y, z, D):
     y0, y1 = (y == 0).float(), (y == 1).float()
 
     inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
-    union0, union1 = ((y0 + z1) * D).sum(), ((y1 + z0) * D).sum()
+    union0, union1 = ((y0 + z1 * y0) * D).sum(), ((y1 + z0 * y1) * D).sum()
 
     iou0 = (inter0 + eps) / (union0 + eps)
     iou1 = (inter1 + eps) / (union1 + eps)
