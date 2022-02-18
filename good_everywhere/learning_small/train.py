@@ -52,11 +52,11 @@ def diceloss(y, z, D):
     z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
     y0, y1 = (y == 0).float(), (y == 1).float()
 
+    print(y.shape, z.shape, y0.shape, z0.shape)
+
     inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
     union0, union1 = ((y0 + z1 * y0) * D).sum(), ((y1 + z0 * y1) * D).sum()
-
-    iou0 = (inter0 + eps) / (union0 + eps)
-    iou1 = (inter1 + eps) / (union1 + eps)
+    iou0, iou1 = (inter0 + eps) / (union0 + eps), (inter1 + eps) / (union1 + eps)
     iou = 0.5 * (iou0 + iou1)
 
     return 1 - iou
