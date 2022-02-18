@@ -36,7 +36,7 @@ net.train()
 
 
 print("train")
-weights = torch.Tensor([1, 1]).cuda()
+weights = torch.Tensor([1, 4]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
