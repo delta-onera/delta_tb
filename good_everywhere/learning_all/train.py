@@ -47,15 +47,19 @@ miniworld.start()
 
 
 def diceloss(y, z, D):
-    eps = 1e-7
-    y = torch.nn.functional.one_hot(y, num_classes=2)
-    y = y.transpose(2, 3).transpose(1, 2).float()
+    eps = 0.00001
     z = z.log_softmax(dim=1).exp()
+    z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
+    y0, y1 = (y == 0).float(), (y == 1).float()
 
-    intersection = y * z + eps
-    cardinality = y + z + eps
-    iou = 2 * intersection / cardinality
-    return 1.0 - torch.mean(iou * D)
+    inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
+    union0, union1 = ((y0 + z1) * D).sum(), ((y1 + z0) * D).sum()
+
+    iou0 = (inter0 + eps) / (union0 + eps)
+    iou1 = (inter1 + eps) / (union1 + eps)
+    iou = 0.5 * (iou0 + iou1)
+
+    return 1 - iou
 
 
 for i in range(nbbatchs):
