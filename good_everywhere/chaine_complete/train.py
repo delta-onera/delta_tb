@@ -19,10 +19,10 @@ sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import dataloader
+import miniworld
 
 print("load data")
-miniworld = dataloader.MiniWorld("/train/")
+miniworld = miniworld.MiniWorld("/train/")
 
 print("define model")
 net = smp.Unet(
@@ -42,7 +42,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
 batchsize = 32
-nbbatchs = 300000
+nbbatchs = 200000
 miniworld.start()
 
 
@@ -65,7 +65,7 @@ for i in range(nbbatchs):
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
-    D = dataloader.distancetransform(y.float())
+    D = miniworld.distancetransform(y.float())
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
     dice = diceloss(y, z, D)
@@ -91,9 +91,9 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = dataloader.perf(torch.sum(stats, dim=0))
+            perf = miniworld.perf(torch.sum(stats, dim=0))
             print(i, "perf", perf)
-            if perf[0] > 92:
+            if perf[0] > 91:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:

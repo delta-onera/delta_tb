@@ -19,10 +19,10 @@ sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import dataloader
+import miniworld
 
 print("load data")
-miniworld = dataloader.MiniWorld("/test/")
+miniworld = miniworld.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
@@ -54,7 +54,7 @@ with torch.no_grad():
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
+            D = miniworld.distancetransform(y)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
@@ -68,7 +68,7 @@ with torch.no_grad():
 
             if False:
                 nextI = len(os.listdir("build"))
-                debug = dataloader.torchTOpil(globalresize(x))
+                debug = miniworld.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
@@ -79,12 +79,12 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
 
-        print("perf=", dataloader.perf(cm[k]))
-        numpy.savetxt("build/tmp.txt", dataloader.perf(cm).cpu().numpy())
+        print("perf=", miniworld.perf(cm[k]))
+        numpy.savetxt("build/tmp.txt", miniworld.perf(cm).cpu().numpy())
 
 print("-------- results ----------")
 for k, city in enumerate(miniworld.cities):
-    print(city, dataloader.perf(cm[k]))
+    print(city, miniworld.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
-print("miniworld", dataloader.perf(cm))
+print("miniworld", miniworld.perf(cm))
