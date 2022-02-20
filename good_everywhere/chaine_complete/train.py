@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import miniworld
 
 print("load data")
-miniworld = miniworld.MiniWorld("/train/")
+miniworlddataset = miniworld.MiniWorld("/train/")
 
 print("define model")
 net = smp.Unet(
@@ -40,10 +40,10 @@ weights = torch.Tensor([1, 1]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 batchsize = 32
 nbbatchs = 200000
-miniworld.start()
+miniworlddataset.start()
 
 
 def diceloss(y, z, D):
@@ -61,7 +61,7 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, _ = miniworld.getBatch(batchsize)
+    x, y, batchchoise, _ = miniworlddataset.getBatch(batchsize)
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
@@ -97,7 +97,7 @@ for i in range(nbbatchs):
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
-                stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+                stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5

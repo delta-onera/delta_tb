@@ -22,7 +22,7 @@ import segmentation_models_pytorch as smp
 import miniworld
 
 print("load data")
-miniworld = miniworld.MiniWorld("/test/")
+miniworlddataset = miniworld.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
@@ -44,13 +44,13 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+cm = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 with torch.no_grad():
-    for k, city in enumerate(miniworld.cities):
+    for k, city in enumerate(miniworlddataset.cities):
         print(k, city)
 
-        for i in range(miniworld.data[city].NB):
-            x, y = miniworld.data[city].getImageAndLabel(i, torchformat=True)
+        for i in range(miniworlddataset.data[city].NB):
+            x, y = miniworlddataset.data[city].getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
@@ -83,7 +83,7 @@ with torch.no_grad():
         numpy.savetxt("build/tmp.txt", miniworld.perf(cm).cpu().numpy())
 
 print("-------- results ----------")
-for k, city in enumerate(miniworld.cities):
+for k, city in enumerate(miniworlddataset.cities):
     print(city, miniworld.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
