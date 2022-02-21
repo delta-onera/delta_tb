@@ -93,7 +93,7 @@ for i in range(nbbatchs):
             torch.save(net, "build/model.pth")
             perf = miniworld.perf(torch.sum(stats, dim=0))
             print(i, "perf", perf)
-            if perf[0] > 91:
+            if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:

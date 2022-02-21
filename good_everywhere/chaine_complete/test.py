@@ -109,4 +109,4 @@ for k, city in enumerate(miniworld.cities):
     print(city, dataloader.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
-print("miniworld", dataloader.perf(cm))
+print("digitanie", digitanie.perf(cm))
