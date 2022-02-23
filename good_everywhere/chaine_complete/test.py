@@ -104,9 +104,9 @@ with torch.no_grad():
         print(cm[k])
         numpy.savetxt("build/tmp.txt", digitanie.perf(cm).cpu().numpy())
 
-print("-------- results ----------")
+print("-------- summary ----------")
 for k, city in enumerate(miniworld.cities):
-    print(city, dataloader.perf(cm[k]))
+    print(city, digitanie.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
 print("digitanie", digitanie.perf(cm))
