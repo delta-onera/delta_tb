@@ -89,6 +89,7 @@ with torch.no_grad():
 
             if True:
                 nextI = len(os.listdir("build"))
+                print(nextI)
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
