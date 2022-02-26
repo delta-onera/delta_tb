@@ -26,7 +26,7 @@ miniworlddataset = miniworld.MiniWorld("/train/")
 
 print("define model")
 net = smp.UnetPlusPlus(
-    encoder_name="timm-efficientnet-b8",
+    encoder_name="timm-efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,
