@@ -14,7 +14,7 @@ if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
     os.makedirs(rootminiworld)
 
-TARGET_RESOLUTION = 50.0
+TARGET_RESOLUTION = 100.0
 TODO = {}
 TODO["toulouse"] = root + "SEMCITY_TOULOUSE/"
 TODO["spacenet2"] = root + "/DATASETS/SPACENET2/train/"
