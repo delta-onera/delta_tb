@@ -6,13 +6,13 @@ import json
 import csv
 
 root = "/scratchf/"
-rootminiworld = "/scratchf/miniworld_tmp/"
+rootminiworld = "/scratchf/miniworld_70cm/"
 
 if os.path.exists(rootminiworld):
     os.system("rm -rf " + rootminiworld)
     os.makedirs(rootminiworld)
 
-TARGET_RESOLUTION = 50.0
+TARGET_RESOLUTION = 70.0
 TODO = {}
 TODO["bradbery"] = root + "DATASETS/BRADBURY_BUILDING_HEIGHT/"
 TODO["dfc"] = root + "DFC2015/"
@@ -118,6 +118,10 @@ if "bradbery" in TODO:
     resolution["Norfolk"] = 0.3
     resolution["SanFrancisco"] = 0.3
     resolution["Seekonk"] = 0.3
+
+    print("WARNING there is an issue with test Norfolk VT !!!")
+    print("either remore it by hand or")
+    print("just do not wonder why performance on Norfolf will be that bad")
 
     for town in resolution:
         makepath(town)
