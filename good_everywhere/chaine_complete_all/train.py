@@ -19,10 +19,10 @@ sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import dataloader
+import miniworld
 
 print("load data")
-miniworld = dataloader.MiniWorld("/train/")
+miniworlddataset = miniworld.MiniWorld("/train/")
 
 print("define model")
 net = smp.Unet(
@@ -40,10 +40,10 @@ weights = torch.Tensor([1, 1]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 batchsize = 32
-nbbatchs = 300000
-miniworld.start()
+nbbatchs = 200000
+miniworlddataset.start()
 
 
 def diceloss(y, z, D):
@@ -61,11 +61,11 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, _ = miniworld.getBatch(batchsize)
+    x, y, batchchoise, _ = miniworlddataset.getBatch(batchsize)
     x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
     z = net(x)
 
-    D = dataloader.distancetransform(y.float())
+    D = miniworld.distancetransform(y.float())
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
     dice = diceloss(y, z, D)
@@ -91,13 +91,13 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = dataloader.perf(torch.sum(stats, dim=0))
+            perf = miniworld.perf(torch.sum(stats, dim=0))
             print(i, "perf", perf)
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
-                stats = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+                stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5

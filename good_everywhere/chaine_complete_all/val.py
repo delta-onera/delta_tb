@@ -13,28 +13,16 @@ else:
     print("no cuda")
     quit()
 
-whereIam = os.uname()[1]
-if whereIam == "ldtis706z":
-    sys.path.append("/home/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/home/achanhon/github/pytorch-image-models")
-    sys.path.append("/home/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/home/achanhon/github/segmentation_models.pytorch")
-if whereIam == "wdtim719z":
-    sys.path.append("/home/optimom/github/EfficientNet-PyTorch")
-    sys.path.append("/home/optimom/github/pytorch-image-models")
-    sys.path.append("/home/optimom/github/pretrained-models.pytorch")
-    sys.path.append("/home/optimom/github/segmentation_models.pytorch")
-if whereIam in ["calculon", "astroboy", "flexo", "bender", "baymax"]:
-    sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-    sys.path.append("/d/achanhon/github/pytorch-image-models")
-    sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-    sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
+sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
+sys.path.append("/d/achanhon/github/pytorch-image-models")
+sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
+sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import dataloader
+import miniworld
 
 print("load data")
-miniworld = dataloader.DigitanieALL()
+miniworlddataset = miniworld.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
@@ -56,40 +44,31 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-def erosion(z, size=2):
-    zz = torch.nn.functional.max_pool2d(
-        z[:, 0, :, :], kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    z[:, 0, :, :] = zz
-    return z
-
-
-cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+cm = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
 with torch.no_grad():
-    for k, city in enumerate(miniworld.cities):
+    for k, city in enumerate(miniworlddataset.cities):
         print(k, city)
 
-        for i in range(miniworld.NB[city]):
-            x, y = miniworld.getImageAndLabel(city, i, torchformat=True)
-            x, y = x.cuda(), y.cuda()
+        for i in range(miniworlddataset.data[city].NB):
+            x, y = miniworlddataset.data[city].getImageAndLabel(i, torchformat=True)
+            x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
-            D = dataloader.distancetransform(y)
+            D = miniworld.distancetransform(y)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
             z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
-            z = erosion(z, size=int(sys.argv[1]))
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+                cm[k][a][b] += torch.sum((z == a).float() * (y == b).float() * D)
 
-            if True:
+            if False:
                 nextI = len(os.listdir("build"))
-                debug = dataloader.torchTOpil(globalresize(x))
+                debug = miniworld.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
@@ -100,13 +79,12 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
 
-        print("perf=", dataloader.perf(cm[k]))
-        print(cm[k])
-        numpy.savetxt("build/tmp.txt", dataloader.perf(cm).cpu().numpy())
+        print("perf=", miniworld.perf(cm[k]))
+        numpy.savetxt("build/tmp.txt", miniworld.perf(cm).cpu().numpy())
 
 print("-------- results ----------")
-for k, city in enumerate(miniworld.cities):
-    print(city, dataloader.perf(cm[k]))
+for k, city in enumerate(miniworlddataset.cities):
+    print(city, miniworld.perf(cm[k]))
 
 cm = torch.sum(cm, dim=0)
-print("miniworld", dataloader.perf(cm))
+print("miniworld", miniworld.perf(cm))
