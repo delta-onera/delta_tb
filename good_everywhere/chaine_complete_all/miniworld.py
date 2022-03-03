@@ -174,10 +174,8 @@ class MiniWorld:
             if self.infos[name]["label"] == "manual":
                 self.priority[i] += 1
                 self.goodlabel[i] = 1
-            if self.infos[name]["size"] == "medium":
+            if self.infos[name]["size"] != "small":
                 self.priority[i] += 1
-            if self.infos[name]["size"] == "large":
-                self.priority[i] += 2
         self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
 
     def start(self):
