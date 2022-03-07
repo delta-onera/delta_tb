@@ -66,6 +66,8 @@ for i in range(nbbatchs):
     z = net(x)
 
     D = miniworld.distancetransform(y.float())
+    D = D * (y == 1).float() + (y == 0).float()
+
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
     dice = diceloss(y, z, D)
