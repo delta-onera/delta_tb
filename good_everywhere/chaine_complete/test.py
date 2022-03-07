@@ -88,18 +88,18 @@ with torch.no_grad():
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
             if True:
-                nextI = len(os.listdir("build"))
-                print(nextI)
+                # nextI = len(os.listdir("build"))
+                # print(nextI)
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_x.png")
+                debug.save("build/" + city + str(k) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_y.png")
+                debug.save("build/" + city + str(k) + "_y.png")
                 debug = z.cpu().numpy() * 255
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + str(nextI) + "_z.png")
+                debug.save("build/" + city + str(k) + "_z.png")
 
         print("perf=", digitanie.perf(cm[k]))
         print(cm[k])
