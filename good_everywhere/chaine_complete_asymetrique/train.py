@@ -25,8 +25,8 @@ print("load data")
 miniworlddataset = miniworld.MiniWorld("/train/")
 
 print("define model")
-net = smp.UnetPlusPlus(
-    encoder_name="efficientnet-b5",
+net = smp.Unet(
+    encoder_name="efficientnet-b7",
     encoder_weights="imagenet",
     in_channels=3,
     classes=2,

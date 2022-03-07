@@ -147,9 +147,9 @@ class MiniWorld:
         self.infos["rio"] = {"size": "large", "label": "osm"}
         self.infos["christchurch"] = {"size": "large", "label": "manual"}
         self.infos["pologne"] = {"size": "large", "label": "manual"}
-        # self.infos["shanghai"] = {"size": "large", "label": "osm"}
-        # self.infos["vegas"] = {"size": "large", "label": "osm"}
-        # self.infos["khartoum"] = {"size": "large", "label": "osm"}
+        self.infos["shanghai"] = {"size": "large", "label": "osm"}
+        self.infos["vegas"] = {"size": "large", "label": "osm"}
+        self.infos["khartoum"] = {"size": "large", "label": "osm"}
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
@@ -174,10 +174,8 @@ class MiniWorld:
             if self.infos[name]["label"] == "manual":
                 self.priority[i] += 1
                 self.goodlabel[i] = 1
-            if self.infos[name]["size"] == "medium":
+            if self.infos[name]["size"] != "small":
                 self.priority[i] += 1
-            if self.infos[name]["size"] == "large":
-                self.priority[i] += 2
         self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
 
     def start(self):
