@@ -92,14 +92,14 @@ with torch.no_grad():
                 # print(nextI)
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(k) + "_x.png")
+                debug.save("build/" + city + str(i) + "_x.png")
                 debug = (2.0 * y - 1) * D * 127 + 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(k) + "_y.png")
+                debug.save("build/" + city + str(i) + "_y.png")
                 debug = z.cpu().numpy() * 255
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(k) + "_z.png")
+                debug.save("build/" + city + str(i) + "_z.png")
 
         print("perf=", digitanie.perf(cm[k]))
         print(cm[k])
