@@ -57,7 +57,6 @@ class MiniWorld:
     def __init__(self, flag, custom=None):
         assert flag in ["/train/", "/test/"]
 
-        self.tilesize = tilesize
         self.root = "/scratchf/miniworld/"
 
         self.infos = {}
