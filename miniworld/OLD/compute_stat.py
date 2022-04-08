@@ -2,29 +2,30 @@ import os
 import PIL
 from PIL import Image
 import numpy
-import torch
+
+# import torch
 
 
-def distancetransform(y, size=4):
-    yy = 2.0 * y.unsqueeze(0) - 1
-    yyy = torch.nn.functional.avg_pool2d(
-        yy, kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    D = 1.0 - 0.5 * (yy - yyy).abs()
-    return D[0]
+# def distancetransform(y, size=4):
+#    yy = 2.0 * y.unsqueeze(0) - 1
+#    yyy = torch.nn.functional.avg_pool2d(
+#        yy, kernel_size=2 * size + 1, stride=1, padding=size
+#    )
+#    D = 1.0 - 0.5 * (yy - yyy).abs()
+#    return D[0]
 
 
-def perf(cm):
-    if len(cm.shape) == 2:
-        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-        return torch.Tensor((iou0 + iou1, accu, iou0 * 2, iou1 * 2))
-    else:
-        out = torch.zeros(cm.shape[0], 4)
-        for k in range(cm.shape[0]):
-            out[k] = perf(cm[k])
-        return out
+# def perf(cm):
+#    if len(cm.shape) == 2:
+#        accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
+#        iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
+#        iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
+#        return torch.Tensor((iou0 + iou1, accu, iou0 * 2, iou1 * 2))
+#    else:
+#        out = torch.zeros(cm.shape[0], 4)
+#        for k in range(cm.shape[0]):
+#            out[k] = perf(cm[k])
+#        return out
 
 
 class City:
