@@ -106,7 +106,7 @@ class MiniWorld:
             for i in range(self.data[city].NB):
                 x, y = self.data[city].getImageAndLabel(i)
                 nbpixel += y.shape[0] * y.shape[1]
-            print(city, nbpixel)
+            print(city, nbpixel//1000000)
 
 
 if __name__ == "__main__":
