@@ -97,7 +97,7 @@ class MiniWorld:
         self.data = {}
         self.run = False
         for city in self.cities:
-            self.data[city] = CropExtractor(self.root + city + flag)
+            self.data[city] = City(self.root + city + flag)
 
         self.NB = len(self.cities)
 
