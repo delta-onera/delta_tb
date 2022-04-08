@@ -32,7 +32,6 @@ class City:
     def __init__(self, path):
         self.path = path
         self.NB = 0
-        self.tilesize = tilesize
         while os.path.exists(self.path + str(self.NB) + "_x.png"):
             self.NB += 1
 
