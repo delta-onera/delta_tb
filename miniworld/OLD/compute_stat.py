@@ -111,6 +111,6 @@ class MiniWorld:
             print(city, nbpixel)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     miniworld = MiniWorld("train")
     miniworld.printstat()
