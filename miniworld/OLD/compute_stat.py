@@ -112,5 +112,5 @@ class MiniWorld:
 
 
 if __name__ == "__main__":
-    miniworld = MiniWorld("train")
+    miniworld = MiniWorld("/train/")
     miniworld.printstat()
