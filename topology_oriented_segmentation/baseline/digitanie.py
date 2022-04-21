@@ -10,7 +10,7 @@ import random
 
 def maxpool(y, size):
     if len(y.shape) == 2:
-        yy == y.unsqueeze(0).float()
+        yy = y.unsqueeze(0).float()
     else:
         yy = y.float()
 
@@ -25,7 +25,7 @@ def maxpool(y, size):
 
 def minpool(y, size):
     yy = 1 - y  # 0->1,1->0
-    yyy = maxpool(1 - y, size=size)  # 0 padding does not change the pooling
+    yyy = maxpool(yy, size=size)  # 0 padding does not change the pooling
     return 1 - yyy
 
 
