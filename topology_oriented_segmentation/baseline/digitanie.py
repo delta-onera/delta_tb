@@ -31,18 +31,18 @@ def minpool(y, size):
 
 def isborder(y, size=2):
     y1 = (y == 1).float()
-    y1pool = minpool(y1)
+    y1pool = minpool(y1, size=size)
     y1boder = y1 * (y1pool == 0).float()
 
     y0 = (y == 0).float()
-    y0pool = maxpool(y0)
+    y0pool = maxpool(y0, size=size)
     y0boder = y0 * (y0pool == 1).float()
 
     return ((y1boder + y0boder) > 0).float()
 
 
-def confusion(y, z):
-    D = 1 - isborder(y)
+def confusion(y, z, size=2):
+    D = 1 - isborder(y, size=size)
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
         cm[a][b] = torch.sum((z == a).float() * (y == b).float() * D)
