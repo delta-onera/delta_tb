@@ -25,7 +25,7 @@ def maxpool(y, size):
 
 def isborder(y, size=2):
     y0, y1 = (y == 0).float(), (y == 1).float()
-    y00, y11 = maxpool(y00, size=size), maxpool(y11, size=size)
+    y00, y11 = maxpool(y0, size=size), maxpool(y1, size=size)
     border = (y1 * y00 + y0 * y11) > 0
     return border.float()
 
