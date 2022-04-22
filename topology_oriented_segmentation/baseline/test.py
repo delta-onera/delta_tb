@@ -19,10 +19,10 @@ sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import miniworld
+import digitanie
 
 print("load data")
-dataset = miniworld.MiniWorld("/test/")
+dataset = digitanie.DigitanieALL()
 
 print("load model")
 with torch.no_grad():
