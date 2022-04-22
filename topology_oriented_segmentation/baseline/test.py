@@ -68,7 +68,8 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + city + str(i) + "_x.png")
                 debug = y.float()
-                debug = debug * 2 * (1 - isborder(debug)) + isborder(debug)
+                debug = debug * 2 * (1 - digitanie.isborder(y))
+                debug = debug + digitanie.isborder(y)
                 debug *= 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
