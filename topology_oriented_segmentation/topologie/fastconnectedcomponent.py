@@ -22,20 +22,24 @@ def isborder(y):
 def extract_critical_background(y):
     with torch.no_grad():
         S = y.shape[0] * y.shape[1] * y.shape[2]
-        tmp = torch.range(1, S)
+        tmp = torch.range(1, S).float().cuda()
         tmp = tmp.view(y.shape)
 
         ConnecComp = y * tmp
-        for i in range(20):
+        for i in range(200):
             ConnecComp = maxpool(ConnecComp) * (y == 1).float()
 
-        ConnecComp1, ConnecComp2 = ConnecComp.clone(), S - ConnecComp.clone()
-        for i in range(3):
-            ConnecComp1 = maxpool(ConnecComp1)
-            ConnecComp2 = maxpool(ConnecComp2)
-        ConnecComp2 = S - ConnecComp2
+        invConnecComp = S - ConnecComp.clone() + 1
+        invConnecComp = invConnecComp * (invConnecComp <= S).float()
 
-        return (y == 0).float() * (ConnecComp1 != ConnecComp2).float()
+        for i in range(4):
+            ConnecComp = maxpool(ConnecComp)
+            invConnecComp = maxpool(invConnecComp)
+
+        ConnecCompBis = S - invConnecComp + 1
+        ConnecCompBis = ConnecCompBis * (ConnecCompBis <= S).float()
+
+        return (y == 0).float() * (ConnecComp != ConnecCompBis).float()
 
 
 if __name__ == "__main__":
@@ -44,12 +48,18 @@ if __name__ == "__main__":
     import numpy
     import torchvision
 
-    label = PIL.Image.open("/data/miniworld/potsdam/train/6_y.png").convert("L").copy()
+    label = (
+        PIL.Image.open("/media/achanhon/bigdata/data/miniworld/potsdam/train/6_y.png")
+        .convert("L")
+        .copy()
+    )
     label = numpy.uint8(numpy.asarray(label))
     label = numpy.uint8(label != 0)
 
     y = torch.Tensor(label)
-    y = y.unsqueeze(0).float()
+    y = y.unsqueeze(0).float().cuda()
+
+    y = maxpool(minpool(y))
 
     torchvision.utils.save_image(y, "build/raw.png")
     torchvision.utils.save_image(minpool(y), "build/minpool.png")
