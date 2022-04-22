@@ -23,22 +23,11 @@ def maxpool(y, size):
         return yyy
 
 
-def minpool(y, size):
-    yy = 1 - y  # 0->1,1->0
-    yyy = maxpool(yy, size=size)  # 0 padding does not change the pooling
-    return 1 - yyy
-
-
 def isborder(y, size=2):
-    y1 = (y == 1).float()
-    y1pool = minpool(y1, size=size)
-    y1boder = y1 * (y1pool == 0).float()
-
-    y0 = (y == 0).float()
-    y0pool = maxpool(y0, size=size)
-    y0boder = y0 * (y0pool == 1).float()
-
-    return ((y1boder + y0boder) > 0).float()
+    y0, y1 = (y == 0).float(), (y == 1).float()
+    y00, y11 = maxpool(y00, size=size), maxpool(y11, size=size)
+    border = (y1 * y00 + y0 * y11) > 0
+    return border.float()
 
 
 def confusion(y, z, size=2):
