@@ -19,21 +19,30 @@ def isborder(y):
     return border.float()
 
 
-def isole(y):
-    globalresize = torch.nn.AdaptiveMaxPool2d((y.shape[0], y.shape[1]))
-    yy = torch.nn.functional.max_pool2d(y, kernel_size=2, stride=2)
-    yyy = torch.nn.functional.avg_pool2d(
-        yy, kernel_size=3, stride=1, padding=1, divisor_override=1
-    )
-    alone = (yy == 1).float() * (yyy == 1).float()
-    return globalresize(alone)
+def minpoolH(y):
+    yy = 1 - y
+    yyy = torch.nn.functional.max_pool2d(yy, kernel_size=(3,1), stride=(1,1), padding=(1,0))
+    return 1 - yyy
+def minpoolW(y):
+    yy = 1 - y
+    yyy = torch.nn.functional.max_pool2d(yy, kernel_size=(1,3), stride=(1,1), padding=(0,1))
+    return 1 - yyy
+
+def isoleH(y):
+    yy = maxpool(minpoolH(y))
+    return (y==1).float()*(yy==0).float()
+    
+def isoleW(y):
+    yy = maxpool(minpoolW(y))
+    return (y==1).float()*(yy==0).float()
 
 
 def connected_component_seed(y):
     with torch.no_grad():
         erode = y.clone()
         for i in range(15):
-            erode = (minpool(y) + isole(y) >= 1).float()
+            erode = (minpoolH(erode) + isoleH(erode) >= 1).float()
+            erode = (minpoolW(erode) + isoleW(erode) >= 1).float()
         return erode
 
 
