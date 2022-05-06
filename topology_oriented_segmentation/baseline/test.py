@@ -59,6 +59,7 @@ with torch.no_grad():
 
             z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
+            z[0] = digitanie.maxpool(z[0],2)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             cm[k] += digitanie.confusion(y, z)
