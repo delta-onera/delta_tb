@@ -9,6 +9,9 @@ import threading
 
 
 def maxpool(y, size):
+    if size == 0:
+        return y
+
     if len(y.shape) == 2:
         yy = y.unsqueeze(0).float()
     else:

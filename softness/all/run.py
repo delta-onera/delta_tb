@@ -7,8 +7,12 @@ os.makedirs("build")
 
 # os.system("/d/jcastillo/anaconda3/bin/python -u train.py")
 
-name = "borderless_size_2_early_97.csv"
-os.system("/d/jcastillo/anaconda3/bin/python -u val.py")
-os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
+train = "base_size_2_stop_97_"
+for i in ["0", "1", "2"]:
+    val = "VAL_" + train + "size_" + i + ".csv"
+    os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + val + " " + i)
+
+    test = "TEST_" + train + "size_" + i + ".csv"
+    os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
 
 os.system("rm -rf __pycache__")

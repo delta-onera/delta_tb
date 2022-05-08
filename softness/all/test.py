@@ -91,4 +91,4 @@ with torch.no_grad():
 perfs = digitanie.perf(cm)
 print("digitanie", perfs[-1])
 print(perfs)
-numpy.savetxt(name, np.int16(perfs.cpu().numpy() * 1000), fmt="%i")
+numpy.savetxt(name, np.int16(perfs.cpu().numpy() * 1000), fmt="%i", delimiter="\t")
