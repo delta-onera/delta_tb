@@ -37,7 +37,7 @@ sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import miniworld
+import digitanie
 
 print("load data")
 dataset = digitanie.DigitanieALL()
@@ -71,7 +71,7 @@ with torch.no_grad():
 
             cm[k] += digitanie.confusion(y, z, size=size)
 
-            if True:
+            if False:
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + city + str(i) + "_x.png")
