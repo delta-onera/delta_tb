@@ -91,4 +91,4 @@ with torch.no_grad():
 perfs = miniworld.perf(cm)
 print("miniworld", perfs[-1])
 print(perfs)
-numpy.savetxt(name, perfs.cpu().numpy())
+numpy.savetxt(name, np.int16(perfs.cpu().numpy() * 1000), fmt="%i")
