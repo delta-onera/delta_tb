@@ -68,7 +68,7 @@ with torch.no_grad():
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            cm[k] += miniworld.confusion(y, z)
+            cm[k] += miniworld.confusion(y, z, size=size)
 
             if False:
                 nextI = len(os.listdir("build"))
@@ -76,8 +76,8 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = y.float()
-                debug = debug * 2 * (1 - miniworld.isborder(y))
-                debug = debug + miniworld.isborder(y)
+                debug = debug * 2 * (1 - miniworld.isborder(y, size=size))
+                debug = debug + miniworld.isborder(y, size=size)
                 debug *= 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))

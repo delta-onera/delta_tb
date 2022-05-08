@@ -1,5 +1,12 @@
 import os
 import sys
+
+if len(sys.argv) < 3:
+    print("no arg provided")
+    quit()
+name = sys.argv[1]
+size = int(sys.argv[2])
+
 import numpy
 import PIL
 from PIL import Image
@@ -13,13 +20,24 @@ else:
     print("no cuda")
     quit()
 
+
+def largeforward(net, image, tilesize=128, stride=64):
+    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
+    image = image.cuda()
+    for row in range(0, image.shape[2] - tilesize + 1, stride):
+        for col in range(0, image.shape[3] - tilesize + 1, stride):
+            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
+            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
+    return pred
+
+
 sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
 sys.path.append("/d/achanhon/github/pytorch-image-models")
 sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
 sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 
 import segmentation_models_pytorch as smp
-import digitanie
+import miniworld
 
 print("load data")
 dataset = digitanie.DigitanieALL()
@@ -30,17 +48,7 @@ with torch.no_grad():
     net = net.cuda()
     net.eval()
 
-print("test")
-
-
-def largeforward(net, image, tilesize=128, stride=64):
-    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
-    image = image.cuda()
-    for row in range(0, image.shape[2] - tilesize + 1, stride):
-        for col in range(0, image.shape[3] - tilesize + 1, stride):
-            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
-    return pred
+print("test", name)
 
 
 cm = torch.zeros((len(dataset.cities), 2, 2)).cuda()
@@ -61,15 +69,15 @@ with torch.no_grad():
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            cm[k] += digitanie.confusion(y, z)
+            cm[k] += digitanie.confusion(y, z, size=size)
 
             if True:
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + city + str(i) + "_x.png")
                 debug = y.float()
-                debug = debug * 2 * (1 - digitanie.isborder(y))
-                debug = debug + digitanie.isborder(y)
+                debug = debug * 2 * (1 - digitanie.isborder(y, size=size))
+                debug = debug + digitanie.isborder(y, size=size)
                 debug *= 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
@@ -79,12 +87,8 @@ with torch.no_grad():
                 debug.save("build/" + city + str(i) + "_z.png")
 
         print("perf=", digitanie.perf(cm[k]))
-        numpy.savetxt("build/tmp.txt", digitanie.perf(cm).cpu().numpy())
 
 perfs = digitanie.perf(cm)
+print("digitanie", perfs[-1])
 print(perfs)
-
-print("-------- results ----------")
-for k, city in enumerate(dataset.cities):
-    print(city, perfs[k])
-print("miniworld", perfs[-1])
+numpy.savetxt(name, perfs.cpu().numpy())
