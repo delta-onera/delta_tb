@@ -216,8 +216,8 @@ def generatenoisyAIRS(level):
                 label = 1 - label
 
             RC = numpy.random.rand(level * 5, 2)
-            RC[:, 0] *= image.shape[0] - 9
-            RC[:, 1] *= image.shape[2] - 9
+            RC[:, 0] *= label.shape[0] - 9
+            RC[:, 1] *= label.shape[2] - 9
             for j in range(RC.shape[0]):
                 r, c = int(RC[j][0]), int(RC[j][1])
                 label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
