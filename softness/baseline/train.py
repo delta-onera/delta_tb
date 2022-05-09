@@ -6,7 +6,7 @@ if len(sys.argv) < 4:
     quit()
 stop = int(sys.argv[1])
 size = int(sys.argv[2])
-flagborder = (sys.argv[3] == "noborder")
+flagborder = sys.argv[3] == "noborder"
 
 import numpy
 import PIL
@@ -49,7 +49,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((len(dataset.cities), 2, 2)).cuda()
 batchsize = 32
-nbbatchs = 200000
+nbbatchs = 100000
 dataset.start()
 
 

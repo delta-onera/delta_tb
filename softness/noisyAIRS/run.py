@@ -5,15 +5,11 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
-os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py 2")
-
-quit()
+os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py 1")
 
 configs = [
-    ("0", "92", "border"),  # more loss on border
-    ("1", "95", "border"),  # remove 1 border px but more loss on 2 border px
-    ("0", "92", "noborder"),  # standard
-    ("1", "95", "noborder"),  # remove border px
+    ("0", "97", "noborder"),
+    ("0", "95", "border"),
 ]
 for size, stop, flag in configs:
     trainarg = "train.py " + stop + " " + size + " " + flag

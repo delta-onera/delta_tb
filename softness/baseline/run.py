@@ -6,25 +6,24 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 configs = [
-    ("2", "97", "noborder"),  # remove 2 border px
-    ("0", "92", "border"),  # more loss on border
-    ("1", "95", "border"),  # remove 1 border px but more loss on 2 border px
-    ("0", "92", "noborder"),  # standard
-    ("1", "95", "noborder"),  # remove border px
+    ("0", "border"),  # more loss on border
+    ("1", "border"),  # remove 1 border px + more loss on border
+    ("0", "noborder"),  # standard
+    ("1", "noborder"),  # remove border px
 ]
-for size, stop, flag in configs:
-    trainarg = "train.py " + stop + " " + size + " " + flag
+for size, flag in configs:
+    trainarg = "train.py 98 " + " " + size + " " + flag
     os.system("/d/jcastillo/anaconda3/bin/python -u " + trainarg)
 
     if flag == "noborder":
-        trainname = "bas_size_1_stop_95_"
+        trainname = "norm_size_" + size + "_"
     else:
-        trainname = "foc_size_1_stop_95_"
+        trainname = "bord_size_" + size + "_"
     for i in ["0", "1", "2"]:
-        val = "VAL_" + train + "size_" + i + ".csv"
+        val = "VAL_" + train + i + ".csv"
         os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + val + " " + i)
 
-        test = "TEST_" + train + "size_" + i + ".csv"
+        test = "TEST_" + train + i + ".csv"
         os.system("/d/jcastillo/anaconda3/bin/python -u test.py " + test + " " + i)
 
 os.system("rm -rf __pycache__")
