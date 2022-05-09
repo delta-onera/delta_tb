@@ -68,8 +68,8 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, _ = dataset.getBatch(batchsize)
-    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
+    x, y = dataset.getBatch(batchsize)
+    x, y = x.cuda(), y.cuda()
     z = net(x)
 
     if flagborder:
