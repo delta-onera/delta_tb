@@ -177,8 +177,7 @@ import sys
 def generatenoisyAIRS(level):
     if level == 0:
         os.system("cp -r /scratchf/miniworld_1M/christchurch build")
-
-    if level > 0:
+    else:
         root = "/scratchf/miniworld_1M/christchurch/"
         os.system("rm -r build/christchurch")
         os.system("mkdir build/christchurch")
@@ -215,8 +214,8 @@ def generatenoisyAIRS(level):
                 label = maxpool(label, size=level)
                 label = 1 - label
 
-            h = torch.randint(0, label.shape[0] - 9, size=5 * level)
-            w = torch.randint(0, label.shape[1] - 9, size=5 * level)
+            h = torch.randint(0, label.shape[0] - 9, size=(5 * level))
+            w = torch.randint(0, label.shape[1] - 9, size=(5 * level))
             label[h : h + 8, w : w + 8] = 1 - label[h : h + 8, w : w + 8]
 
             label = (label != 0).numpy()
