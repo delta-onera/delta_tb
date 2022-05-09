@@ -175,7 +175,6 @@ import sys
 
 
 def generatenoisyAIRS(level):
-    print(level)
     if level == 0:
         os.system("cp -r /scratchf/miniworld_1M/christchurch build")
     else:

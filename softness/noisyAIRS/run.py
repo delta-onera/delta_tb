@@ -19,11 +19,11 @@ for noiselevel in ["0", "1", "2"]:
         os.system("/d/jcastillo/anaconda3/bin/python -u " + trainarg)
 
         if flag == "noborder":
-            trainname = "norm_size_" + size + "_"
+            trainname = "norm_level_" + noiselevel + "_size_" + size + "_"
         else:
-            trainname = "bord_size_" + size + "_"
+            trainname = "bord_level_" + noiselevel + "_size_" + size + "_"
         for i in ["0", "1", "2"]:
-            val = "VAL_" + train + i + ".csv"
+            val = trainname + i + ".csv"
             os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + val + " " + i)
 
     os.system("rm -rf __pycache__")
