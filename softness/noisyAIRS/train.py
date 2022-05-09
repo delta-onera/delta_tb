@@ -49,7 +49,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
-nbbatchs = 200000
+nbbatchs = 50000
 dataset.start()
 
 

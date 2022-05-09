@@ -209,10 +209,10 @@ def generatenoisyAIRS(level):
             label = (label != 0).long()
 
             if random.randint(0, 1) == 0:
-                label = maxpool(label, size=level)
+                label = maxpool(label, size=1)
             else:
                 label = 1 - label
-                label = maxpool(label, size=level)
+                label = maxpool(label, size=1)
                 label = 1 - label
 
             RC = numpy.random.rand(level * 5, 2)
