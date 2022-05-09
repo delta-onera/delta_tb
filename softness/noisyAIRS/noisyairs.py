@@ -205,7 +205,7 @@ def generatenoisyAIRS(level):
             label = PIL.Image.open(path).convert("L").copy()
 
             label = numpy.uint8(numpy.asarray(label))
-            label = torch.Tensor(label).long()
+            label = torch.Tensor(label)
             label = (label != 0).long()
 
             if random.randint(0, 1) == 0:
@@ -223,7 +223,7 @@ def generatenoisyAIRS(level):
                 label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
 
             label = (label != 0).numpy()
-            label = PIL.Image.fromarray(label)
+            label = PIL.Image.fromarray(numpy.uint8(label))
             label.save("build/christchurch/train/" + str(i) + "_y.png")
 
 
