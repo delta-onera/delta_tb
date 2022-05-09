@@ -76,12 +76,12 @@ for i in range(nbbatchs):
         D = 1 - miniworld.isborder(y, size=size)
     else:
         if size == 0:
-            D = 1 + 4 * miniworld.isborder(y, size=1)
+            D = 1 + 9 * miniworld.isborder(y, size=1)
         else:
             border = miniworld.isborder(y, size=1)
             borderbis = miniworld.isborder(borderbis, size=1)
             borderbis = (borderbis == 1).float * (border == 0).float()
-            D = 1 - border + 4 * borderbis
+            D = 1 - border + 9 * borderbis
 
     CE = criterion(z, y)
     CE = torch.mean(CE * D)

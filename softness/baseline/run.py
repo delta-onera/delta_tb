@@ -6,12 +6,11 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 configs = [
-    ("0", "92", "noborder"),
-    ("1", "95", "noborder"),
-    ("2", "97", "noborder"),
-    ("0", "92", "border"),
-    ("1", "95", "border"),
-    ("2", "97", "border"),
+    ("2", "97", "noborder"),  # remove 2 border px
+    ("0", "92", "border"),  # more loss on border
+    ("1", "95", "border"),  # remove 1 border px but more loss on 2 border px
+    ("0", "92", "noborder"),  # standard
+    ("1", "95", "noborder"),  # remove border px
 ]
 for size, stop, flag in configs:
     trainarg = "train.py " + stop + " " + size + " " + flag
