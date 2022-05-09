@@ -7,7 +7,7 @@ import sys
 
 # os.system("/d/jcastillo/anaconda3/bin/python -u train.py")
 
-train = "base_size_2_stop_97_"
+train = "base_size_1_stop_95_"
 for i in ["0", "1", "2"]:
     val = "VAL_" + train + "size_" + i + ".csv"
     os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + val + " " + i)
