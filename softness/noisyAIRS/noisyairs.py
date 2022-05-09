@@ -171,6 +171,7 @@ class AIRS:
 
 
 import random
+import sys
 
 
 def generatenoisyAIRS(level):
