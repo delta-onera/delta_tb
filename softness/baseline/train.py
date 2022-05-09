@@ -6,7 +6,7 @@ if len(sys.argv) < 4:
     quit()
 stop = int(sys.argv[1])
 size = int(sys.argv[2])
-flagborder = sys.argv[3] == "noborder"
+flagborder = (sys.argv[3] == "noborder")
 
 import numpy
 import PIL
@@ -43,7 +43,7 @@ net = net.cuda()
 net.train()
 
 
-print("train")
+print("train", stop, size, flagborder)
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
