@@ -215,8 +215,7 @@ def generatenoisyAIRS(level):
                 label = maxpool(label, size=level)
                 label = 1 - label
 
-            print((level * 5, 2))
-            RC = numpy.random.rand((level * 5, 2))
+            RC = numpy.random.rand(level * 5, 2)
             RC[:, 0] *= image.shape[0] - 9
             RC[:, 1] *= image.shape[2] - 9
             for j in range(RC.shape[0]):
