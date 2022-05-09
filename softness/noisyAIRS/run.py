@@ -5,7 +5,7 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
-for noiselevel in range(3):
+for noiselevel in ["0", "1", "2"]:
     os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py " + noiselevel)
 
     configs = [
