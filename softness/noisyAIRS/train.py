@@ -92,7 +92,7 @@ for i in range(nbbatchs):
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
-            cm += noisyairs.confusion(y[j], z[j], size=size)
+            stats += noisyairs.confusion(y[j], z[j], size=size)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
