@@ -188,6 +188,9 @@ def generatenoisyAIRS(level):
         NB = 0
         while os.path.exists(root + "train" + str(NB) + "_x.png"):
             NB += 1
+        if NB == 0:
+            print("wrong root path")
+            quit()
 
         for i in range(NB):
             cmd = str(i) + "_x.png build/christchurch/train/" + str(i) + "_x.png"
