@@ -214,9 +214,12 @@ def generatenoisyAIRS(level):
                 label = maxpool(label, size=level)
                 label = 1 - label
 
-            h = torch.randint(0, label.shape[0] - 9, size=(5 * level))
-            w = torch.randint(0, label.shape[1] - 9, size=(5 * level))
-            label[h : h + 8, w : w + 8] = 1 - label[h : h + 8, w : w + 8]
+            RC = numpy.random.rand((level * 5, 2))
+            RC[:, 0] *= image.shape[0] - 9
+            RC[:, 1] *= image.shape[2] - 9
+            for j in range(RC.shape[0]):
+                r, c = int(RC[j][0]), int(RC[j][1])
+                label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
 
             label = (label != 0).numpy()
             label = PIL.Image.fromarray(label)
