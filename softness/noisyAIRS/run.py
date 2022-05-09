@@ -5,6 +5,10 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
+os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py 2")
+
+quit()
+
 configs = [
     ("0", "92", "border"),  # more loss on border
     ("1", "95", "border"),  # remove 1 border px but more loss on 2 border px
