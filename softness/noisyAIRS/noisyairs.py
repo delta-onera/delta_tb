@@ -222,7 +222,7 @@ def generatenoisyAIRS(level):
                 r, c = int(RC[j][0]), int(RC[j][1])
                 label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
 
-            label = (label != 0).numpy()
+            label = (label != 0).numpy() * 254
             label = PIL.Image.fromarray(numpy.uint8(label))
             label.save("build/christchurch/train/" + str(i) + "_y.png")
 
