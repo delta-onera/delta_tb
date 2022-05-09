@@ -6,7 +6,7 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 for noiselevel in range(3):
-    os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py " + level)
+    os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py " + noiselevel)
 
     configs = [
         ("0", "border"),  # more loss on border
