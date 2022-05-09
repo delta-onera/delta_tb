@@ -107,7 +107,7 @@ for i in range(nbbatchs):
             torch.save(net, "build/model.pth")
             perf = noisyairs.perf(stats)
             print(i, "perf", perf)
-            if perf[-1][0] > stop:
+            if perf[0] > stop:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
