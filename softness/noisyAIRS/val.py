@@ -86,3 +86,4 @@ with torch.no_grad():
 perfs = noisyairs.perf(cm)
 print("=======>", name, perfs)
 numpy.savetxt(name, numpy.int16(perfs.cpu().numpy() * 10), fmt="%i", delimiter="\t")
+os._exit(0)
