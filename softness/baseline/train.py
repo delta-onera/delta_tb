@@ -80,7 +80,7 @@ for i in range(nbbatchs):
         else:
             border = miniworld.isborder(y, size=1)
             borderbis = miniworld.isborder(y, size=2)
-            borderbis = (borderbis == 1).float * (border == 0).float()
+            borderbis = (borderbis == 1).float() * (border == 0).float()
             D = 1 - border + 9 * borderbis
 
     CE = criterion(z, y)
