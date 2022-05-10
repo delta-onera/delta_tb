@@ -49,7 +49,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
-nbbatchs = 50000
+nbbatchs = 75000
 dataset.start()
 
 
@@ -79,7 +79,7 @@ for i in range(nbbatchs):
             D = 1 + 9 * noisyairs.isborder(y, size=1)
         else:
             border = noisyairs.isborder(y, size=1)
-            borderbis = noisyairs.isborder(borderbis, size=1)
+            borderbis = noisyairs.isborder(y, size=2)
             borderbis = (borderbis == 1).float * (border == 0).float()
             D = 1 - border + 9 * borderbis
 
