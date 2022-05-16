@@ -235,11 +235,6 @@ def generatenoisyAIRS(noise, resolution):
         cmd = str(i) + "_x.png build/christchurch/train/" + str(i) + "_x.png"
         os.system("cp " + root + "train/" + cmd)
 
-        # debug
-        cmd = str(i) + "_y.png build/christchurch/train/" + str(i) + "_z.png"
-        os.system("cp " + root + "train/" + cmd)
-        # debug
-
         path = root + "train/" + str(i) + "_y.png"
         label = PIL.Image.open(path).convert("L").copy()
 
