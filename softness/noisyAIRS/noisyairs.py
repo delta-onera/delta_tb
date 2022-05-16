@@ -243,11 +243,11 @@ def generatenoisyAIRS(noise, resolution):
         label = (label != 0).long()
 
         if noise == "hallucination":
-            label == hallucination(label)
+            label = hallucination(label)
         if noise == "pm1image":
-            label == pm1image(label)
+            label = pm1image(label)
         if noise == "pm1translation":
-            label == pm1translation(label)
+            label = pm1translation(label)
 
         label = (label != 0).numpy() * 254
         label = PIL.Image.fromarray(numpy.uint8(label))
