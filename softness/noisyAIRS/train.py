@@ -1,9 +1,6 @@
 import os
 import sys
 
-if len(sys.argv) < 2:
-    print("no arg provided")
-    quit()
 method = sys.argv[1]
 assert method in ["base", "base+bord", "base-bord"]
 
