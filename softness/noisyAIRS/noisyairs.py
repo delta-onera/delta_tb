@@ -248,8 +248,6 @@ def generatenoisyAIRS(noise, resolution):
             label == pm1image(label)
         if noise == "pm1translation":
             label == pm1translation(label)
-        if noise == "pm1individual":
-            label == pm1individual(label)
 
         label = (label != 0).numpy() * 254
         label = PIL.Image.fromarray(numpy.uint8(label))
