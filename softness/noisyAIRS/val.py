@@ -1,11 +1,7 @@
 import os
 import sys
 
-if len(sys.argv) < 3:
-    print("no arg provided")
-    quit()
 name = sys.argv[1]
-size = int(sys.argv[2])
 
 import numpy
 import PIL
@@ -50,8 +46,11 @@ with torch.no_grad():
 
 
 print("val", name)
-cm = torch.zeros((2, 2)).cuda()
+cm = {}
 with torch.no_grad():
+    for size in ["0", "1", "2"]:
+        cm[size] = torch.zeros((2, 2)).cuda()
+
     for i in range(dataset.data.NB):
         x, y = dataset.data.getImageAndLabel(i, torchformat=True)
         x, y = x.cuda(), y.cuda()
@@ -65,7 +64,8 @@ with torch.no_grad():
         z = globalresize(z)
         z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-        cm += noisyairs.confusion(y, z, size=size)
+        for size in ["0", "1", "2"]:
+            cm[size] += noisyairs.confusion(y, z, size=int(size))
 
         if False:
             nextI = len(os.listdir("build"))
@@ -83,7 +83,14 @@ with torch.no_grad():
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_z.png")
 
-perfs = noisyairs.perf(cm)
-print("=======>", name, perfs)
-numpy.savetxt(name, numpy.int16(perfs.cpu().numpy() * 10), fmt="%i", delimiter="\t")
+    for size in ["0", "1", "2"]:
+        perfs = noisyairs.perf(cm[size])
+        print("=======>", name + size + ".csv", perfs)
+        numpy.savetxt(
+            name + size + ".csv",
+            numpy.int16(perfs.cpu().numpy() * 10),
+            fmt="%i",
+            delimiter="\t",
+        )
+
 os._exit(0)
