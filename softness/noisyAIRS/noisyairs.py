@@ -211,12 +211,12 @@ def generatenoisyAIRS(noise, resolution):
     assert resolution in ["50cm", "1m"]
 
     if resolution == "50cm":
-        root = "/scratchf/miniworld_/christchurch/"
+        root = "/scratchf/miniworld/christchurch/"
     else:
         root = "/scratchf/miniworld_1M/christchurch/"
 
     if noise == "nonoise":
-        os.system("cp -r " + resolution + " build")
+        os.system("cp -r " + root + " build")
         return
 
     os.system("rm -r build/christchurch")
