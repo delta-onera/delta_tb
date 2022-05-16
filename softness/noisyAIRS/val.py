@@ -51,7 +51,7 @@ with torch.no_grad():
 print("val", name)
 cm = {}
 with torch.no_grad():
-    for size in ["0", "1", "2"]:
+    for size in ["0", "1", "2", "bordonly"]:
         cm[size] = torch.zeros((2, 2)).cuda()
 
     for i in range(dataset.data.NB):
@@ -69,6 +69,7 @@ with torch.no_grad():
 
         for size in ["0", "1", "2"]:
             cm[size] += noisyairs.confusion(y, z, size=int(size))
+        cm["bordonly"] = cm["0"] - cm["2"]
 
         if False:
             nextI = len(os.listdir("build"))
@@ -82,7 +83,7 @@ with torch.no_grad():
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_z.png")
 
-    for size in ["0", "1", "2"]:
+    for size in ["0", "1", "2", "bordonly"]:
         perfs = noisyairs.perf(cm[size])
         print("=======>", name + size + ".csv", perfs)
         tmp = numpy.int16(perfs.cpu().numpy() * 10)

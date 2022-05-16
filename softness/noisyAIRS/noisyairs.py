@@ -174,57 +174,92 @@ import random
 import sys
 
 
-def generatenoisyAIRS(level):
-    if level == 0:
-        os.system("cp -r /scratchf/miniworld_1M/christchurch build")
+def hallucination(label):
+    RC = numpy.random.rand(8, 2)
+    RC[:, 0] *= label.shape[0] - 9
+    RC[:, 1] *= label.shape[1] - 9
+    for j in range(RC.shape[0]):
+        r, c = int(RC[j][0]), int(RC[j][1])
+        label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
+    return label
+
+
+def pm1image(label):
+    if random.randint(0, 1) == 0:
+        label = maxpool(label, size=1)
+    else:
+        label = 1 - label
+        label = maxpool(label, size=1)
+        label = 1 - label
+    return label
+
+
+def pm1translation(label):
+    dxdy = [(-1, 1), (-1, -1), (1, 1), (1, -1)]
+    tmp = random.randint(0, 100) % 4
+    dx, dy = dxdy[tmp]
+
+    lol = torch.nn.ConstantPad2d(1, 0)
+    labelbis = lol(label)
+    i, j = 1 + dx, 1 + dy
+
+    return labelbis[i : i + label.shape[0], j : j + label.shape[0]]
+
+
+def generatenoisyAIRS(noise, resolution):
+    assert noise in ["nonoise", "hallucination", "pm1image", "pm1translation"]
+    assert resolution in ["50cm", "1m"]
+
+    if resolution == "50cm":
+        root = "/scratchf/miniworld_/christchurch/"
     else:
         root = "/scratchf/miniworld_1M/christchurch/"
-        os.system("rm -r build/christchurch")
-        os.system("mkdir build/christchurch")
-        os.system("mkdir build/christchurch/train")
-        os.system("cp -r " + root + "test build/christchurch")
 
-        NB = 0
-        while os.path.exists(root + "train/" + str(NB) + "_x.png"):
-            NB += 1
-        if NB == 0:
-            print("wrong root path")
-            quit()
+    if noise == "nonoise":
+        os.system("cp -r " + resolution + " build")
+        return
 
-        for i in range(NB):
-            cmd = str(i) + "_x.png build/christchurch/train/" + str(i) + "_x.png"
-            os.system("cp " + root + "train/" + cmd)
+    os.system("rm -r build/christchurch")
+    os.system("mkdir build/christchurch")
+    os.system("mkdir build/christchurch/train")
+    os.system("cp -r " + root + "test build/christchurch")
 
-            # debug
-            cmd = str(i) + "_y.png build/christchurch/train/" + str(i) + "_z.png"
-            os.system("cp " + root + "train/" + cmd)
-            # debug
+    NB = 0
+    while os.path.exists(root + "train/" + str(NB) + "_x.png"):
+        NB += 1
+    if NB == 0:
+        print("wrong root path")
+        quit()
 
-            path = root + "train/" + str(i) + "_y.png"
-            label = PIL.Image.open(path).convert("L").copy()
+    for i in range(NB):
+        cmd = str(i) + "_x.png build/christchurch/train/" + str(i) + "_x.png"
+        os.system("cp " + root + "train/" + cmd)
 
-            label = numpy.uint8(numpy.asarray(label))
-            label = torch.Tensor(label)
-            label = (label != 0).long()
+        # debug
+        cmd = str(i) + "_y.png build/christchurch/train/" + str(i) + "_z.png"
+        os.system("cp " + root + "train/" + cmd)
+        # debug
 
-            if random.randint(0, 1) == 0:
-                label = maxpool(label, size=1)
-            else:
-                label = 1 - label
-                label = maxpool(label, size=1)
-                label = 1 - label
+        path = root + "train/" + str(i) + "_y.png"
+        label = PIL.Image.open(path).convert("L").copy()
 
-            RC = numpy.random.rand(level * 5, 2)
-            RC[:, 0] *= label.shape[0] - 9
-            RC[:, 1] *= label.shape[1] - 9
-            for j in range(RC.shape[0]):
-                r, c = int(RC[j][0]), int(RC[j][1])
-                label[r : r + 8, c : c + 8] = 1 - label[r : r + 8, c : c + 8]
+        label = numpy.uint8(numpy.asarray(label))
+        label = torch.Tensor(label)
+        label = (label != 0).long()
 
-            label = (label != 0).numpy() * 254
-            label = PIL.Image.fromarray(numpy.uint8(label))
-            label.save("build/christchurch/train/" + str(i) + "_y.png")
+        if noise == "hallucination":
+            label == hallucination(label)
+        if noise == "pm1image":
+            label == pm1image(label)
+        if noise == "pm1translation":
+            label == pm1translation(label)
+        if noise == "pm1individual":
+            label == pm1individual(label)
+
+        label = (label != 0).numpy() * 254
+        label = PIL.Image.fromarray(numpy.uint8(label))
+        label.save("build/christchurch/train/" + str(i) + "_y.png")
 
 
 if __name__ == "__main__":
-    generatenoisyAIRS(int(sys.argv[1]))
+    generatenoisyAIRS(sys.argv[1], sys.argv[2])

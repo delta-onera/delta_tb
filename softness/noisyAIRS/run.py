@@ -5,25 +5,15 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
-for noiselevel in ["0", "1", "2"]:
-    os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py " + noiselevel)
+for noise in ["nonoise", "hallucination", "pm1image", "pm1translation"]:
+    for resolution in ["50cm", "1m"]:
+        name = "AIRS_" + noise + "_" + resolution + "_"
+        os.system("/d/jcastillo/anaconda3/bin/python -u noisyairs.py " + noiselevel)
 
-    configs = [
-        ("0", "border"),  # more loss on border
-        ("1", "border"),  # remove 1 border px + more loss on border
-        ("0", "noborder"),  # standard
-        ("1", "noborder"),  # remove border px
-    ]
-    for size, flag in configs:
-        trainarg = "train.py 98 " + " " + size + " " + flag
-        os.system("/d/jcastillo/anaconda3/bin/python -u " + trainarg)
+        for method in ["base", "base+bord", "base-bord"]:
+            os.system("/d/jcastillo/anaconda3/bin/python train.py " + method)
 
-        if flag == "noborder":
-            trainname = "norm_level_" + noiselevel + "_size_" + size + "_"
-        else:
-            trainname = "bord_level_" + noiselevel + "_size_" + size + "_"
-        for i in ["0", "1", "2"]:
-            val = trainname + i + ".csv"
-            os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + val + " " + i)
+            name = name + method + "_"
+            os.system("/d/jcastillo/anaconda3/bin/python -u val.py " + name)
 
     os.system("rm -rf __pycache__")
