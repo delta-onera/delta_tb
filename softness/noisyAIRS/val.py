@@ -72,11 +72,7 @@ with torch.no_grad():
             debug = noisyairs.torchTOpil(globalresize(x))
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_x.png")
-            debug = y.float()
-            debug = debug * 2 * (1 - noisyairs.isborder(y, size=size))
-            debug = debug + noisyairs.isborder(y, size=size)
-            debug *= 127
-            debug = debug.cpu().numpy()
+            debug = y.cpu().numpy() * 255
             debug = PIL.Image.fromarray(numpy.uint8(debug))
             debug.save("build/" + str(nextI) + "_y.png")
             debug = z.cpu().numpy() * 255
@@ -86,11 +82,7 @@ with torch.no_grad():
     for size in ["0", "1", "2"]:
         perfs = noisyairs.perf(cm[size])
         print("=======>", name + size + ".csv", perfs)
-        numpy.savetxt(
-            name + size + ".csv",
-            numpy.int16(perfs.cpu().numpy() * 10),
-            fmt="%i",
-            delimiter="\t",
-        )
+        tmp = numpy.int16(perfs.cpu().numpy() * 10)
+        numpy.savetxt(name + size + ".csv", tmp, fmt="%i", delimiter="\t")
 
 os._exit(0)
