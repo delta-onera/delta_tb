@@ -1,12 +1,11 @@
 import os
 import sys
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 2:
     print("no arg provided")
     quit()
-stop = int(sys.argv[1])
-size = int(sys.argv[2])
-flagborder = sys.argv[3] == "noborder"
+method = sys.argv[1]
+assert method in ["base", "base+bord", "base-bord"]
 
 import numpy
 import PIL
@@ -43,7 +42,7 @@ net = net.cuda()
 net.train()
 
 
-print("train", stop, size, flagborder)
+print("train", method)
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
@@ -72,16 +71,12 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    if flagborder:
+    if method == "base":
+        D = torch.ones(y.shape).cuda()
+    if method == "base+bord":
+        D = 1 + 9 * noisyairs.isborder(y, size=1)
+    if method == "base-bord":
         D = 1 - noisyairs.isborder(y, size=size)
-    else:
-        if size == 0:
-            D = 1 + 9 * noisyairs.isborder(y, size=1)
-        else:
-            border = noisyairs.isborder(y, size=1)
-            borderbis = noisyairs.isborder(y, size=2)
-            borderbis = (borderbis == 1).float() * (border == 0).float()
-            D = 1 - border + 9 * borderbis
 
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
@@ -92,7 +87,7 @@ for i in range(nbbatchs):
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
-            stats += noisyairs.confusion(y[j], z[j], size=size)
+            stats += noisyairs.confusion(y[j], z[j], size=1)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -107,11 +102,7 @@ for i in range(nbbatchs):
             torch.save(net, "build/model.pth")
             perf = noisyairs.perf(stats)
             print(i, "perf", perf)
-            if perf[0] > stop:
-                print("training stops after reaching high training accuracy")
-                os._exit(0)
-            else:
-                stats = torch.zeros((2, 2)).cuda()
+            stats = torch.zeros((2, 2)).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5

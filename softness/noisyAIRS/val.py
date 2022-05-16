@@ -1,6 +1,9 @@
 import os
 import sys
 
+if len(sys.argv) < 2:
+    print("no arg provided")
+    quit()
 name = sys.argv[1]
 
 import numpy
