@@ -73,7 +73,7 @@ for i in range(nbbatchs):
     if method == "base+bord":
         D = 1 + 9 * noisyairs.isborder(y, size=1)
     if method == "base-bord":
-        D = 1 - noisyairs.isborder(y, size=size)
+        D = 1 - noisyairs.isborder(y, size=1)
 
     CE = criterion(z, y)
     CE = torch.mean(CE * D)
