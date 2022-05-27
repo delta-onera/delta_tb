@@ -199,11 +199,12 @@ def pm1translation(label):
     tmp = random.randint(0, 100) % 4
     dx, dy = dxdy[tmp]
 
-    lol = torch.nn.ConstantPad2d(1, 0)
-    labelbis = lol(label)
+    h, w = label.shape
+    labelbis = torch.zeros((h + 3, w + 3))
     i, j = 1 + dx, 1 + dy
+    labelbis[i : i + h, j : j + w] = label[:, :]
 
-    return labelbis[i : i + label.shape[0], j : j + label.shape[0]]
+    return labelbis[1 : 1 + h, 1 : 1 + w]
 
 
 def generatenoisyAIRS(noise, resolution):
