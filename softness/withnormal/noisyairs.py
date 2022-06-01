@@ -1,6 +1,6 @@
 import os
 import PIL
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy
 import torch
 import random
@@ -150,7 +150,28 @@ class CropExtractor(threading.Thread):
                 compress = [approximate_polygon(b, tolerance=2.5) for b in building]
                 compress = [replacebybbox(b) for b in compress]
 
-                tangentmask = numpy.zeros(image.shape)
+                tangentmask = Image.new("RGB", image.size)
+                draw = ImageDraw.Draw(tangentmask)
+
+                for contour in compress:
+                    for i in range(contour.shape[0] - 1):
+                        line = [
+                            contour[i, 1],
+                            contour[i, 0],
+                            contour[i + 1, 1],
+                            contour[i + 1, 0],
+                        ]
+
+                        dy = line[3] - line[1]
+                        dx = line[2] - line[0]
+                        norm = math.sqrt(dy * dy + dx * dx + 0.00001)
+                        dx, dy = dx / norm, dy / norm
+                        dx, dy = int((dx + 1) * 254 // 2), int((dy + 1) * 254 // 2)
+
+                        angleInDegrees = (0, dx, dy)
+                        draw.line(xy=line, fill=angleInDegrees, width=2)
+
+                quit()  # TODO
 
                 ntile = image.shape[0] * image.shape[1] // 65536 + 1
                 ntile = int(min(128, ntile))
