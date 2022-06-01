@@ -18,7 +18,7 @@ for noise in ["pm1translation"]:
             name = dataname + method + "_"
             os.system(python + "val.py " + name)
 
-    os.system("rm -rf __pycache__")
+os.system("rm -rf __pycache__")
 
 
 # for noise in ["nonoise", "pm1image", "hallucination"]: already done
