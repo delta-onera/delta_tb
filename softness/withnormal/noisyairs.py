@@ -6,6 +6,7 @@ import torch
 import random
 import queue
 import threading
+from skimage.measure import find_contours, approximate_polygon
 
 
 def maxpool(y, size):
@@ -67,6 +68,23 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def replacebybbox(b, size=11):
+    xmin = min(b[:, 0])
+    xmax = max(b[:, 0])
+    ymin = min(b[:, 1])
+    ymax = max(b[:, 1])
+    if xmax - xmin <= size or ymax - ymin <= size:
+        out = numpy.zeros((5, 2))
+        out[0] = numpy.asarray([xmin, ymin])
+        out[1] = numpy.asarray([xmin, ymax])
+        out[2] = numpy.asarray([xmax, ymax])
+        out[3] = numpy.asarray([xmax, ymin])
+        out[4] = numpy.asarray([xmin, ymin])
+        return out
+    else:
+        return b
+
+
 ########################################################################
 ######################## CLASSIC/PUBLIC DATASETS #######################
 
@@ -112,9 +130,10 @@ class CropExtractor(threading.Thread):
         tilesize = self.tilesize
         x = torch.zeros(batchsize, 3, self.tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
+        tangent = torch.zeros(batchsize, 2, tilesize, tilesize)
         for i in range(batchsize):
-            x[i], y[i] = self.getCrop()
-        return x, y.long()
+            x[i], y[i], tangent[i] = self.getCrop()
+        return x, y.long(), tangent
 
     def run(self):
         self.isrunning = True
@@ -126,6 +145,12 @@ class CropExtractor(threading.Thread):
             random.shuffle(I)
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
+
+                building = find_contours(label, level=0.5)
+                compress = [approximate_polygon(b, tolerance=2.5) for b in building]
+                compress = [replacebybbox(b) for b in compress]
+
+                tangentmask = numpy.zeros(image.shape)
 
                 ntile = image.shape[0] * image.shape[1] // 65536 + 1
                 ntile = int(min(128, ntile))

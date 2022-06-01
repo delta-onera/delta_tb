@@ -12,5 +12,3 @@ os.system(python + "train.py")
 os.system(python + "val.py")
 
 os.system("rm -rf __pycache__")
-
-

@@ -1,9 +1,6 @@
 import os
 import sys
 
-method = sys.argv[1]
-assert method in ["base", "base+bord", "base-bord"]
-
 import numpy
 import PIL
 from PIL import Image
@@ -64,21 +61,27 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y = dataset.getBatch(batchsize)
-    x, y = x.cuda(), y.cuda()
+    x, y, tangent = dataset.getBatch(batchsize)
+    x, y, tangent = x.cuda(), y.cuda(), tangent.cuda()
     z = net(x)
 
-    if method == "base":
-        D = torch.ones(y.shape).cuda()
-    if method == "base+bord":
-        D = 1 + 9 * noisyairs.isborder(y, size=1)
-    if method == "base-bord":
-        D = 1 - noisyairs.isborder(y, size=1)
+    pixelwithnormal = noisyairs.isborder(y, size=1)
+    D = 1 - pixelwithnormal
 
-    CE = criterion(z, y)
+    CE = criterion(z[:, 0:2, :, :], y)
     CE = torch.mean(CE * D)
-    dice = diceloss(y, z, D)
-    loss = CE + dice
+    dice = diceloss(y, z[:, 0:2, :, :], D)
+    segloss = CE + dice
+
+    predtangent = z[:, 2:, :, :]
+    regloss = (tangent - predtangent).abs()
+    regloss = regloss.norm(dim=1, keepdim=True)
+    reglossbis = (tangent + predtangent).abs()
+    reglossbis = reglossbis.norm(dim=1, keepdim=True)
+    regloss = torch.cat([regloss, reglossbis], dim=1)
+    regloss, _ = torch.min(regloss, dim=1)
+
+    loss = segloss + regloss
 
     with torch.no_grad():
         printloss += loss.clone().detach()

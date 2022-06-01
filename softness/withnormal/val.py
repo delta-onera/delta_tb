@@ -1,8 +1,6 @@
 import os
 import sys
 
-name = sys.argv[1]
-
 import numpy
 import PIL
 from PIL import Image
@@ -23,7 +21,7 @@ def largeforward(net, image, tilesize=128, stride=64):
     for row in range(0, image.shape[2] - tilesize + 1, stride):
         for col in range(0, image.shape[3] - tilesize + 1, stride):
             tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0,0:2]
+            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0, 0:2, :, :]
     return pred
 
 
@@ -84,6 +82,6 @@ with torch.no_grad():
         perfs = noisyairs.perf(cm[size])
         print("=======>", name + size + ".csv", perfs)
         tmp = numpy.int16(perfs.cpu().numpy() * 10)
-        numpy.savetxt(name + size + ".csv", tmp, fmt="%i", delimiter="\t")
+        numpy.savetxt("normal_" + size + ".csv", tmp, fmt="%i", delimiter="\t")
 
 os._exit(0)
