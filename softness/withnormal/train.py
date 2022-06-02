@@ -77,19 +77,18 @@ for i in range(nbbatchs):
     segloss = CE + dice
 
     predtangent = z[:, 2:, :, :]
-    predtangentnorm = predtangent.norm(dim=1) + 0.0001
-    predtangent[:, 0, :, :] = predtangent[:, 0, :, :] / predtangentnorm
-    predtangent[:, 1, :, :] = predtangent[:, 1, :, :] / predtangentnorm
     regloss = torch.norm(tangent - predtangent, dim=1)
     reglossbis = torch.norm(tangent + predtangent, dim=1) * 1.3
-    regloss = torch.minimum(regloss, reglossbis) * pixelwithtangent
-    regloss = regloss.mean()
+    reglossfinal = torch.minimum(regloss, reglossbis)
+    reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
     if i == 5000:
         tmp = torch.zeros(x.shape)
         tmp[:, 0:2, :, :] = tangent
         torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
         tmp[:, 0:2, :, :] = predtangent
+        tmp[:, 1, :, :] *= pixelwithtangent
+        tmp[:, 0, :, :] *= pixelwithtangent
         torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
         torchvision.utils.save_image(x / 255, "lol_x.png")
         tmp = torch.stack([y, y, y], dim=1)
