@@ -43,7 +43,7 @@ with torch.no_grad():
     net.eval()
 
 
-print("val", name)
+print("val")
 cm = {}
 with torch.no_grad():
     for size in ["0", "1", "2", "bordonly"]:

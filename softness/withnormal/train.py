@@ -82,22 +82,6 @@ for i in range(nbbatchs):
     reglossfinal = torch.minimum(regloss, reglossbis)
     reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
-    if i == 5000:
-        tmp = torch.zeros(x.shape).cuda()
-        tmp[:, 0:2, :, :] = tangent
-        torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
-        tmp[:, 0:2, :, :] = predtangent
-        tmp[:, 1, :, :] *= pixelwithtangent
-        tmp[:, 0, :, :] *= pixelwithtangent
-        torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
-        torchvision.utils.save_image(x / 255, "lol_x.png")
-        tmp = torch.stack([y, y, y], dim=1)
-        torchvision.utils.save_image(tmp.float(), "lol_y.png")
-        pred = (pred[:, 1, :, :] > pred[:, 1, :, :]).float()
-        tmp = torch.stack([pred, pred, pred], dim=1)
-        torchvision.utils.save_image(tmp, "lol_z.png")
-        os._exit(0)
-
     loss = segloss + reglossfinal
 
     with torch.no_grad():
