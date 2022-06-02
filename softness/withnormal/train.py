@@ -36,7 +36,7 @@ net = net.cuda()
 net.train()
 
 
-print("train", method)
+print("train")
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(2).cuda()
@@ -88,7 +88,7 @@ for i in range(nbbatchs):
     torch.utils.save_image(x, "lol_x.png")
     torch.utils.save_image(y, "lol_y.png")
     torch.utils.save_image(pred, "lol_z.png")
-    quit()
+    os._exit(0)
 
     loss = segloss + regloss
 
@@ -102,10 +102,10 @@ for i in range(nbbatchs):
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
-            printloss = torch.zeros(1).cuda()
+            printloss = torch.zeros(2).cuda()
         if i >= 1000 and i % 300 == 299:
             print(i, "/", nbbatchs, printloss / 300)
-            printloss = torch.zeros(1).cuda()
+            printloss = torch.zeros(2).cuda()
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
