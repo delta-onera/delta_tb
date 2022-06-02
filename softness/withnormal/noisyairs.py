@@ -210,8 +210,8 @@ class AIRS:
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
         for i in range(batchsize):
-            x[i], y[i] = self.data.getCrop()
-        return x, y.long()
+            x[i], y[i], tangent[i] = self.data.getCrop()
+        return x, y.long(), tangent[i]
 
 
 import random
