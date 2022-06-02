@@ -70,7 +70,7 @@ def symetrie(x, y, ijk):
     if j == 1:
         x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
     if k == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
+        x, y = numpy.flip(x, axis=0), numpy.flip(y, axis=0)
     return x.copy(), y.copy()
 
 
