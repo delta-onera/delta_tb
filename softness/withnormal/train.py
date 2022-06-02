@@ -78,7 +78,9 @@ for i in range(nbbatchs):
     segloss = CE + dice
 
     predtangent = z[:, 2:, :, :]
-    predtangent = predtangent / (predtangent.norm(dim=1) + 0.0001)
+    predtangentnorm = predtangent.norm(dim=1) + 0.0001
+    predtangent[:, 0, :, :] = predtangent[:, 0, :, :] / predtangentnorm
+    predtangent[:, 1, :, :] = predtangent[:, 1, :, :] / predtangentnorm
     regloss = torch.norm(tangent - predtangent, dim=1)
     reglossbis = torch.norm(tangent + predtangent, dim=1) * 1.3
     regloss = torch.minimum(regloss, reglossbis)
