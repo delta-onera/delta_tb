@@ -39,7 +39,7 @@ net.train()
 print("train", method)
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-printloss = torch.zeros(1).cuda()
+printloss = torch.zeros(2).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
 nbbatchs = 75000
@@ -65,26 +65,35 @@ for i in range(nbbatchs):
     x, y, tangent = x.cuda(), y.cuda(), tangent.cuda()
     z = net(x)
 
-    pixelwithnormal = noisyairs.isborder(y, size=1)
-    D = 1 - pixelwithnormal
+    pixelwithtangent = (tangent[0] != 0).int()
+    tangent = tangent[:, 1:3, :, :] / 127 - 1
+    tangent = tangent * pixelwithtangent
+    D = 1 - pixelwithtangent
 
-    CE = criterion(z[:, 0:2, :, :], y)
+    pred = z[:, 0:2, :, :]
+    CE = criterion(pred, y)
     CE = torch.mean(CE * D)
-    dice = diceloss(y, z[:, 0:2, :, :], D)
+    dice = diceloss(y, pred, D)
     segloss = CE + dice
 
     predtangent = z[:, 2:, :, :]
-    regloss = (tangent - predtangent).abs()
-    regloss = regloss.norm(dim=1, keepdim=True)
-    reglossbis = (tangent + predtangent).abs()
-    reglossbis = reglossbis.norm(dim=1, keepdim=True)
-    regloss = torch.cat([regloss, reglossbis], dim=1)
-    regloss, _ = torch.min(regloss, dim=1)
+    predtangent = predtangent / (predtangent.norm(dim=1) + 0.0001)
+    regloss = torch.norm(tangent - predtangent, dim=1)
+    reglossbis = torch.norm(tangent + predtangent, dim=1) * 1.3
+    regloss = torch.minimum(regloss, reglossbis)
+
+    # debug
+    torch.utils.save_image((tangent + 1) / 2, "lol_t.png")
+    torch.utils.save_image((predtangent + 1) / 2, "lol_s.png")
+    torch.utils.save_image(x, "lol_x.png")
+    torch.utils.save_image(y, "lol_y.png")
+    torch.utils.save_image(pred, "lol_z.png")
+    quit()
 
     loss = segloss + regloss
 
     with torch.no_grad():
-        printloss += loss.clone().detach()
+        printloss += torch.Tensor([segloss, regloss]).clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)

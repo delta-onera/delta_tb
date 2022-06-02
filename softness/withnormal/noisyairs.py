@@ -174,9 +174,9 @@ class CropExtractor(threading.Thread):
                             dx = line[2] - line[0]
                             norm = math.sqrt(dy * dy + dx * dx + 0.00001)
                             dx, dy = dx / norm, dy / norm
-                            dx, dy = int((dx + 1) * 254 // 2), int((dy + 1) * 254 // 2)
+                            dx, dy = int((dx + 1) * 127), int((dy + 1) * 127)
 
-                            angleInDegrees = (0, dx, dy)
+                            angleInDegrees = (254, dx, dy)
                             draw.line(xy=line, fill=angleInDegrees, width=2)
 
                     tang = numpy.uint8(numpy.asarray(tangentmask))
