@@ -86,19 +86,19 @@ for i in range(nbbatchs):
     reglossbis = torch.norm(tangent + predtangent, dim=1) * 1.3
     regloss = torch.minimum(regloss, reglossbis)
 
-    # debug
-    tmp = torch.zeros(x.shape)
-    tmp[:, 0:2, :, :] = tangent
-    torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
-    tmp[:, 0:2, :, :] = predtangent
-    torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
-    torchvision.utils.save_image(x / 255, "lol_x.png")
-    tmp = torch.stack([y, y, y], dim=1)
-    torchvision.utils.save_image(tmp.float(), "lol_y.png")
-    pred = (pred[:, 1, :, :] > pred[:, 1, :, :]).float()
-    tmp = torch.stack([pred, pred, pred], dim=1)
-    torchvision.utils.save_image(tmp, "lol_z.png")
-    os._exit(0)
+    if i == 5000:
+        tmp = torch.zeros(x.shape)
+        tmp[:, 0:2, :, :] = tangent
+        torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
+        tmp[:, 0:2, :, :] = predtangent
+        torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
+        torchvision.utils.save_image(x / 255, "lol_x.png")
+        tmp = torch.stack([y, y, y], dim=1)
+        torchvision.utils.save_image(tmp.float(), "lol_y.png")
+        pred = (pred[:, 1, :, :] > pred[:, 1, :, :]).float()
+        tmp = torch.stack([pred, pred, pred], dim=1)
+        torchvision.utils.save_image(tmp, "lol_z.png")
+        os._exit(0)
 
     loss = segloss + regloss
 
