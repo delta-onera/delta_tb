@@ -98,11 +98,11 @@ for i in range(nbbatchs):
         torchvision.utils.save_image(tmp, "lol_z.png")
         os._exit(0)
 
-    loss = segloss + regloss
+    loss = segloss + reglossfinal
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
-        printloss[1] += regloss.clone().detach()
+        printloss[1] += reglossfinal.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
