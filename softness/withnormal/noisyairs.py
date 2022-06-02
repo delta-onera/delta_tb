@@ -57,15 +57,15 @@ def torchTOpil(x):
     return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
-def symetrie(im, ijk):
+def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
-        im = numpy.transpose(im, axes=(1, 0, 2))
+        x, y = numpy.transpose(x, axes=(1, 0, 2)), numpy.transpose(y, axes=(1, 0))
     if j == 1:
-        im = numpy.flip(im, axis=1)
+        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
     if k == 1:
-        im = numpy.flip(im, axis=0)
-    return x.copy()
+        x, y = numpy.flip(x, axis=0), numpy.flip(y, axis=0)
+    return x.copy(), y.copy()
 
 
 def replacebybbox(b, size=11):
@@ -146,28 +146,6 @@ class CropExtractor(threading.Thread):
             for i in I:
                 image, label = self.getImageAndLabel(i, torchformat=False)
 
-                building = find_contours(label, level=0.5)
-                compress = [approximate_polygon(b, tolerance=2.5) for b in building]
-                compress = [replacebybbox(b) for b in compress]
-
-                tangentmask = Image.new("RGB", image.size)
-                draw = ImageDraw.Draw(tangentmask)
-
-                for bord in compress:
-                    for i in range(bord.shape[0] - 1):
-                        line = [bord[i, 1], bord[i, 0], bord[i + 1, 1], bord[i + 1, 0]]
-
-                        dy = line[3] - line[1]
-                        dx = line[2] - line[0]
-                        norm = math.sqrt(dy * dy + dx * dx + 0.00001)
-                        dx, dy = dx / norm, dy / norm
-                        dx, dy = int((dx + 1) * 254 // 2), int((dy + 1) * 254 // 2)
-                        
-                        angleInDegrees = (0, dx, dy)
-                        draw.line(xy=line, fill=angleInDegrees, width=2)
-
-                tangentmask = numpy.asarray(tangentmask)
-
                 ntile = image.shape[0] * image.shape[1] // 65536 + 1
                 ntile = int(min(128, ntile))
 
@@ -176,16 +154,32 @@ class CropExtractor(threading.Thread):
                 for j in range(ntile):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
-
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
-                    tang = tangentmask[r : r + tilesize, c : c + tilesize, :]
+                    x, y = symetrie(im.copy(), mask.copy(), flag[j])
 
-                    x = symetrie(im.copy(), flag[j])
-                    tmp = numpy.stack([mask, tang], axis=-1)
-                    tmp = symetrie(tmp.copy(), flag[j])
-                    y = tmp[:, :, 0]
-                    tang = tmp[:, :, 1:]
+                    building = find_contours(y, level=0.5)
+                    compress = [approximate_polygon(b, tolerance=2.5) for b in building]
+                    compress = [replacebybbox(b) for b in compress]
+
+                    tangentmask = Image.new("RGB", image.size)
+                    draw = ImageDraw.Draw(tangentmask)
+
+                    for bord in compress:
+                        for k in range(bord.shape[0] - 1):
+                            line = list(bord[k + 1]) + list(bord[k])
+                            line = line[::-1]
+
+                            dy = line[3] - line[1]
+                            dx = line[2] - line[0]
+                            norm = math.sqrt(dy * dy + dx * dx + 0.00001)
+                            dx, dy = dx / norm, dy / norm
+                            dx, dy = int((dx + 1) * 254 // 2), int((dy + 1) * 254 // 2)
+
+                            angleInDegrees = (0, dx, dy)
+                            draw.line(xy=line, fill=angleInDegrees, width=2)
+
+                    tang = numpy.uint8(numpy.asarray(tangentmask))
 
                     x, y, tang = pilTOtorch(x), torch.Tensor(y), pilTOtorch(tang)
                     self.q.put((x, y, tang), block=True)
