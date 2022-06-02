@@ -57,15 +57,15 @@ def torchTOpil(x):
     return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
-def symetrie(x, y, ijk):
+def symetrie(im, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
-        x, y = numpy.transpose(x, axes=(1, 0, 2)), numpy.transpose(y, axes=(1, 0))
+        im = numpy.transpose(im, axes=(1, 0, 2))
     if j == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
+        im = numpy.flip(im, axis=1)
     if k == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
-    return x.copy(), y.copy()
+        im = numpy.flip(im, axis=0)
+    return x.copy()
 
 
 def replacebybbox(b, size=11):
@@ -153,25 +153,20 @@ class CropExtractor(threading.Thread):
                 tangentmask = Image.new("RGB", image.size)
                 draw = ImageDraw.Draw(tangentmask)
 
-                for contour in compress:
-                    for i in range(contour.shape[0] - 1):
-                        line = [
-                            contour[i, 1],
-                            contour[i, 0],
-                            contour[i + 1, 1],
-                            contour[i + 1, 0],
-                        ]
+                for bord in compress:
+                    for i in range(bord.shape[0] - 1):
+                        line = [bord[i, 1], bord[i, 0], bord[i + 1, 1], bord[i + 1, 0]]
 
                         dy = line[3] - line[1]
                         dx = line[2] - line[0]
                         norm = math.sqrt(dy * dy + dx * dx + 0.00001)
                         dx, dy = dx / norm, dy / norm
                         dx, dy = int((dx + 1) * 254 // 2), int((dy + 1) * 254 // 2)
-
+                        
                         angleInDegrees = (0, dx, dy)
                         draw.line(xy=line, fill=angleInDegrees, width=2)
 
-                quit()  # TODO
+                tangentmask = numpy.asarray(tangentmask)
 
                 ntile = image.shape[0] * image.shape[1] // 65536 + 1
                 ntile = int(min(128, ntile))
@@ -181,11 +176,19 @@ class CropExtractor(threading.Thread):
                 for j in range(ntile):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
+
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
-                    x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
-                    self.q.put((x, y), block=True)
+                    tang = tangentmask[r : r + tilesize, c : c + tilesize, :]
+
+                    x = symetrie(im.copy(), flag[j])
+                    tmp = numpy.stack([mask, tang], axis=-1)
+                    tmp = symetrie(tmp.copy(), flag[j])
+                    y = tmp[:, :, 0]
+                    tang = tmp[:, :, 1:]
+
+                    x, y, tang = pilTOtorch(x), torch.Tensor(y), pilTOtorch(tang)
+                    self.q.put((x, y, tang), block=True)
 
 
 class AIRS:
