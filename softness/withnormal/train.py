@@ -66,7 +66,7 @@ for i in range(nbbatchs):
     x, y, tangent = x.cuda(), y.cuda(), tangent.cuda()
     z = net(x)
 
-    pixelwithtangent = (tangent[:, 0, :, :] != 0).int()
+    pixelwithtangent = (tangent[:, 0, :, :] != 0).int().cuda()
     tangent = tangent[:, 1:3, :, :] / 127 - 1
     D = 1 - pixelwithtangent
 
@@ -83,7 +83,7 @@ for i in range(nbbatchs):
     reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
     if i == 5000:
-        tmp = torch.zeros(x.shape)
+        tmp = torch.zeros(x.shape).cuda()
         tmp[:, 0:2, :, :] = tangent
         torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
         tmp[:, 0:2, :, :] = predtangent
