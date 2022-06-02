@@ -103,7 +103,8 @@ for i in range(nbbatchs):
     loss = segloss + regloss
 
     with torch.no_grad():
-        printloss += torch.Tensor([segloss, regloss]).clone().detach()
+        printloss[0] += segloss.clone().detach()
+        printloss[1] += regloss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
