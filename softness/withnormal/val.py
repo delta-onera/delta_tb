@@ -80,7 +80,7 @@ with torch.no_grad():
 
     for size in ["0", "1", "2", "bordonly"]:
         perfs = noisyairs.perf(cm[size])
-        print("=======>", name + size + ".csv", perfs)
+        print("=======>", size + ".csv", perfs)
         tmp = numpy.int16(perfs.cpu().numpy() * 10)
         numpy.savetxt("normal_" + size + ".csv", tmp, fmt="%i", delimiter="\t")
 
