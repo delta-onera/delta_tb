@@ -67,7 +67,8 @@ for i in range(nbbatchs):
 
     pixelwithtangent = (tangent[0] != 0).int()
     tangent = tangent[:, 1:3, :, :] / 127 - 1
-    tangent = tangent * pixelwithtangent
+    tangent[:, 0, :, :] *= pixelwithtangent
+    tangent[:, 1, :, :] *= pixelwithtangent
     D = 1 - pixelwithtangent
 
     pred = z[:, 0:2, :, :]
