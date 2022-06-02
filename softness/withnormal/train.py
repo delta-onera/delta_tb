@@ -6,6 +6,7 @@ import PIL
 from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
+import torchvision
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -86,11 +87,11 @@ for i in range(nbbatchs):
     regloss = torch.minimum(regloss, reglossbis)
 
     # debug
-    torch.utils.save_image((tangent + 1) / 2, "lol_t.png")
-    torch.utils.save_image((predtangent + 1) / 2, "lol_s.png")
-    torch.utils.save_image(x, "lol_x.png")
-    torch.utils.save_image(y, "lol_y.png")
-    torch.utils.save_image(pred, "lol_z.png")
+    torchvision.utils.save_image((tangent + 1) / 2, "lol_t.png")
+    torchvision.utils.save_image((predtangent + 1) / 2, "lol_s.png")
+    torchvision.utils.save_image(x, "lol_x.png")
+    torchvision.utils.save_image(y, "lol_y.png")
+    torchvision.utils.save_image(pred, "lol_z.png")
     os._exit(0)
 
     loss = segloss + regloss
