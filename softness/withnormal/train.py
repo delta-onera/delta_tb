@@ -65,7 +65,7 @@ for i in range(nbbatchs):
     x, y, tangent = x.cuda(), y.cuda(), tangent.cuda()
     z = net(x)
 
-    pixelwithtangent = (tangent[0] != 0).int()
+    pixelwithtangent = (tangent[:, 0, :, :] != 0).int()
     tangent = tangent[:, 1:3, :, :] / 127 - 1
     tangent[:, 0, :, :] *= pixelwithtangent
     tangent[:, 1, :, :] *= pixelwithtangent
