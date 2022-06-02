@@ -87,8 +87,11 @@ for i in range(nbbatchs):
     regloss = torch.minimum(regloss, reglossbis)
 
     # debug
-    torchvision.utils.save_image((tangent + 1) / 2, "lol_t.png")
-    torchvision.utils.save_image((predtangent + 1) / 2, "lol_s.png")
+    tmp = torch.zeros(x.shape)
+    tmp[:, 0:2, :, :] = tangent
+    torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
+    tmp[:, 0:2, :, :] = predtangent
+    torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
     torchvision.utils.save_image(x, "lol_x.png")
     torchvision.utils.save_image(y, "lol_y.png")
     torchvision.utils.save_image(pred, "lol_z.png")
