@@ -162,7 +162,7 @@ class CropExtractor(threading.Thread):
                     compress = [approximate_polygon(b, tolerance=2.5) for b in building]
                     compress = [replacebybbox(b) for b in compress]
 
-                    tangentmask = Image.new("RGB", image.size)
+                    tangentmask = Image.new("RGB", (tilesize, tilesize))
                     draw = ImageDraw.Draw(tangentmask)
 
                     for bord in compress:
