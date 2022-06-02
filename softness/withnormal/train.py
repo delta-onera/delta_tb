@@ -92,8 +92,8 @@ for i in range(nbbatchs):
     torchvision.utils.save_image((tmp + 1) / 2, "lol_t.png")
     tmp[:, 0:2, :, :] = predtangent
     torchvision.utils.save_image((tmp + 1) / 2, "lol_s.png")
-    torchvision.utils.save_image(x, "lol_x.png")
-    torchvision.utils.save_image(y, "lol_y.png")
+    torchvision.utils.save_image(x / 255, "lol_x.png")
+    torchvision.utils.save_image(y.float(), "lol_y.png")
     torchvision.utils.save_image(pred, "lol_z.png")
     os._exit(0)
 
