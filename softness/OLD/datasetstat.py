@@ -43,10 +43,14 @@ def getstat(path, C=2, yes="_y.png", no=None):
     return stats
 
 
-biarritz = "/scratchf/PRIVATE/DIGITANIE/Biarritz/"
-print(biarritz)
-stats = getstat(biarritz, C=13, yes="_c.tif", no="_img_c.tif")
-print(stats, "\n", stats / numpy.sum(stats[:-1]))
+root = "/scratchf/PRIVATE/DIGITANIE/"
+l = ["Biarritz/", "Paris/", "Strasbourg/"]
+l = [root + name for name in l]
+for name in l:
+    print(name)
+    stats = getstat(name, C=13, yes="_c.tif", no="_img_c.tif")
+    print(stats, "\n", stats / numpy.sum(stats[:-1]))
+
 
 print("/scratchf/miniworld/christchurch/")
 stats = getstat("/scratchf/miniworld/christchurch/test/")
