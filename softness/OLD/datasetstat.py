@@ -41,8 +41,8 @@ def getstat(path, C=2):
 
 print("/scratchf/miniworld/christchurch/")
 stats = getstat("/scratchf/miniworld/christchurch/")
-print(stats, stats / stats.shape[0] / stats.shape[1])
+print(stats, "\n", stats / numpy.sum(stats[:-1]))
 
 print("/scratchf/miniworld_1M/christchurch/")
 stats = getstat("/scratchf/miniworld/christchurch/")
-print(stats, stats / stats.shape[0] / stats.shape[1])
+print(stats, "\n", stats / numpy.sum(stats[:-1]))
