@@ -45,7 +45,7 @@ def getstat(path, C=2, yes="_y.png", no=None):
 
 biarritz = "/scratchf/PRIVATE/DIGITANIE/Biarritz/"
 print(biarritz)
-stats = getstat(biarritz, C=13, yes="_c.tif", no="_img_c_tif")
+stats = getstat(biarritz, C=13, yes="_c.tif", no="_img_c.tif")
 print(stats, "\n", stats / numpy.sum(stats[:-1]))
 
 print("/scratchf/miniworld/christchurch/")
