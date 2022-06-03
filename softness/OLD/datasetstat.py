@@ -12,7 +12,7 @@ def getVoisinage(y):
     for i, (dh, dw) in enumerate(l):
         out[i, 1 + dh : 1 + dh + h, 1 + dw : 1 + dw + w] = y[:, :]
 
-    return labelbis[:, 1 : 1 + h, 1 : 1 + w]
+    return out[:, 1 : 1 + h, 1 : 1 + w]
 
 
 def isborder(y):
