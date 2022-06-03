@@ -21,9 +21,13 @@ def isborder(y):
     return numpy.uint32(y * 9 != voisinage)
 
 
-def getstat(path, C=2):
+def getstat(path, C=2, yes="_y.png", no=None):
     names = os.listdir(path)
-    names = [name for name in names if "_y.png" in name]
+
+    if yes is not None:
+        names = [name for name in names if yes in name]
+    if no is not None:
+        names = [name for name in names if no not in name]
 
     stats = numpy.zeros(C + 1)
     for name in names:
@@ -38,6 +42,11 @@ def getstat(path, C=2):
 
     return stats
 
+
+biarritz = "/scratchf/PRIVATE/DIGITANIE/Biarritz/"
+print(biarritz)
+stats = getstat(biarritz, C=13, yes="_c.tif", no="_img_c_tif")
+print(stats, "\n", stats / numpy.sum(stats[:-1]))
 
 print("/scratchf/miniworld/christchurch/")
 stats = getstat("/scratchf/miniworld/christchurch/test/")
