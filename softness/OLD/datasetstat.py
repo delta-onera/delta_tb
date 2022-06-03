@@ -44,5 +44,5 @@ stats = getstat("/scratchf/miniworld/christchurch/test/")
 print(stats, "\n", stats / numpy.sum(stats[:-1]))
 
 print("/scratchf/miniworld_1M/christchurch/")
-stats = getstat("/scratchf/miniworld/christchurch/test/")
+stats = getstat("/scratchf/miniworld_1M/christchurch/test/")
 print(stats, "\n", stats / numpy.sum(stats[:-1]))
