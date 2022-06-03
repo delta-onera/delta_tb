@@ -27,7 +27,7 @@ def getstat(path, C=2):
 
     stats = numpy.zeros(C + 1)
     for name in names:
-        y = PIL.Image.open(path + "/" + name).convert("L").copy()
+        y = PIL.Image.open(path + name).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y))
         if C == 2:
             y = numpy.uint8(y != 0)
@@ -40,9 +40,9 @@ def getstat(path, C=2):
 
 
 print("/scratchf/miniworld/christchurch/")
-stats = getstat("/scratchf/miniworld/christchurch/")
+stats = getstat("/scratchf/miniworld/christchurch/test/")
 print(stats, "\n", stats / numpy.sum(stats[:-1]))
 
 print("/scratchf/miniworld_1M/christchurch/")
-stats = getstat("/scratchf/miniworld/christchurch/")
+stats = getstat("/scratchf/miniworld/christchurch/test/")
 print(stats, "\n", stats / numpy.sum(stats[:-1]))
