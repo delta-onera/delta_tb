@@ -33,8 +33,8 @@ def getstat(path, C=2):
             y = numpy.uint8(y != 0)
 
         for c in range(C):
-            stats[y] += numpy.sum(numpy.int32(y == c))
-        stats[-1] = numpy.sum(isborder(y))
+            stats[c] += numpy.sum(numpy.int32(y == c))
+        stats[-1] += numpy.sum(isborder(y))
 
     return stats
 
