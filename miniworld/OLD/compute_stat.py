@@ -78,9 +78,9 @@ class MiniWorld:
         self.infos["rio"] = {"size": "large", "label": "osm"}
         self.infos["christchurch"] = {"size": "large", "label": "manual"}
         self.infos["pologne"] = {"size": "large", "label": "manual"}
-        #self.infos["shanghai"] = {"size": "large", "label": "osm"}
-        #self.infos["vegas"] = {"size": "large", "label": "osm"}
-        #self.infos["khartoum"] = {"size": "large", "label": "osm"}
+        # self.infos["shanghai"] = {"size": "large", "label": "osm"}
+        # self.infos["vegas"] = {"size": "large", "label": "osm"}
+        # self.infos["khartoum"] = {"size": "large", "label": "osm"}
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
@@ -106,7 +106,7 @@ class MiniWorld:
             for i in range(self.data[city].NB):
                 x, y = self.data[city].getImageAndLabel(i)
                 nbpixel += y.shape[0] * y.shape[1]
-            print(city, nbpixel//1000000)
+            print(city, nbpixel // 1000000)
 
 
 if __name__ == "__main__":
