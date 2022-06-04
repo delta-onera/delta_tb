@@ -34,6 +34,8 @@ os.system("rm -rf /scratchf/airs_multi_res")
 os.system("mkdir /scratchf/airs_multi_res")
 for resolution in [30, 50, 70, 100]:
     print(resolution)
+    os.system("/scratchf/airs_multi_res/" + str(resolution))
+    os.system("/scratchf/airs_multi_res/" + str(resolution) + "/christchurch/")
     path = "/scratchf/airs_multi_res/" + str(resolution) + "/christchurch/"
 
     os.system("mkdir " + path)
