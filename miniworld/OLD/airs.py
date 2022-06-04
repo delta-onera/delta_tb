@@ -46,5 +46,4 @@ for resolution in [30, 50, 70, 100]:
         for name in allname:
             XY[name] = ["image/" + name[0:-4], "label/" + name[0:-4] + "_vis"]
             XY[name] = [XY[name][0] + ".tif", XY[name][1] + ".tif"]
-        tmp = rootminiworld + "christchurch/" + flag
         resizeall(path + flag, root + flag2, XY, (7.5, resolution))
