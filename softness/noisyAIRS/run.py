@@ -6,8 +6,8 @@ os.system("rm -rf build")
 os.makedirs("build")
 
 python = "/d/jcastillo/anaconda3/bin/python -u "
-for noise in ["pm1translation"]:
-    for resolution in ["50cm", "1m"]:
+for noise in ["nonoise", "pm1image", "hallucination", "pm1translation"]:
+    for resolution in ["30", "50", "70", "100"]:
         print("==================", noise, resolution, "===================")
         dataname = "AIRS_" + noise + "_" + resolution + "_"
         os.system(python + "noisyairs.py " + noise + " " + resolution)
@@ -19,6 +19,3 @@ for noise in ["pm1translation"]:
             os.system(python + "val.py " + name)
 
 os.system("rm -rf __pycache__")
-
-
-# for noise in ["nonoise", "pm1image", "hallucination"]: already done

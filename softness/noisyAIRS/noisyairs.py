@@ -209,12 +209,9 @@ def pm1translation(label):
 
 def generatenoisyAIRS(noise, resolution):
     assert noise in ["nonoise", "hallucination", "pm1image", "pm1translation"]
-    assert resolution in ["50cm", "1m"]
+    assert resolution in ["30", "50", "70", "100"]
 
-    if resolution == "50cm":
-        root = "/scratchf/miniworld/christchurch/"
-    else:
-        root = "/scratchf/miniworld_1M/christchurch/"
+    root = "/scratchf/airs_multi_res/" + resolution + "/christchurch/"
 
     if noise == "nonoise":
         os.system("cp -r " + root + " build")
