@@ -17,7 +17,7 @@ def resize(image, label, resolutions):
     return image, label
 
 
-def resizeall(outpath, inpath, XY, resolution):
+def resizeall(outpath, inpath, XY, resolutions):
     for i, name in enumerate(XY):
         x, y = XY[name]
         image = PIL.Image.open(inpath + "/" + x).convert("RGB").copy()
