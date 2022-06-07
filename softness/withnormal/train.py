@@ -68,7 +68,7 @@ def selfcoherence(z, predtH, predtW):
 
     l = [(0, 1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1)]
     dz = torch.zeros(8, z.shape[0], h + 2, w + 2)
-    for k, (i, j) in l:
+    for k, (i, j) in enumerate(l):
         dz[:, i : i + h, j : j + w] = tmp
 
     gradW = (dz[0] - dz[1] + dz[4] - dz[2] + dz[-1] - dz[-3]) / 3
