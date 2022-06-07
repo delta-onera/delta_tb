@@ -63,13 +63,15 @@ def diceloss(y, z, D):
 
 def selfcoherence(z, predtH, predtW):
     h, w = z.shape[-2], z.shape[-1]
+
+    print(z.shape, predtH.shape, predtW.shape)
     tmp = z[:, 1, :, :] - z[:, 0, :, :]
     predborder = noisyairs.isborder((tmp > 0).float(), 1)
 
     l = [(0, 1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1)]
     dz = torch.zeros(8, z.shape[0], h + 2, w + 2)
     for k, (i, j) in enumerate(l):
-        dz[:, i : i + h, j : j + w] = tmp
+        dz[:, i + 1 : i + 1 + h, j + 1 : j + 1 + w] = tmp
 
     gradW = (dz[0] - dz[1] + dz[4] - dz[2] + dz[-1] - dz[-3]) / 3
     gradH = (dz[-1] - dz[4] + dz[-2] - dz[3] + dz[-3] - dz[-2]) / 3
