@@ -61,13 +61,36 @@ def diceloss(y, z, D):
     return 1 - iou
 
 
+def selfcoherence(z, predtH, predtW):
+    h, w = z.shape[-2], z.shape[-1]
+    tmp = z[:, 1, :, :] - z[:, 0, :, :]
+    predborder = noisyairs.isborder((tmp>0).float(),1)
+
+    l = [(0, 1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1)]
+    dz = torch.zeros(8, z.shape[0], h + 2, w + 2)
+    for k, (i, j) in l:
+        dz[:, i : i + h, j : j + w] = tmp
+
+    gradW = (dz[0] - dz[1] + dz[4] - dz[2] + dz[-1] - dz[-3]) / 3
+    gradH = (dz[-1] - dz[4] + dz[-2] - dz[3] + dz[-3] - dz[-2]) / 3
+    gradH, gradW = gradH[:, 1 : 1 + h, 1 : 1 + w], gradW[:, 1 : 1 + h, 1 : 1 + w]
+
+    WH = torch.sqrt(gradW * gradW + gradH * gradH + 0.001)
+    gradW = gradW / WH
+    gradH = gradH / WH
+
+    normal_tangente = gradH * predtH + gradW * predtW
+    return torch.mean(normal_tangente.abs()*predborder)
+
+
 for i in range(nbbatchs):
     x, y, tangent = dataset.getBatch(batchsize)
     x, y, tangent = x.cuda(), y.cuda(), tangent.cuda()
     z = net(x)
 
     pixelwithtangent = (tangent[:, 0, :, :] != 0).int().cuda()
-    tangent = tangent[:, 1:3, :, :] / 127 - 1
+    tangentH, tangentW = tangent[:, 1, :, :], tangent[:, 2, :, :]
+    tangentH, tangentW = tangentH / 127 - 1, tangentW / 127 - 1
     D = 1 - pixelwithtangent
 
     pred = z[:, 0:2, :, :]
@@ -76,13 +99,17 @@ for i in range(nbbatchs):
     dice = diceloss(y, pred, D)
     segloss = CE + dice
 
-    predtangent = z[:, 2:, :, :]
-    regloss = torch.norm(tangent - predtangent, dim=1)
-    reglossbis = torch.norm(tangent + predtangent, dim=1) * 1.3
-    reglossfinal = torch.minimum(regloss, reglossbis)
+    predtH, predtW = z[:, 2, :, :], z[:, 3, :, :]
+    WH = torch.sqrt(predtH * predtH + predtW * predtW + 0.001)
+    predtW = predtW / WH
+    predtH = predtH / WH
+
+    regloss = (tangentH - predtH).abs() + (tangentW - predtW).abs()
+    reglossbis = (tangentH + predtH).abs() + (tangentW + predtW).abs()
+    reglossfinal = torch.minimum(regloss, reglossbis * 1.3)
     reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
-    loss = segloss + reglossfinal
+    loss = segloss + 2*reglossfinal + 2*selfcoherence(pred,predtH, predtW)
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
