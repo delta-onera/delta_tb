@@ -112,10 +112,10 @@ for i in range(nbbatchs):
 
     coherence = selfcoherence(pred, predtH, predtW)
 
-    if i<1000:
-    loss = segloss +  reglossfinal +  coherence
+    if i < 1000:
+        loss = segloss + reglossfinal + coherence
     else:
-        loss = segloss +  10*reglossfinal +  10*coherence
+        loss = segloss + 10 * reglossfinal + 10 * coherence
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
