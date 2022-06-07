@@ -64,7 +64,7 @@ def diceloss(y, z, D):
 def selfcoherence(z, predtH, predtW):
     h, w = z.shape[-2], z.shape[-1]
     tmp = z[:, 1, :, :] - z[:, 0, :, :]
-    predborder = noisyairs.isborder((tmp>0).float(),1)
+    predborder = noisyairs.isborder((tmp > 0).float(), 1)
 
     l = [(0, 1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1)]
     dz = torch.zeros(8, z.shape[0], h + 2, w + 2)
@@ -80,7 +80,7 @@ def selfcoherence(z, predtH, predtW):
     gradH = gradH / WH
 
     normal_tangente = gradH * predtH + gradW * predtW
-    return torch.mean(normal_tangente.abs()*predborder)
+    return torch.mean(normal_tangente.abs() * predborder)
 
 
 for i in range(nbbatchs):
@@ -109,7 +109,7 @@ for i in range(nbbatchs):
     reglossfinal = torch.minimum(regloss, reglossbis * 1.3)
     reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
-    loss = segloss + 2*reglossfinal + 2*selfcoherence(pred,predtH, predtW)
+    loss = segloss + 2 * reglossfinal + 2 * selfcoherence(pred, predtH, predtW)
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
