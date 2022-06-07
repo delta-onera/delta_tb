@@ -110,12 +110,14 @@ for i in range(nbbatchs):
     reglossfinal = torch.minimum(regloss, reglossbis * 1.3)
     reglossfinal = torch.mean(reglossfinal * pixelwithtangent)
 
-    loss = segloss + 2 * reglossfinal + 2 * selfcoherence(pred, predtH, predtW)
+    coherence = selfcoherence(pred, predtH, predtW)
+
+    loss = segloss + 2 * reglossfinal + 2 * coherence
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
         printloss[1] += reglossfinal.clone().detach()
-        printloss[2] += selfcoherence.clone().detach()
+        printloss[2] += coherence.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
