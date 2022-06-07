@@ -40,7 +40,7 @@ net.train()
 print("train")
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-printloss = torch.zeros(2).cuda()
+printloss = torch.zeros(3).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
 nbbatchs = 75000
@@ -68,7 +68,7 @@ def selfcoherence(z, predtH, predtW):
 
     l = [(0, 1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1)]
     l = [(i + 1, j + 1) for i, j in l]
-    dz = torch.zeros(8, z.shape[0], h + 3, w + 3)
+    dz = torch.zeros(8, z.shape[0], h + 3, w + 3).cuda()
     for k, (i, j) in enumerate(l):
         dz[k, :, i : i + h, j : j + w] = tmp
 
@@ -115,6 +115,7 @@ for i in range(nbbatchs):
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
         printloss[1] += reglossfinal.clone().detach()
+        printloss[2] += selfcoherence.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
@@ -123,10 +124,10 @@ for i in range(nbbatchs):
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
-            printloss = torch.zeros(2).cuda()
+            printloss = torch.zeros(3).cuda()
         if i >= 1000 and i % 300 == 299:
             print(i, "/", nbbatchs, printloss / 300)
-            printloss = torch.zeros(2).cuda()
+            printloss = torch.zeros(3).cuda()
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
