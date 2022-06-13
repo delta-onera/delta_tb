@@ -24,9 +24,9 @@ class Sobel(torch.nn.Module):
         tmp.cuda()
 
         x = tmp(yz)
-        norm = torch.sqrt(x[:, 0] * x[:, 0] + x[:, 1] * x[:, 1])
-        x[:, 0] = x[:, 0] / (norm + 0.001)
-        x[:, 1] = x[:, 1] / (norm + 0.001)
+        norm = torch.sqrt(torch.sum(x * x, dim=1))
+        norm = torch.stack([norm, norm], dim=1)
+        x = x / (norm + 0.001)
         return x, (norm.detach().clone() > 0.0001).int()
 
 
