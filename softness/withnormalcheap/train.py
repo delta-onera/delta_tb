@@ -76,9 +76,9 @@ for i in range(nbbatchs):
     zz, _ = sobel(torch.unsqueeze(z[:, 1, :, :] - z[:, 0, :, :], dim=1))
 
     gradientdiff = torch.sum(zz * yy, dim=1)
-    gradientdiff = torch.mean(gradientdiff * where)
+    gradientdiff = torch.mean((1 - gradientdiff) * border)
 
-    loss = (CE + dice) + gradientdiff
+    loss = (CE + dice) + 10 * gradientdiff
 
     with torch.no_grad():
         printloss[0] += (CE + dice).clone().detach()
