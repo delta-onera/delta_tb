@@ -67,15 +67,14 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    border = noisyairs.isborder(y, size=1)
+    yy, border = sobel(torch.unsqueeze(yy.float(), dim=1))
 
     CE = criterion(z, y)
     CE = torch.mean(CE * (1 - border))
     dice = diceloss(y, z, 1 - border)
 
-    zz, yy = z[:, 1, :, :] - z[:, 0, :, :], y * 2 - 1
-    yy, where = sobel(torch.unsqueeze(yy.float(), dim=1))
-    zz, _ = sobel(torch.unsqueeze(zz, dim=1))
+    zz, _ = sobel(torch.unsqueeze(z[:, 1, :, :] - z[:, 0, :, :], dim=1))
+
     gradientdiff = torch.sum(zz * yy, dim=1)
     gradientdiff = torch.mean(gradientdiff * where)
 

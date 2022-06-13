@@ -19,7 +19,7 @@ class Sobel(torch.nn.Module):
 
     def forward(self, yz):
         tmp = torch.nn.Conv2d(1, 2, kernel_size=3, padding=1)
-        tmp.weight = torch.nn.Parameter(G.clone(), requires_grad=True)
+        tmp.weight = torch.nn.Parameter(self.G.clone(), requires_grad=True)
         tmp.cuda()
 
         x = tmp(yz)
