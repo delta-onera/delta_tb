@@ -78,7 +78,7 @@ for i in range(nbbatchs):
     gradientdiff = torch.sum(zz * yy, dim=1)
     gradientdiff = torch.mean((1 - gradientdiff) * border)
 
-    loss = (CE + dice) + 10 * gradientdiff
+    loss = CE + dice  # + 10 * gradientdiff
 
     with torch.no_grad():
         printloss[0] += (CE + dice).clone().detach()
