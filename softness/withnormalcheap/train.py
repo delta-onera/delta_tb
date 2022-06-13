@@ -1,8 +1,6 @@
 import os
 import sys
 
-method = sys.argv[1]
-assert method in ["base", "base+bord", "base-bord"]
 
 import numpy
 import PIL
@@ -39,14 +37,15 @@ net = net.cuda()
 net.train()
 
 
-print("train", method)
+print("train")
 criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-printloss = torch.zeros(1).cuda()
+printloss = torch.zeros(2).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
 nbbatchs = 75000
 dataset.start()
+sobel = Sobel()
 
 
 def diceloss(y, z, D):
@@ -68,20 +67,23 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    if method == "base":
-        D = torch.ones(y.shape).cuda()
-    if method == "base+bord":
-        D = 1 + 9 * noisyairs.isborder(y, size=1)
-    if method == "base-bord":
-        D = 1 - noisyairs.isborder(y, size=1)
+    border = noisyairs.isborder(y, size=1)
 
     CE = criterion(z, y)
-    CE = torch.mean(CE * D)
-    dice = diceloss(y, z, D)
-    loss = CE + dice
+    CE = torch.mean(CE * (1 - border))
+    dice = diceloss(y, z, 1 - border)
+
+    zz, yy = z[:, 1, :, :] - z[:, 0, :, :], y * 2 - 1
+    yy, where = sobel(yy)
+    zz, _ = sobel(zz)
+    gradientdiff = torch.sum(zz * yy, dim=1)
+    gradientdiff = torch.mean(gradientdiff * where)
+
+    loss = (CE + dice) + gradientdiff
 
     with torch.no_grad():
-        printloss += loss.clone().detach()
+        printloss[0] += (CE + dice).clone().detach()
+        printloss[1] += gradientdiff.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
@@ -90,10 +92,10 @@ for i in range(nbbatchs):
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
-            printloss = torch.zeros(1).cuda()
+            printloss = torch.zeros(2).cuda()
         if i >= 1000 and i % 300 == 299:
             print(i, "/", nbbatchs, printloss / 300)
-            printloss = torch.zeros(1).cuda()
+            printloss = torch.zeros(2).cuda()
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")

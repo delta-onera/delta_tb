@@ -1,7 +1,6 @@
 import os
 import sys
 
-name = sys.argv[1]
 
 import numpy
 import PIL
@@ -45,7 +44,7 @@ with torch.no_grad():
     net.eval()
 
 
-print("val", name)
+print("val")
 cm = {}
 with torch.no_grad():
     for size in ["0", "1", "2", "bordonly"]:
@@ -82,8 +81,8 @@ with torch.no_grad():
 
     for size in ["0", "1", "2", "bordonly"]:
         perfs = noisyairs.perf(cm[size])
-        print("=======>", name + size + ".csv", perfs)
+        print("=======>", "cheap_" + size + ".csv", perfs)
         tmp = numpy.int16(perfs.cpu().numpy() * 10)
-        numpy.savetxt(name + size + ".csv", tmp, fmt="%i", delimiter="\t")
+        numpy.savetxt("cheap_" + size + ".csv", tmp, fmt="%i", delimiter="\t")
 
 os._exit(0)
