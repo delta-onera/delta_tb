@@ -74,7 +74,7 @@ for i in range(nbbatchs):
     dice = diceloss(y, z, 1 - border)
 
     zz, yy = z[:, 1, :, :] - z[:, 0, :, :], y * 2 - 1
-    yy, where = sobel(torch.unsqueeze(yy, dim=1))
+    yy, where = sobel(torch.unsqueeze(yy.float(), dim=1))
     zz, _ = sobel(torch.unsqueeze(zz, dim=1))
     gradientdiff = torch.sum(zz * yy, dim=1)
     gradientdiff = torch.mean(gradientdiff * where)
