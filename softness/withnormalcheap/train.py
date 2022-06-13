@@ -67,7 +67,7 @@ for i in range(nbbatchs):
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    yy, border = sobel(torch.unsqueeze(yy.float(), dim=1))
+    yy, border = sobel(torch.unsqueeze(2.0 * y - 1.0, dim=1))
 
     CE = criterion(z, y)
     CE = torch.mean(CE * (1 - border))
