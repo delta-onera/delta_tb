@@ -27,7 +27,7 @@ class Sobel(torch.nn.Module):
         norm = torch.sqrt(torch.sum(x * x, dim=1))
         norm = torch.stack([norm, norm], dim=1)
         x = x / (norm + 0.001)
-        return x, (norm.detach().clone() > 0.0001).int()
+        return x, (norm[:, 0].detach().clone() > 0.0001).int()
 
 
 def maxpool(y, size):
