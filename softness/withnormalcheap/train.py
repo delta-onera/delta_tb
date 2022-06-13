@@ -80,7 +80,7 @@ for i in range(nbbatchs):
 
     segloss = CE + dice
     regloss = gradientdiff
-    loss = segloss  # + regloss
+    loss = segloss + regloss
 
     with torch.no_grad():
         printloss[0] += segloss.clone().detach()
