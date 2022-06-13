@@ -22,7 +22,7 @@ class Sobel(torch.nn.Module):
         self.filter.weight = torch.nn.Parameter(G, requires_grad=True)
 
     def forward(self, yz):
-        self.filter.weight.grad.zero_()
+        self.filter.grad.zero_()
         x = self.filter(yz)
         norm = torch.sqrt(x[0] * x[0] + x[1] * x[1] + 0.001)
         x[0] = x[0] / norm
