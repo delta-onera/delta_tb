@@ -7,7 +7,7 @@ os.makedirs("build")
 
 python = "/d/jcastillo/anaconda3/bin/python -u "
 
-os.system(python + "noisyairs.py nonoise 1m")
+os.system(python + "noisyairs.py nonoise 100")
 os.system(python + "train.py")
 os.system(python + "val.py")
 
