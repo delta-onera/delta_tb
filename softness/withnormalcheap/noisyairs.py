@@ -18,7 +18,8 @@ class Sobel(torch.nn.Module):
         G = torch.cat([Gx.unsqueeze(0), Gy.unsqueeze(0)], 0)
         G = G.unsqueeze(1)
         self.filter.weight = torch.nn.Parameter(G, requires_grad=True)
-        self.filter.cuda()
+
+        self.filter = self.filter.cuda()
 
     def forward(self, yz):
         if self.filter.weight.grad is not None:
