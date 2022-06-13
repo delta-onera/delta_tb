@@ -78,11 +78,13 @@ for i in range(nbbatchs):
     gradientdiff = torch.sum(zz * yy, dim=1)
     gradientdiff = torch.mean((1 - gradientdiff) * border)
 
-    loss = CE + dice  # + 10 * gradientdiff
+    segloss = CE + dice
+    regloss = gradientdiff
+    loss = segloss + regloss
 
     with torch.no_grad():
-        printloss[0] += (CE + dice).clone().detach()
-        printloss[1] += gradientdiff.clone().detach()
+        printloss[0] += segloss.clone().detach()
+        printloss[1] += regloss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         for j in range(batchsize):
             stats += noisyairs.confusion(y[j], z[j], size=1)
