@@ -14,13 +14,13 @@ class Sobel(torch.nn.Module):
 
         Gx = torch.tensor([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
         Gy = torch.tensor([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-        G = torch.cat([Gx.unsqueeze(0), Gy.unsqueeze(0)], 0)
+        G = torch.stack([Gx, Gy])
         self.G = G.unsqueeze(1).float()
 
     def forward(self, yz):
         assert len(yz.shape) == 4 and yz.shape[1] == 1
         tmp = torch.nn.Conv2d(1, 2, kernel_size=3, padding=1)
-        tmp.weight = torch.nn.Parameter(self.G.clone(), requires_grad=True)
+        tmp.weight = torch.nn.Parameter(self.G.clone(), requires_grad=True, bias=False)
         tmp.cuda()
 
         x = tmp(yz)
