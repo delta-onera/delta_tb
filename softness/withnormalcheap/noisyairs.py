@@ -8,7 +8,7 @@ import queue
 import threading
 
 
-class Sobel(nn.Module):
+class Sobel(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.filter = torch.nn.Conv2d(
