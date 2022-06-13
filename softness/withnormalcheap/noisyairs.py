@@ -11,20 +11,18 @@ import threading
 class Sobel(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.filter = torch.nn.Conv2d(1, 2, kernel_size=3, padding=1)
 
         Gx = torch.tensor([[2.0, 0.0, -2.0], [4.0, 0.0, -4.0], [2.0, 0.0, -2.0]])
         Gy = torch.tensor([[2.0, 4.0, 2.0], [0.0, 0.0, 0.0], [-2.0, -4.0, -2.0]])
         G = torch.cat([Gx.unsqueeze(0), Gy.unsqueeze(0)], 0)
-        G = G.unsqueeze(1)
-        self.filter.weight = torch.nn.Parameter(G, requires_grad=True)
-
-        self.filter = self.filter.cuda()
+        self.G = G.unsqueeze(1)
 
     def forward(self, yz):
-        if self.filter.weight.grad is not None:
-            self.filter.weight.grad.zero_()
-        x = self.filter(yz)
+        tmp = torch.nn.Conv2d(1, 2, kernel_size=3, padding=1)
+        tmp.weight = torch.nn.Parameter(G.clone(), requires_grad=True)
+        tmp.cuda()
+
+        x = tmp(yz)
         norm = torch.sqrt(x[:, 0] * x[:, 0] + x[:, 1] * x[:, 1] + 0.001)
         x[:, 0] = x[:, 0] / norm
         x[:, 1] = x[:, 1] / norm
