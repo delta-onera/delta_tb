@@ -25,9 +25,9 @@ class Sobel(torch.nn.Module):
         if self.filter.weight.grad is not None:
             self.filter.weight.grad.zero_()
         x = self.filter(yz)
-        norm = torch.sqrt(x[0] * x[0] + x[1] * x[1] + 0.001)
-        x[0] = x[0] / norm
-        x[1] = x[1] / norm
+        norm = torch.sqrt(x[:, 0] * x[:, 0] + x[:, 1] * x[:, 1] + 0.001)
+        x[:, 0] = x[:, 0] / norm
+        x[:, 1] = x[:, 1] / norm
         return x, (norm != 0).int()
 
 
