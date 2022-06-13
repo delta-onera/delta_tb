@@ -45,7 +45,7 @@ stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
 nbbatchs = 75000
 dataset.start()
-sobel = Sobel()
+sobel = noisyairs.Sobel()
 
 
 def diceloss(y, z, D):
