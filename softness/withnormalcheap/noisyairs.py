@@ -12,21 +12,22 @@ class Sobel(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        Gx = torch.tensor([[2.0, 0.0, -2.0], [4.0, 0.0, -4.0], [2.0, 0.0, -2.0]])
-        Gy = torch.tensor([[2.0, 4.0, 2.0], [0.0, 0.0, 0.0], [-2.0, -4.0, -2.0]])
+        Gx = torch.tensor([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+        Gy = torch.tensor([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
         G = torch.cat([Gx.unsqueeze(0), Gy.unsqueeze(0)], 0)
         self.G = G.unsqueeze(1)
 
     def forward(self, yz):
+        assert len(yz.shape) == 4 and yz.shape[1] == 1
         tmp = torch.nn.Conv2d(1, 2, kernel_size=3, padding=1)
         tmp.weight = torch.nn.Parameter(self.G.clone(), requires_grad=True)
         tmp.cuda()
 
         x = tmp(yz)
-        norm = torch.sqrt(x[:, 0] * x[:, 0] + x[:, 1] * x[:, 1] + 0.001)
-        x[:, 0] = x[:, 0] / norm
-        x[:, 1] = x[:, 1] / norm
-        return x, (norm != 0).int()
+        norm = torch.sqrt(x[:, 0] * x[:, 0] + x[:, 1] * x[:, 1])
+        x[:, 0] = x[:, 0] / (norm + 0.001)
+        x[:, 1] = x[:, 1] / (norm + 0.001)
+        return x, (norm.detach().clone() > 0.0001).int()
 
 
 def maxpool(y, size):
