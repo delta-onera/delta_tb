@@ -68,6 +68,8 @@ for i in range(nbbatchs):
     z = net(x)
 
     yy, border = sobel(torch.unsqueeze(2.0 * y - 1.0, dim=1))
+    nbborder = torch.sum(border)
+    size = y.shape[0] * y.shape[1] * y.shape[2]
 
     CE = criterion(z, y)
     CE = torch.mean(CE * (1 - border))
@@ -77,6 +79,7 @@ for i in range(nbbatchs):
 
     gradientdiff = torch.sum(zz * yy, dim=1)
     gradientdiff = torch.mean((1 - gradientdiff) * border)
+    gradientdiff = gradientdiff * size / nbborder
 
     segloss = CE + dice
     regloss = gradientdiff
