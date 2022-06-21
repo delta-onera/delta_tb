@@ -16,7 +16,7 @@ def torchTOpil(x):
     return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
-def distancetransform(y, size=4):
+def distancetransform(y, size):
     yy = 2.0 * y.unsqueeze(0) - 1
     yyy = torch.nn.functional.avg_pool2d(
         yy, kernel_size=2 * size + 1, stride=1, padding=size
@@ -38,26 +38,12 @@ def perf(cm):
         return out
 
 
-def resize(image, label):
-    size = (image.size[0] // 2, image.size[1] // 2)
-    image = image.resize(size, PIL.Image.BILINEAR)
-    label = label.resize(size, PIL.Image.NEAREST)
-    return image, label
-
-
-def resizenumpy(image, label):
-    image = PIL.Image.fromarray(numpy.uint8(image))
-    label = PIL.Image.fromarray(numpy.uint8(label))
-    image, label = resize(image=image, label=label)
-    return numpy.asarray(image), numpy.asarray(label)
-
-
 ########################################################################
 ######################### PRIVATE CNES DATASET #########################
 
 
 def digitanie_name():
-    return ["Biarritz", "Strasbourg", "Paris"]
+    return ["Biarritz", "Montpellier", "Paris", "Strasbourg", "Toulouse"]
 
 
 class DIGITANIE:
@@ -67,16 +53,11 @@ class DIGITANIE:
         self.name = name
 
         tmp = path + name + "/" + name.lower() + "_tuile_"
-        self.NB = 0
-        while os.path.exists(tmp + str(self.NB + 1) + "_c.tif"):
-            self.NB += 1
-
-        if self.NB == 0:
-            print("wrong path", tmp)
-            quit()
+        for i in range(10):
+            assert os.path.exists(tmp + str(self.NB + 1) + "_c.tif")
 
     def getImageAndLabel(self, i):
-        assert i < self.NB
+        assert i < 10
 
         tmp = self.path + self.name + "/" + self.name.lower() + "_tuile_"
         xpath = tmp + str(i + 1) + "_img_c.tif"
@@ -92,39 +73,7 @@ class DIGITANIE:
         y = numpy.asarray(y)
         y = numpy.uint8((y[:, :] == 4))
 
-        return resizenumpy(x, y)
-
-
-class DIGITANIE_TOULOUSE:
-    def __init__(self, path):
-        print("DIGITANIE_TOULOUSE")
-        self.path = path
-
-        self.files = [
-            ("tlse_arenes_c.tif", "tlse_arenes_img_c.tif"),
-            ("tlse_bagatelle_c.tif", "tlse_bagatelle_img_c.tif"),
-            ("tlse_cepiere_c.tif", "tlse_cepiere_img_c.tif"),
-            ("tlse_empalot_c.tif", "tlse_empalot_img_c.tif"),
-            ("tlse_mirail_c.tif", "tlse_mirail_img_c.tif"),
-            ("tlse_montaudran_c.tif", "tlse_montaudran_img_c.tif"),
-            ("tlse_zenith_c.tif", "tlse_zenith_img_c.tif"),
-        ]
-        self.NB = len(self.files)
-
-    def getImageAndLabel(self, i):
-        assert i < self.NB
-
-        with rasterio.open(self.path + self.files[i][1]) as src:
-            r = numpy.int16(src.read(1) * 255)
-            g = numpy.int16(src.read(2) * 255)
-            b = numpy.int16(src.read(3) * 255)
-            x = numpy.stack([r, g, b], axis=-1)
-
-        y = PIL.Image.open(self.path + self.files[i][0]).convert("L").copy()
-        y = numpy.asarray(y)
-        y = numpy.uint8((y[:, :] == 4))
-
-        return resizenumpy(x, y)
+        return x, y
 
 
 ######################### PRIVATE CNES DATASET #########################
@@ -133,21 +82,10 @@ class DIGITANIE_TOULOUSE:
 
 class DigitanieALL:
     def __init__(self, names=None, path="/scratchf/PRIVATE/DIGITANIE/"):
-        if names is not None:
-            self.cities = names
-        else:
-            self.cities = digitanie_name() + ["digitanie_toulouse"]
+        self.cities = names
 
-        self.data = {}
-        self.NB = {}
-        self.normalization = {}
         for name in self.cities:
-            if name in digitanie_name():
-                self.data[name] = DIGITANIE(name, path)
-            if name == "digitanie_toulouse":
-                self.data[name] = DIGITANIE_TOULOUSE(path + "Toulouse/")
-
-            self.NB[name] = self.data[name].NB
+            self.data[name] = DIGITANIE(name, path)
 
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)

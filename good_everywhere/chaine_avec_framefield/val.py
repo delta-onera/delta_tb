@@ -44,17 +44,19 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-cm = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
+sobel = miniworld.Sobel()
+
+globalcm, globalcm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 with torch.no_grad():
     for k, city in enumerate(miniworlddataset.cities):
         print(k, city)
+        cm, cm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 
         for i in range(miniworlddataset.data[city].NB):
             x, y = miniworlddataset.data[city].getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
-            D = miniworld.distancetransform(y)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
@@ -63,15 +65,25 @@ with torch.no_grad():
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
+            _, border = sobel(y.unsqueeze(0).unsqueeze(0))
+            border = 1 - border[0]
+
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[k][a][b] += torch.sum((z == a).float() * (y == b).float() * D)
+                cm[a][b] += torch.sum((z == a).float() * (y == b).float())
+                cm1[a][b] += torch.sum((z == a).float() * (y == b).float() * border)
+            globalcm += cm
+            globalcm1 += cm1
+
+            print("perf0=", miniworld.perf(cm))
+            print("perf1=", miniworld.perf(cm1))
+            print("bords=", miniworld.perf(cm - cm1))
 
             if False:
                 nextI = len(os.listdir("build"))
                 debug = miniworld.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
-                debug = (2.0 * y - 1) * D * 127 + 127
+                debug = (2.0 * y - 1) * (1 - border) * 127 + 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_y.png")
@@ -79,12 +91,8 @@ with torch.no_grad():
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
 
-        print("perf=", miniworld.perf(cm[k]))
-        numpy.savetxt("build/tmp.txt", miniworld.perf(cm).cpu().numpy())
 
-print("-------- results ----------")
-for k, city in enumerate(miniworlddataset.cities):
-    print(city, miniworld.perf(cm[k]))
-
-cm = torch.sum(cm, dim=0)
-print("miniworld", miniworld.perf(cm))
+print("global result")
+print("perf0=", miniworld.perf(globalcm))
+print("perf1=", miniworld.perf(globalcm1))
+print("bords=", miniworld.perf(globalcm - globalcm1))

@@ -40,7 +40,7 @@ weights = torch.Tensor([1, 1]).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=weights, reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
+stats = torch.zeros(2, 2).cuda()
 batchsize = 32
 nbbatchs = 200000
 miniworlddataset.start()
@@ -61,24 +61,33 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, _ = miniworlddataset.getBatch(batchsize)
-    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
+    x, y = dataset.getBatch(batchsize)
+    x, y = x.cuda(), y.cuda()
     z = net(x)
 
-    D = miniworld.distancetransform(y.float())
+    yy, border = sobel(torch.unsqueeze(2.0 * y - 1.0, dim=1))
+    nbborder = torch.sum(border)
+    size = y.shape[0] * y.shape[1] * y.shape[2]
+
     CE = criterion(z, y)
-    CE = torch.mean(CE * D)
-    dice = diceloss(y, z, D)
-    loss = CE + dice
+    CE = torch.mean(CE * (1 - border))
+    dice = diceloss(y, z, 1 - border)
+
+    zz, _ = sobel(torch.unsqueeze(z[:, 1, :, :] - z[:, 0, :, :], dim=1))
+
+    gradientdiff = torch.sum(zz * yy, dim=1)
+    gradientdiff = torch.mean((1 - gradientdiff) * border)
+    gradientdiff = gradientdiff * size / nbborder
+
+    segloss = CE + dice
+    regloss = gradientdiff
+    loss = segloss + regloss
 
     with torch.no_grad():
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
-        for j in range(batchsize):
-            cm = torch.zeros(2, 2).cuda()
-            for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[a][b] = torch.sum((z[j] == a).float() * (y[j] == b).float() * D[j])
-            stats[batchchoise[j]] += cm
+        for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            stats[a][b] += torch.sum((z == a).float() * (y == b).float() * (1 - border))
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -91,13 +100,12 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = miniworld.perf(torch.sum(stats, dim=0))
-            print(i, "perf", perf)
+            print(i, "perf", miniworld.perf(stats))
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
-                stats = torch.zeros((len(miniworlddataset.cities), 2, 2)).cuda()
+                stats = torch.zeros(2, 2).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5
