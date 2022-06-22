@@ -42,9 +42,9 @@ def perf(cm):
 
 class DIGITANIE:
     def __init__(self, name, path):
-        self.names = ["Biarritz", "Montpellier", "Paris", "Strasbourg", "Toulouse"]        
+        self.names = ["Biarritz", "Montpellier", "Paris", "Strasbourg", "Toulouse"]
         assert name in self.names
-        
+
         print("DIGITANIE", name)
         self.path = path
         self.name = name
@@ -52,24 +52,24 @@ class DIGITANIE:
         for i in range(10):
             assert os.path.exists(tmp + str(i + 1) + "_img_normalized.tif")
             assert os.path.exists(tmp + str(i + 1) + ".tif")
-    
-    def getPath(self,i)
+
+    def getPath(self, i):
         assert i < 10
         tmp = self.path + self.name + "/" + self.name.lower() + "_tuile_"
         xpath = tmp + str(i + 1) + "_img_normalized.tif"
         ypath = tmp + str(i + 1) + ".tif"
-        return xpath,ypath
+        return xpath, ypath
 
     def getImageAndLabel(self, i):
-        xpath,ypath = self.getPath(i)
+        xpath, ypath = self.getPath(i)
 
-        with rasterio.open(xpath,"r") as src:
+        with rasterio.open(xpath, "r") as src:
             r = numpy.int16(src.read(1) * 255)
             g = numpy.int16(src.read(2) * 255)
             b = numpy.int16(src.read(3) * 255)
         x = numpy.stack([r, g, b], axis=-1)
-        
-        with rasterio.open(xpath,"r") as src:
+
+        with rasterio.open(xpath, "r") as src:
             y = numpy.int16(src.read(1))
         y = numpy.uint8((y[:, :] == 4))
 
