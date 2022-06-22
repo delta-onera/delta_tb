@@ -35,7 +35,7 @@ import segmentation_models_pytorch as smp
 import digitanie
 
 print("load data")
-miniworld = digitanie.DigitanieALL()
+dataset = digitanie.DigitanieALL()
 
 print("load model")
 with torch.no_grad():
@@ -45,58 +45,49 @@ with torch.no_grad():
 
 
 print("test")
-
-
-def largeforward(net, image, tilesize=128, stride=64):
-    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
-    image = image.cuda()
-    for row in range(0, image.shape[2] - tilesize + 1, stride):
-        for col in range(0, image.shape[3] - tilesize + 1, stride):
-            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
-    return pred
-
-
-cm = torch.zeros((len(miniworld.cities), 2, 2)).cuda()
+globalcm, globalcm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for k, city in enumerate(miniworld.cities):
-        print(k, city)
+    for city in dataset.cities:
+        print(city)
+        cm, cm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 
-        for i in range(miniworld.NB[city]):
-            x, y = miniworld.getImageAndLabel(city, i, torchformat=True)
-            x, y = x.cuda(), y.cuda()
+        for i in range(10):
+            x, y = dataset.getImageAndLabel(city, i, torchformat=True)
+            x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
-            D = digitanie.distancetransform(y)
             globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
-            z = largeforward(net, x.unsqueeze(0))
+            z = util.largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
-            z = erosion(z, size=int(sys.argv[1]))
             p = z[0, 1, :, :] - z[0, 0, :, :]
             p = torch.nn.functional.sigmoid(p * 50)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
+            border = util.getborder(y)
+            border = 1 - border
+
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+                cm[a][b] += torch.sum((z == a).float() * (y == b).float())
+                cm1[a][b] += torch.sum((z == a).float() * (y == b).float() * border)
+            globalcm += cm
+            globalcm1 += cm1
 
             if True:
-                xpath, ypath = miniworld.getPath(city, i)
+                xpath, ypath = dataset.getPath(city, i)
                 outradix = "build/" + city + str(i)
                 digitanie.writeImage(xpath, x.cpu().numpy(), outradix + "_x.tif")
                 digitanie.writeImage(ypath, y.cpu().numpy(), outradix + "_y.tif")
                 digitanie.writeImage(ypath, z.cpu().numpy(), outradix + "_z.tif")
                 digitanie.writeImage(ypath, p.cpu().numpy(), outradix + "_p.tif")
 
-        print("perf=", digitanie.perf(cm[k]))
-        print(cm[k])
-        numpy.savetxt("build/tmp.txt", util.perf(cm).cpu().numpy())
+        print("perf0=", util.perf(cm))
+        print("perf1=", util.perf(cm1))
+        print("bords=", util.perf(cm - cm1))
 
-print("-------- summary ----------")
-for k, city in enumerate(miniworld.cities):
-    print(city, digitanie.perf(cm[k]))
-
-cm = torch.sum(cm, dim=0)
-print("digitanie", digitanie.perf(cm))
+print("global result")
+print("perf0=", util.perf(globalcm))
+print("perf1=", util.perf(globalcm1))
+print("bords=", util.perf(globalcm - globalcm1))

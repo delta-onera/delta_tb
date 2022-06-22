@@ -23,7 +23,7 @@ import segmentation_models_pytorch as smp
 import miniworld
 
 print("load data")
-miniworlddataset = miniworld.MiniWorld("/test/")
+dataset = miniworld.MiniWorld("/test/")
 
 print("load model")
 with torch.no_grad():
@@ -33,26 +33,14 @@ with torch.no_grad():
 
 
 print("test")
-
-
-def largeforward(net, image, tilesize=128, stride=64):
-    pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
-    image = image.cuda()
-    for row in range(0, image.shape[2] - tilesize + 1, stride):
-        for col in range(0, image.shape[3] - tilesize + 1, stride):
-            tmp = net(image[:, :, row : row + tilesize, col : col + tilesize])
-            pred[0, :, row : row + tilesize, col : col + tilesize] += tmp[0]
-    return pred
-
-
 globalcm, globalcm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 with torch.no_grad():
-    for k, city in enumerate(miniworlddataset.cities):
-        print(k, city)
+    for city in dataset.cities:
+        print(city)
         cm, cm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 
-        for i in range(miniworlddataset.data[city].NB):
-            x, y = miniworlddataset.data[city].getImageAndLabel(i, torchformat=True)
+        for i in range(dataset.data[city].NB):
+            x, y = dataset.data[city].getImageAndLabel(i, torchformat=True)
             x, y = x.cuda(), y.cuda().float()
 
             h, w = y.shape[0], y.shape[1]
@@ -60,7 +48,7 @@ with torch.no_grad():
             power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
             x = power2resize(x)
 
-            z = largeforward(net, x.unsqueeze(0))
+            z = util.largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
