@@ -86,6 +86,9 @@ class DigitanieALL:
         for name in self.cities:
             self.data[name] = DIGITANIE(name, path)
 
+    def getPath(self, city, i):
+        return self.data[city].getPath(i)
+
     def getImageAndLabel(self, city, i, torchformat=False):
         x, y = self.data[city].getImageAndLabel(i)
 

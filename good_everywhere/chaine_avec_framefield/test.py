@@ -74,51 +74,20 @@ with torch.no_grad():
             z = largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
             z = erosion(z, size=int(sys.argv[1]))
+            p = z[0, 1, :, :] - z[0, 0, :, :]
+            p = torch.nn.functional.sigmoid(p * 50)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
             if True:
-    
-
-with rasterio.open(target) as src:
-    profile = src.profile
-    r = src.read(1)
-    g = src.read(2)
-    b = src.read(3)
-
-if mode == "image":
-    source = source.resize(r.shape, PIL.Image.BILINEAR)
-else:
-    source = source.resize(r.shape, PIL.Image.NEAREST)
-source = numpy.uint8(numpy.asarray(source))
-
-r = source[:, :, 0]
-g = source[:, :, 0]
-b = source[:, :, 0]
-
-with rasterio.open(target, "w", **profile) as src:
-    src.write(r, 1)
-    src.write(g, 2)
-    src.write(b, 3)
-
-                
-                
-                
-                
-                
-                
-                debug = digitanie.torchTOpil(globalresize(x))
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(i) + "_x.png")
-                debug = (2.0 * y - 1) * D * 127 + 127
-                debug = debug.cpu().numpy()
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(i) + "_y.png")
-                debug = z.cpu().numpy() * 255
-                debug = PIL.Image.fromarray(numpy.uint8(debug))
-                debug.save("build/" + city + str(i) + "_z.png")
+                xpath, ypath = miniworld.getPath(city, i)
+                outradix = "build/" + city + str(i)
+                digitanie.writeImage(xpath, x.cpu().numpy(), outradix + "_x.tif")
+                digitanie.writeImage(ypath, y.cpu().numpy(), outradix + "_y.tif")
+                digitanie.writeImage(ypath, z.cpu().numpy(), outradix + "_z.tif")
+                digitanie.writeImage(ypath, p.cpu().numpy(), outradix + "_p.tif")
 
         print("perf=", digitanie.perf(cm[k]))
         print(cm[k])
