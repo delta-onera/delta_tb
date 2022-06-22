@@ -1,5 +1,9 @@
 import os
 import sys
+
+########################################################################
+######################### PRIVATE CNES DATASET #########################
+
 import numpy
 import PIL
 from PIL import Image
@@ -20,10 +24,6 @@ def writeImage(source, newdata, target):
             trgt.write(newdata[0, :, :], 1)
             trgt.write(newdata[1, :, :], 2)
             trgt.write(newdata[2, :, :], 3)
-
-
-########################################################################
-######################### PRIVATE CNES DATASET #########################
 
 
 class DIGITANIE:
@@ -62,10 +62,6 @@ class DIGITANIE:
         return x, y
 
 
-######################### PRIVATE CNES DATASET #########################
-########################################################################
-
-
 class DigitanieALL:
     def __init__(self, names=None, path="/scratchf/PRIVATE/DIGITANIE/"):
         self.cities = names
@@ -82,3 +78,7 @@ class DigitanieALL:
             return util.pilTOtorch(x), torch.Tensor(y)
         else:
             return x, y
+
+
+######################### PRIVATE CNES DATASET #########################
+########################################################################
