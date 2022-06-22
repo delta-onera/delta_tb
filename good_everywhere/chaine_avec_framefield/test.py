@@ -79,9 +79,9 @@ with torch.no_grad():
                 xpath, ypath = dataset.getPath(city, i)
                 outradix = "build/" + city + str(i)
                 digitanie.writeImage(xpath, x.cpu().numpy(), outradix + "_x.tif")
-                digitanie.writeImage(ypath, y.cpu().numpy(), outradix + "_y.tif")
-                digitanie.writeImage(ypath, z.cpu().numpy(), outradix + "_z.tif")
-                digitanie.writeImage(ypath, p.cpu().numpy(), outradix + "_p.tif")
+                digitanie.writeImage(xpath, y.cpu().numpy(), outradix + "_y.tif")
+                digitanie.writeImage(xpath, z.cpu().numpy(), outradix + "_z.tif")
+                digitanie.writeImage(xpath, p.cpu().numpy(), outradix + "_p.tif")
 
         print("perf0=", util.perf(cm))
         print("perf1=", util.perf(cm1))

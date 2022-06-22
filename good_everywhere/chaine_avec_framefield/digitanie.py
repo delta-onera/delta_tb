@@ -20,6 +20,8 @@ def writeImage(source, newdata, target):
     with rasterio.open(target, "w", **profile) as trgt:
         if len(newdata.shape) == 2:
             trgt.write(newdata[:, :], 1)
+            trgt.write(newdata[:, :], 2)
+            trgt.write(newdata[:, :], 3)
         else:
             trgt.write(newdata[0, :, :], 1)
             trgt.write(newdata[1, :, :], 2)
@@ -58,7 +60,7 @@ class DIGITANIE:
             b = numpy.int16(src.read(3) * 255)
         x = numpy.stack([r, g, b], axis=-1)
 
-        with rasterio.open(xpath, "r") as src:
+        with rasterio.open(ypath, "r") as src:
             y = numpy.int16(src.read(1))
         y = numpy.uint8((y[:, :] == 4))
 
