@@ -5,6 +5,7 @@ import PIL
 from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
+import util
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -44,6 +45,7 @@ stats = torch.zeros(2, 2).cuda()
 batchsize = 32
 nbbatchs = 200000
 miniworlddataset.start()
+sobel = util.Sobel()
 
 
 def diceloss(y, z, D):
@@ -61,7 +63,7 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y = dataset.getBatch(batchsize)
+    x, y = miniworlddataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
     z = net(x)
 
@@ -100,7 +102,7 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            print(i, "perf", miniworld.perf(stats))
+            print(i, "perf", util.perf(stats))
             if perf[0] > 92:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)

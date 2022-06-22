@@ -6,6 +6,7 @@ from PIL import Image
 import rasterio
 import torch
 import random
+import util
 
 
 def writeImage(source, newdata, target):
@@ -19,21 +20,6 @@ def writeImage(source, newdata, target):
             trgt.write(newdata[0, :, :], 1)
             trgt.write(newdata[1, :, :], 2)
             trgt.write(newdata[2, :, :], 3)
-
-
-def pilTOtorch(x):
-    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
-
-
-def torchTOpil(x):
-    return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-
-
-def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-    return torch.Tensor((iou0 + iou1, accu, iou0 * 2, iou1 * 2))
 
 
 ########################################################################
@@ -93,6 +79,6 @@ class DigitanieALL:
         x, y = self.data[city].getImageAndLabel(i)
 
         if torchformat:
-            return pilTOtorch(x), torch.Tensor(y)
+            return util.pilTOtorch(x), torch.Tensor(y)
         else:
             return x, y

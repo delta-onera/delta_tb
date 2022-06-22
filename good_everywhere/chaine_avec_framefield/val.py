@@ -5,6 +5,7 @@ import PIL
 from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
+import util
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -44,8 +45,6 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-sobel = miniworld.Sobel()
-
 globalcm, globalcm1 = torch.zeros((2, 2)).cuda(), torch.zeros((2, 2)).cuda()
 with torch.no_grad():
     for k, city in enumerate(miniworlddataset.cities):
@@ -65,8 +64,8 @@ with torch.no_grad():
             z = globalresize(z)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-            _, border = sobel(y.unsqueeze(0).unsqueeze(0))
-            border = 1 - border[0]
+            border = util.getborder(y)
+            border = 1 - border
 
             for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 cm[a][b] += torch.sum((z == a).float() * (y == b).float())
@@ -74,13 +73,13 @@ with torch.no_grad():
             globalcm += cm
             globalcm1 += cm1
 
-            print("perf0=", miniworld.perf(cm))
-            print("perf1=", miniworld.perf(cm1))
-            print("bords=", miniworld.perf(cm - cm1))
+            print("perf0=", util.perf(cm))
+            print("perf1=", util.perf(cm1))
+            print("bords=", util.perf(cm - cm1))
 
-            if False:
+            if len(os.listdir("build")) < 100:
                 nextI = len(os.listdir("build"))
-                debug = miniworld.torchTOpil(globalresize(x))
+                debug = util.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
                 debug = (2.0 * y - 1) * (1 - border) * 127 + 127
@@ -93,6 +92,6 @@ with torch.no_grad():
 
 
 print("global result")
-print("perf0=", miniworld.perf(globalcm))
-print("perf1=", miniworld.perf(globalcm1))
-print("bords=", miniworld.perf(globalcm - globalcm1))
+print("perf0=", util.perf(globalcm))
+print("perf1=", util.perf(globalcm1))
+print("bords=", util.perf(globalcm - globalcm1))

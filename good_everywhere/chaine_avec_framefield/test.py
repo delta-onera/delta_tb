@@ -5,6 +5,7 @@ import PIL
 from PIL import Image
 import torch
 import torch.backends.cudnn as cudnn
+import util
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -91,7 +92,7 @@ with torch.no_grad():
 
         print("perf=", digitanie.perf(cm[k]))
         print(cm[k])
-        numpy.savetxt("build/tmp.txt", digitanie.perf(cm).cpu().numpy())
+        numpy.savetxt("build/tmp.txt", util.perf(cm).cpu().numpy())
 
 print("-------- summary ----------")
 for k, city in enumerate(miniworld.cities):
