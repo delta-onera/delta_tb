@@ -24,4 +24,14 @@ for bruit in BRUIT:
         for methode in METHODE:
             for resolution in RESOLUTION:
                 tmp += readresults(resolution, bruit, methode, marge)
+                
 print("done")
+for resolution in RESOLUTION:
+    s=resolution+"\n\t"
+    for bruit in BRUIT:
+        s=s+bruit+"\t"
+    s=s+"\n"
+    for methode in METHODE:
+        s = s+methode+"\t"
+        for bruit in BRUIT:
+            s = 
