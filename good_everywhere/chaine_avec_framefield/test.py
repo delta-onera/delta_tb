@@ -80,6 +80,35 @@ with torch.no_grad():
                 cm[k][a][b] = torch.sum((z == a).float() * (y == b).float() * D)
 
             if True:
+    
+
+with rasterio.open(target) as src:
+    profile = src.profile
+    r = src.read(1)
+    g = src.read(2)
+    b = src.read(3)
+
+if mode == "image":
+    source = source.resize(r.shape, PIL.Image.BILINEAR)
+else:
+    source = source.resize(r.shape, PIL.Image.NEAREST)
+source = numpy.uint8(numpy.asarray(source))
+
+r = source[:, :, 0]
+g = source[:, :, 0]
+b = source[:, :, 0]
+
+with rasterio.open(target, "w", **profile) as src:
+    src.write(r, 1)
+    src.write(g, 2)
+    src.write(b, 3)
+
+                
+                
+                
+                
+                
+                
                 debug = digitanie.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + city + str(i) + "_x.png")
