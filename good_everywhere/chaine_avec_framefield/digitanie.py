@@ -71,6 +71,7 @@ class DigitanieALL:
             self.cities = allDigitanie()
         else:
             self.cities = names
+        self.data = {}
         for name in self.cities:
             self.data[name] = DIGITANIE(name, path)
 
