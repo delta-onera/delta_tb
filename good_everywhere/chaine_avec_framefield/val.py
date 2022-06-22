@@ -78,7 +78,7 @@ with torch.no_grad():
                 debug = util.torchTOpil(globalresize(x))
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_x.png")
-                debug = (2.0 * y - 1) * (1 - border) * 127 + 127
+                debug = (2.0 * y - 1) * border * 127 + 127
                 debug = debug.cpu().numpy()
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_y.png")
