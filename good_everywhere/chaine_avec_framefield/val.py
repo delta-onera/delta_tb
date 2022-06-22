@@ -73,10 +73,6 @@ with torch.no_grad():
             globalcm += cm
             globalcm1 += cm1
 
-            print("perf0=", util.perf(cm))
-            print("perf1=", util.perf(cm1))
-            print("bords=", util.perf(cm - cm1))
-
             if len(os.listdir("build")) < 100:
                 nextI = len(os.listdir("build"))
                 debug = util.torchTOpil(globalresize(x))
@@ -89,6 +85,10 @@ with torch.no_grad():
                 debug = z.cpu().numpy() * 255
                 debug = PIL.Image.fromarray(numpy.uint8(debug))
                 debug.save("build/" + str(nextI) + "_z.png")
+
+        print("perf0=", util.perf(cm))
+        print("perf1=", util.perf(cm1))
+        print("bords=", util.perf(cm - cm1))
 
 
 print("global result")
