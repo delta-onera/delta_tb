@@ -25,7 +25,7 @@ class Sobel(torch.nn.Module):
 
 def getborder(y):
     sobel = Sobel()
-    _, yy = sobel(yy.unsqueeze(0).unsqueeze(0))
+    _, yy = sobel(y.unsqueeze(0).unsqueeze(0))
     return yy[0]
 
 
