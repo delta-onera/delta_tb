@@ -1,7 +1,7 @@
 import numpy
 
 RESOLUTION = ["30", "50", "70", "100"]
-BRUIT = ["pm1image", "nonoise", "pm1translation", "hallucination"]
+BRUIT = ["nonoise","pm1image", "pm1translation", "hallucination"]
 METHODE = ["base", "base-bord", "base+bord"]
 MARGE = ["0", "1", "2", "bordonly"]
 
@@ -24,14 +24,19 @@ for bruit in BRUIT:
         for methode in METHODE:
             for resolution in RESOLUTION:
                 tmp += readresults(resolution, bruit, methode, marge)
-                
+
 print("done")
+
+s = "\t"
 for resolution in RESOLUTION:
-    s=resolution+"\n\t"
     for bruit in BRUIT:
-        s=s+bruit+"\t"
-    s=s+"\n"
-    for methode in METHODE:
-        s = s+methode+"\t"
+        s = s + bruit + resolution + "\t"
+s = s + "\n"
+for methode in METHODE:
+    s = s + methode + "\t"
+    for resolution in RESOLUTION:
         for bruit in BRUIT:
-            s = 
+            s = s + str(readresults(resolution, bruit, methode, "0")) + "\t"
+    s = s + "\n"
+
+print(s)
