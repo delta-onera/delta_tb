@@ -26,10 +26,13 @@ def writeImage(source, newdata, target):
             trgt.write(newdata[2, :, :], 3)
 
 
+def allDigitanie():
+    return ["Biarritz", "Montpellier", "Paris", "Strasbourg", "Toulouse"]
+
+
 class DIGITANIE:
     def __init__(self, name, path):
-        self.names = ["Biarritz", "Montpellier", "Paris", "Strasbourg", "Toulouse"]
-        assert name in self.names
+        assert name in allDigitanie()
 
         print("DIGITANIE", name)
         self.path = path
@@ -64,7 +67,10 @@ class DIGITANIE:
 
 class DigitanieALL:
     def __init__(self, names=None, path="/scratchf/PRIVATE/DIGITANIE/"):
-        self.cities = names
+        if names is None:
+            self.cities = allDigitanie()
+        else:
+            self.cities = names
         for name in self.cities:
             self.data[name] = DIGITANIE(name, path)
 
