@@ -135,6 +135,8 @@ class MiniWorld:
 
         self.data = {}
         self.run = False
+        if flag == "/train/":
+            self.cities = [name for name in self.cities if name != "potsdam"]
         for city in self.cities:
             self.data[city] = CropExtractor(self.root + city + flag, tilesize=tilesize)
 
