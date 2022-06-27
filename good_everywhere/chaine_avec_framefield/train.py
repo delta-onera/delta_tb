@@ -43,7 +43,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros(2, 2).cuda()
 batchsize = 32
-nbbatchs = 200000
+nbbatchs = 400000
 miniworlddataset.start()
 sobel = util.Sobel()
 
@@ -103,7 +103,7 @@ for i in range(nbbatchs):
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
             print(i, "perf", util.perf(stats))
-            if util.perf(stats)[0] > 95:
+            if util.perf(stats)[0] > 96:
                 print("training stops after reaching high training accuracy")
                 os._exit(0)
             else:
