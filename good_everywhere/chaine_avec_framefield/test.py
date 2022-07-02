@@ -63,7 +63,7 @@ with torch.no_grad():
             z = util.largeforward(net, x.unsqueeze(0))
             z = globalresize(z)
             p = z[0, 1, :, :] - z[0, 0, :, :]
-            p = torch.nn.functional.sigmoid(p)
+            p = torch.nn.functional.sigmoid(p * 0.1)
             z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
             border = util.getborder(y)

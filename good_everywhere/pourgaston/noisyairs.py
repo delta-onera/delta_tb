@@ -142,12 +142,13 @@ class CropExtractor(threading.Thread):
                     self.q.put((x, y), block=True)
 
 
-class AIRS:
+class AIRS_INRIA:
     def __init__(self, flag, tilesize=128, custom=None):
         assert flag in ["/train/", "/test/"]
 
         self.tilesize = tilesize
-        self.root = "build/christchurch"
+        self.root = "build/"
+        self.cities = ["christchurch","austin","vienna","kitsap","chicago","kitsap"]
 
         assert "train" in os.listdir(self.root)
         assert "test" in os.listdir(self.root)
@@ -208,6 +209,50 @@ def pm1translation(label):
 
 
 def generatenoisyAIRS(noise, resolution):
+    assert noise in ["nonoise", "hallucination", "pm1image", "pm1translation"]
+    assert resolution in ["30", "50", "70", "100"]
+
+    root = "/scratchf/airs_multi_res/" + resolution + "/christchurch/"
+
+    if noise == "nonoise":
+        os.system("cp -r " + root + " build")
+        return
+
+    os.system("rm -r build/christchurch")
+    os.system("mkdir build/christchurch")
+    os.system("mkdir build/christchurch/train")
+    os.system("cp -r " + root + "test build/christchurch")
+
+    NB = 0
+    while os.path.exists(root + "train/" + str(NB) + "_x.png"):
+        NB += 1
+    if NB == 0:
+        print("wrong root path")
+        quit()
+
+    for i in range(NB):
+        cmd = str(i) + "_x.png build/christchurch/train/" + str(i) + "_x.png"
+        os.system("cp " + root + "train/" + cmd)
+
+        path = root + "train/" + str(i) + "_y.png"
+        label = PIL.Image.open(path).convert("L").copy()
+
+        label = numpy.uint8(numpy.asarray(label))
+        label = torch.Tensor(label)
+        label = (label != 0).long()
+
+        if noise == "hallucination":
+            label = hallucination(label)
+        if noise == "pm1image":
+            label = pm1image(label)
+        if noise == "pm1translation":
+            label = pm1translation(label)
+
+        label = (label != 0).numpy() * 254
+        label = PIL.Image.fromarray(numpy.uint8(label))
+        label.save("build/christchurch/train/" + str(i) + "_y.png")
+        
+def generatenoisyINRIA(noise, resolution):
     assert noise in ["nonoise", "hallucination", "pm1image", "pm1translation"]
     assert resolution in ["30", "50", "70", "100"]
 
