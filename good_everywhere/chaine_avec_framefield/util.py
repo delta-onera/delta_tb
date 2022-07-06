@@ -44,7 +44,7 @@ def torchTOpil(x):
     return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
-def largeforward(net, image, tilesize=128, stride=64):
+def largeforward(net, image, tilesize=128, stride=32):
     pred = torch.zeros(1, 2, image.shape[2], image.shape[3]).cuda()
     image = image.cuda()
     for row in range(0, image.shape[2] - tilesize + 1, stride):
