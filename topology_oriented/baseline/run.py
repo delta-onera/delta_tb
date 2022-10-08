@@ -5,8 +5,8 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
-os.system("/d/jcastillo/anaconda3/bin/python -u train.py")
-os.system("/d/jcastillo/anaconda3/bin/python -u val.py")
-os.system("/d/jcastillo/anaconda3/bin/python -u test.py")
+python = "python3"
+os.system("python train.py")
+os.system("python test.py")
 
 os.system("rm -rf __pycache__")

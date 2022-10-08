@@ -1,17 +1,8 @@
 import os
-import sys
-import numpy
-import PIL
-from PIL import Image
 import torch
-import torch.backends.cudnn as cudnn
+import torchvision
 
-if torch.cuda.is_available():
-    torch.cuda.empty_cache()
-    cudnn.benchmark = True
-else:
-    print("no cuda")
-    quit()
+assert torch.cuda.is_available()
 
 sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
 sys.path.append("/d/achanhon/github/pytorch-image-models")
@@ -21,8 +12,9 @@ sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
 import segmentation_models_pytorch as smp
 import miniworld
 
+
 print("load data")
-dataset = miniworld.MiniWorld("/train/")
+dataset = miniworld.Simple("/scratchf/miniworld/potsdam/train/")
 
 print("define model")
 net = smp.Unet(
@@ -36,18 +28,23 @@ net.train()
 
 
 print("train")
-criterion = torch.nn.CrossEntropyLoss(reduction="none")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((len(dataset.cities), 2, 2)).cuda()
+stats = torch.zeros((2, 2)).cuda()
 batchsize = 32
-nbbatchs = 200000
+nbbatchs = 75000
 dataset.start()
+
+
+def crossentropy(y, z, D):
+    tmp = torch.nn.CrossEntropyLoss(reduction="none")
+    rawloss = tmp(z, y.long())
+    return (rawloss * D).mean()
 
 
 def diceloss(y, z, D):
     eps = 0.00001
-    z = z.log_softmax(dim=1).exp()
+    z = z.softmax(dim=1)
     z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
     y0, y1 = (y == 0).float(), (y == 1).float()
 
@@ -60,21 +57,19 @@ def diceloss(y, z, D):
 
 
 for i in range(nbbatchs):
-    x, y, batchchoise, _ = dataset.getBatch(batchsize)
-    x, y, batchchoise = x.cuda(), y.cuda(), batchchoise.cuda()
+    x, y = dataset.getBatch(batchsize)
+    x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
+
     z = net(x)
 
-    D = 1 - miniworld.isborder(y)
-    CE = criterion(z, y)
-    CE = torch.mean(CE * D)
+    CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
     loss = CE + dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
-        for j in range(batchsize):
-            stats[batchchoise[j]] += miniworld.confusion(y[j], z[j])
+        stats += miniworld.confusion(y[j], z[j], D)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -88,12 +83,10 @@ for i in range(nbbatchs):
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
             perf = miniworld.perf(stats)
+            stats = torch.zeros((2, 2)).cuda()
             print(i, "perf", perf)
-            if perf[-1][0] > 97:
-                print("training stops after reaching high training accuracy")
+            if perf > 0.95:
                 os._exit(0)
-            else:
-                stats = torch.zeros((len(dataset.cities), 2, 2)).cuda()
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.5
@@ -109,5 +102,4 @@ for i in range(nbbatchs):
     torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
     optimizer.step()
 
-print("training stops after reaching time limit")
 os._exit(0)
