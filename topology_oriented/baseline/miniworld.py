@@ -6,35 +6,13 @@ import torch
 import random
 import queue
 import threading
+import torchvision
 
 
-def maxpool(y, size):
-    if len(y.shape) == 2:
-        yy = y.unsqueeze(0).float()
-    else:
-        yy = y.float()
-
-    ks = 2 * size + 1
-    yyy = torch.nn.functional.max_pool2d(yy, kernel_size=ks, stride=1, padding=size)
-
-    if len(y.shape) == 2:
-        return yyy[0]
-    else:
-        return yyy
-
-
-def isborder(y, size=2):
-    y0, y1 = (y == 0).float(), (y == 1).float()
-    y00, y11 = maxpool(y0, size=size), maxpool(y1, size=size)
-    border = (y1 * y00 + y0 * y11) > 0
-    return border.float()
-
-
-def confusion(y, z, size=2):
-    D = 1 - isborder(y, size=size)
+def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-        cm[a][b] = torch.sum((z == a).float() * (y == b).float() * D)
+        cm[a][b] = ((z == a).float() * (y == b).float() * D).sum()
     return cm
 
 
@@ -56,10 +34,6 @@ def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 
 
-def torchTOpil(x):
-    return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-
-
 def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
@@ -67,12 +41,8 @@ def symetrie(x, y, ijk):
     if j == 1:
         x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
     if k == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
+        x, y = numpy.flip(x, axis=0), numpy.flip(y, axis=0)
     return x.copy(), y.copy()
-
-
-########################################################################
-######################## CLASSIC/PUBLIC DATASETS #######################
 
 
 class CropExtractor(threading.Thread):
@@ -86,10 +56,7 @@ class CropExtractor(threading.Thread):
         self.tilesize = tilesize
         while os.path.exists(self.path + str(self.NB) + "_x.png"):
             self.NB += 1
-
-        if self.NB == 0:
-            print("wrong path", self.path)
-            quit()
+        assert self.NB > 0
 
     def getImageAndLabel(self, i, torchformat=False):
         assert i < self.NB
@@ -148,10 +115,22 @@ class CropExtractor(threading.Thread):
 
 class MiniWorld:
     def __init__(self, flag, tilesize=128, custom=None):
-        assert flag in ["/train/", "/test/"]
+        assert flag in ["/train/", "/test/", "custom"]
+        assert flag != "custom" or custom != None
 
-        self.tilesize = tilesize
-        self.root = "/scratchf/miniworld_1M/"
+        self.run = False
+        if flag == "custom":
+            self.cities = [city for city, _ in custom]
+            self.NB = len(self.cities)
+            self.data = {}
+            for city, path in custom:
+                self.data[city] = CropExtractor(path, tilesize=tilesize)
+
+            self.priority = numpy.ones(self.NB)
+            self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
+            return
+
+        self.root = "/scratchf/miniworld/"
 
         self.infos = {}
         self.infos["potsdam"] = {"size": "small", "label": "manual"}
@@ -179,27 +158,18 @@ class MiniWorld:
 
         existingcities = os.listdir(self.root)
         for city in self.infos:
-            if city not in existingcities:
-                print("missing city", city)
-                quit()
-        if custom is None:
-            self.cities = [name for name in self.infos]
-        else:
-            self.cities = custom
-        print("correctly found", self.cities)
+            assert city in existingcities
 
+        self.cities = [city for city in self.infos]
         self.data = {}
-        self.run = False
         for city in self.cities:
             self.data[city] = CropExtractor(self.root + city + flag, tilesize=tilesize)
 
         self.NB = len(self.cities)
         self.priority = numpy.ones(self.NB)
-        self.goodlabel = numpy.zeros(self.NB)
         for i, name in enumerate(self.cities):
             if self.infos[name]["label"] == "manual":
                 self.priority[i] += 1
-                self.goodlabel[i] = 1
             if self.infos[name]["size"] == "medium":
                 self.priority[i] += 1
             if self.infos[name]["size"] == "large":
@@ -218,8 +188,6 @@ class MiniWorld:
 
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
-        goodlabel = numpy.int16(numpy.zeros(batchsize))
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
-            goodlabel[i] = self.goodlabel[batchchoice[i]]
-        return x, y.long(), torch.Tensor(batchchoice).long(), goodlabel
+        return x, y.long(), torch.Tensor(batchchoice).long()

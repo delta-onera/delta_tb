@@ -23,7 +23,7 @@ import segmentation_models_pytorch as smp
 import miniworld
 
 print("load data")
-dataset = miniworld.Simple("/scratchf/miniworld/potsdam/test/")
+dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/test/")
 
 print("load model")
 with torch.no_grad():
@@ -47,7 +47,7 @@ with torch.no_grad():
         z = globalresize(z)
         z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
-        cm += miniworld.confusion(y.unsqueeze(0), z.unsqueeze(0), D)
+        cm += miniworld.confusion(y, z, D)
 
         if True:
             nextI = str(len(os.listdir("build")))

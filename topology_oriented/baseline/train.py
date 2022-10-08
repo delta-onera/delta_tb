@@ -14,7 +14,7 @@ import miniworld
 
 
 print("load data")
-dataset = miniworld.Simple("/scratchf/miniworld/potsdam/train/")
+dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/train/")
 
 print("define model")
 net = smp.Unet(
