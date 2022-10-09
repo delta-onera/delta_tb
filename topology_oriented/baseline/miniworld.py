@@ -193,12 +193,8 @@ class Mobilenet(torch.nn.Module):
         self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
             weights="DEFAULT"
         )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(
-            40, 2, kernel_size=(1, 1), stride=(1, 1)
-        )
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(
-            128, 2, kernel_size=(1, 1), stride=(1, 1)
-        )
+        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 2, kernel_size=1)
+        self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
 
     def forward(self, x):
         return self.backend(x)["out"]
