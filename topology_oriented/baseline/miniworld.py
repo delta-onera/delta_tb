@@ -46,14 +46,14 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, path, maxsize=500, tilesize=128):
+    def __init__(self, path, tile=128):
         threading.Thread.__init__(self)
         self.isrunning = False
-        self.maxsize = maxsize
-
+        self.maxsize = 500
+        self.tilesize = tile
         self.path = path
+
         self.NB = 0
-        self.tilesize = tilesize
         while os.path.exists(self.path + str(self.NB) + "_x.png"):
             self.NB += 1
         assert self.NB > 0
@@ -72,8 +72,6 @@ class CropExtractor(threading.Thread):
             return pilTOtorch(image), torch.Tensor(label)
         else:
             return image, label
-
-    ###############################################################
 
     def getCrop(self):
         assert self.isrunning
@@ -114,66 +112,21 @@ class CropExtractor(threading.Thread):
 
 
 class MiniWorld:
-    def __init__(self, flag, tilesize=128, custom=None):
-        assert flag in ["/train/", "/test/", "custom"]
-        assert flag != "custom" or custom != None
-
+    def __init__(self, infos, prefix="", suffix="", tile=128):
         self.run = False
-        if flag == "custom":
-            self.cities = [city for city, _ in custom]
-            self.NB = len(self.cities)
-            self.data = {}
-            for city, path in custom:
-                self.data[city] = CropExtractor(path, tilesize=tilesize)
+        self.tilesize = tilesize
+        self.cities = [city for city in infos]
+        self.prefix = prefix
+        self.suffix = suffix
 
-            self.priority = numpy.ones(self.NB)
-            self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
-            return
-
-        self.root = "/scratchf/miniworld/"
-
-        self.infos = {}
-        self.infos["potsdam"] = {"size": "small", "label": "manual"}
-        self.infos["bruges"] = {"size": "small", "label": "manual"}
-        self.infos["Arlington"] = {"size": "small", "label": "osm"}
-        self.infos["NewHaven"] = {"size": "small", "label": "osm"}
-        self.infos["Norfolk"] = {"size": "small", "label": "osm"}
-        self.infos["Seekonk"] = {"size": "small", "label": "osm"}
-        self.infos["Atlanta"] = {"size": "small", "label": "osm"}
-        self.infos["Austin"] = {"size": "small", "label": "osm"}
-        self.infos["DC"] = {"size": "small", "label": "osm"}
-        self.infos["NewYork"] = {"size": "small", "label": "osm"}
-        self.infos["SanFrancisco"] = {"size": "small", "label": "osm"}
-        self.infos["chicago"] = {"size": "medium", "label": "osm"}
-        self.infos["kitsap"] = {"size": "medium", "label": "osm"}
-        self.infos["austin"] = {"size": "medium", "label": "osm"}
-        self.infos["tyrol-w"] = {"size": "medium", "label": "osm"}
-        self.infos["vienna"] = {"size": "medium", "label": "osm"}
-        self.infos["rio"] = {"size": "large", "label": "osm"}
-        self.infos["christchurch"] = {"size": "large", "label": "manual"}
-        self.infos["pologne"] = {"size": "large", "label": "manual"}
-        # self.infos["shanghai"] = {"size": "large", "label": "osm"}
-        # self.infos["vegas"] = {"size": "large", "label": "osm"}
-        # self.infos["khartoum"] = {"size": "large", "label": "osm"}
-
-        existingcities = os.listdir(self.root)
-        for city in self.infos:
-            assert city in existingcities
-
-        self.cities = [city for city in self.infos]
         self.data = {}
-        for city in self.cities:
-            self.data[city] = CropExtractor(self.root + city + flag, tilesize=tilesize)
+        for city in cities:
+            path = prefix + infos[city]["path"] + suffix
+            self.data[city] = CropExtractor(path, tile=tile)
 
-        self.NB = len(self.cities)
-        self.priority = numpy.ones(self.NB)
-        for i, name in enumerate(self.cities):
-            if self.infos[name]["label"] == "manual":
-                self.priority[i] += 1
-            if self.infos[name]["size"] == "medium":
-                self.priority[i] += 1
-            if self.infos[name]["size"] == "large":
-                self.priority[i] += 2
+        self.priority = numpy.ones(len(self.cities))
+        for i, city in enumerate(self.cities):
+            self.priority[i] += infos[city]["priority"]
         self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
 
     def start(self):
@@ -191,3 +144,61 @@ class MiniWorld:
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
         return x, y.long(), torch.Tensor(batchchoice).long()
+
+
+def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
+    assert flag in ["/train/", "/test/"]
+
+    infos = {}
+    infos["potsdam"] = {"size": "small", "label": "manual"}
+    infos["bruges"] = {"size": "small", "label": "manual"}
+    infos["Arlington"] = {"size": "small", "label": "osm"}
+    infos["NewHaven"] = {"size": "small", "label": "osm"}
+    infos["Norfolk"] = {"size": "small", "label": "osm"}
+    infos["Seekonk"] = {"size": "small", "label": "osm"}
+    infos["Atlanta"] = {"size": "small", "label": "osm"}
+    infos["Austin"] = {"size": "small", "label": "osm"}
+    infos["DC"] = {"size": "small", "label": "osm"}
+    infos["NewYork"] = {"size": "small", "label": "osm"}
+    infos["SanFrancisco"] = {"size": "small", "label": "osm"}
+    infos["chicago"] = {"size": "medium", "label": "osm"}
+    infos["kitsap"] = {"size": "medium", "label": "osm"}
+    infos["austin"] = {"size": "medium", "label": "osm"}
+    infos["tyrol-w"] = {"size": "medium", "label": "osm"}
+    infos["vienna"] = {"size": "medium", "label": "osm"}
+    infos["rio"] = {"size": "large", "label": "osm"}
+    infos["christchurch"] = {"size": "large", "label": "manual"}
+    infos["pologne"] = {"size": "large", "label": "manual"}
+    # infos["shanghai"] = {"size": "large", "label": "osm"}
+    # infos["vegas"] = {"size": "large", "label": "osm"}
+    # infos["khartoum"] = {"size": "large", "label": "osm"}
+
+    for city in infos:
+        infos[city]["path"] = city
+        priority = 0
+        if infos[city]["label"] == "manual":
+            priority[i] += 1
+        if infos[city]["size"] == "medium":
+            priority[i] += 1
+        if infos[city]["size"] == "large":
+            priority[i] += 2
+        infos[city]["priority"] = priority
+
+    return MiniWorld(infos, root, flag, tile=tile)
+
+
+class Mobilenet(torch.nn.Module):
+    def __init__(self):
+        super(Mobilenet, self).__init__()
+        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
+            weights="DEFAULT"
+        )
+        self.backend.classifier.low_classifier = torch.nn.Conv2d(
+            40, 2, kernel_size=(1, 1), stride=(1, 1)
+        )
+        self.backend.classifier.high_classifier = torch.nn.Conv2d(
+            128, 2, kernel_size=(1, 1), stride=(1, 1)
+        )
+
+    def forward(self, x):
+        return self.backend(x)["out"]

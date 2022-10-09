@@ -1,8 +1,20 @@
 import os
 import torch
 import torchvision
+import miniworld
 
 assert torch.cuda.is_available()
+
+print("load data")
+dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/test/")
+
+print("load model")
+with torch.no_grad():
+    net = torch.load("build/model.pth")
+    net = net.cuda()
+    net.eval()
+
+print("test")
 
 
 def largeforward(net, image, tilesize=128, stride=64):
@@ -14,24 +26,6 @@ def largeforward(net, image, tilesize=128, stride=64):
     return pred
 
 
-sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-sys.path.append("/d/achanhon/github/pytorch-image-models")
-sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
-
-import segmentation_models_pytorch as smp
-import miniworld
-
-print("load data")
-dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/test/")
-
-print("load model")
-with torch.no_grad():
-    net = torch.load("build/model.pth")
-    net = net.cuda()
-    net.eval()
-
-print("test")
 with torch.no_grad():
     cm = torch.zeros((2, 2)).cuda()
     for i in range(dataset.NB):
@@ -51,13 +45,13 @@ with torch.no_grad():
 
         if True:
             nextI = str(len(os.listdir("build")))
-            torchvision.save_images("build/" + nextI + "_x.png", x / 255)
+            torchvision.utils.save_image(x / 255, "build/" + nextI + "_x.png")
             debug = torch.stack([y, y, y], dim=0)
-            torchvision.save_images("build/" + nextI + "_y.png", debug)
+            torchvision.utils.save_image(debug, "build/" + nextI + "_y.png")
             debug = torch.stack([z, z, z], dim=0)
-            torchvision.save_images("build/" + nextI + "_z.png", debug)
+            torchvision.utils.save_image(debug, "build/" + nextI + "_z.png")
 
     print(cm)
-    print(dataset.perf(cm))
+    print(miniworld.perf(cm))
 
 os._exit(0)

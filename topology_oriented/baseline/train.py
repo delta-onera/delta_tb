@@ -1,28 +1,15 @@
 import os
 import torch
 import torchvision
+import miniworld
 
 assert torch.cuda.is_available()
 
-sys.path.append("/d/achanhon/github/EfficientNet-PyTorch")
-sys.path.append("/d/achanhon/github/pytorch-image-models")
-sys.path.append("/d/achanhon/github/pretrained-models.pytorch")
-sys.path.append("/d/achanhon/github/segmentation_models.pytorch")
-
-import segmentation_models_pytorch as smp
-import miniworld
-
-
 print("load data")
-dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/train/")
+dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
 
 print("define model")
-net = smp.Unet(
-    encoder_name="efficientnet-b7",
-    encoder_weights="imagenet",
-    in_channels=3,
-    classes=2,
-)
+net = miniworld.Mobilenet()
 net = net.cuda()
 net.train()
 
@@ -69,7 +56,7 @@ for i in range(nbbatchs):
     with torch.no_grad():
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
-        stats += miniworld.confusion(y[j], z[j], D)
+        stats += miniworld.confusion(y, z, D)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -85,7 +72,7 @@ for i in range(nbbatchs):
             perf = miniworld.perf(stats)
             stats = torch.zeros((2, 2)).cuda()
             print(i, "perf", perf)
-            if perf > 0.95:
+            if perf[0] > 0.95:
                 os._exit(0)
 
     if i > nbbatchs * 0.1:
