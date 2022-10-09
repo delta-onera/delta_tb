@@ -9,6 +9,13 @@ import threading
 import torchvision
 
 
+def computeborder(y, size=2):
+    yy = torch.nn.functional.avg_pool2d(
+        y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
+    )
+    return ((yy - y).abs() > 0.0001).float()
+
+
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:

@@ -30,7 +30,8 @@ with torch.no_grad():
     cm = torch.zeros((2, 2)).cuda()
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
-        x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
+        x, y = x.cuda(), y.cuda()
+        D = 1 - 0.9 * miniworld.computeborder(y.float())
 
         h, w = y.shape[0], y.shape[1]
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
