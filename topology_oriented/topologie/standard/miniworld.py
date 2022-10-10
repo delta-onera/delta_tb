@@ -214,8 +214,8 @@ def mapfiltered(spatialmap, setofvalue):
 def compare(y, z):
     assert len(y.shape) == 2 and len(z.shape) == 2
 
-    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
-    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
+    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True, background=0)
+    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True, background=0)
     vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
 
     tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
@@ -239,23 +239,23 @@ def compare(y, z):
     nbGOOD = len(goodpreds)
     metric = nbGOOD, nbVT, nbPRED, len(falsealarm)
 
-    goodbuilding = mapfiltered(y, set(goodbuilding))
-    goodpreds = mapfiltered(z, set(goodpreds))
-    falsealarm = mapfiltered(z, set(falsealarm))
-    visu = numpy.stack([goodbuilding, goodpreds, falsealarm])
+    goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
+    goodpreds = mapfiltered(predlabelmap, set(goodpreds))
+    falsealarm = mapfiltered(predlabelmap, set(falsealarm))
+    # visu = numpy.stack([falsealarm, goodpreds, goodbuilding])
+    visu = numpy.stack([vtlabelmap, vtlabelmap, vtlabelmap]) / nbVT
 
     return metric, visu
 
 
 if __name__ == "__main__":
-    root = (
-        "/home/achanhon/github/delta_tb/topology_oriented/baseline/standard/build/19_"
-    )
-    y = PIL.Image.open(root + "y.png").convert("L").copy()
+    root = "/home/achanhon/github/delta_tb/topology_oriented/topologie/standard/build/"
+
+    y = PIL.Image.open(root + "19_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
 
-    z = PIL.Image.open(root + "z.png").convert("L").copy()
+    z = PIL.Image.open(root + "19_z.png").convert("L").copy()
     z = numpy.uint8(numpy.asarray(z))
     z = numpy.uint8(z != 0)
 
