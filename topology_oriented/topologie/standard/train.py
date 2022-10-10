@@ -46,7 +46,7 @@ def diceloss(y, z, D):
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
-    D = 1 + 49 * miniworld.compute0border(0)
+    D = 1 + 49 * miniworld.compute0border(y.float())
 
     z = net(x)
 

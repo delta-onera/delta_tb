@@ -28,7 +28,7 @@ def largeforward(net, image, tilesize=128, stride=64):
 
 with torch.no_grad():
     cm = torch.zeros((2, 2)).cuda()
-    metricinstance = torch.zeros(4)
+    instance = torch.zeros(4)
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
         x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
@@ -43,7 +43,8 @@ with torch.no_grad():
         z = (z[0, 1, :, :] > z[0, 0, :, :]).float()
 
         cm += miniworld.confusion(y, z, D)
-        metricinstance += compare(y, z)
+        metric, visu = miniworld.compare(y.cpu().numpy(), z.cpu().numpy())
+        instance += metric
 
         if True:
             nextI = str(len(os.listdir("build")))
@@ -52,10 +53,12 @@ with torch.no_grad():
             torchvision.utils.save_image(debug, "build/" + nextI + "_y.png")
             debug = torch.stack([z, z, z], dim=0)
             torchvision.utils.save_image(debug, "build/" + nextI + "_z.png")
+            debug = torch.Tensor(visu)
+            torchvision.utils.save_image(debug, "build/" + nextI + "_v.png")
 
     print(cm)
     print(miniworld.perf(cm))
-    print(metricinstance)
-    print(miniworld.perfinstance(metricinstance))
+    print(instance)
+    print(miniworld.perfinstance(instance))
 
 os._exit(0)

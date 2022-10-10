@@ -13,7 +13,7 @@ def compute0border(y, size=2):
     yy = torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
     )
-    return yy != y
+    return (yy != y).float()
 
 
 def confusion(y, z, D):
