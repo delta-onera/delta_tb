@@ -214,8 +214,8 @@ def mapfiltered(spatialmap, setofvalue):
 def compare(y, z):
     assert len(y.shape) == 2 and len(z.shape) == 2
 
-    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True, background=0)
-    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True, background=0)
+    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
+    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
     vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
 
     tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
@@ -242,8 +242,7 @@ def compare(y, z):
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
     falsealarm = mapfiltered(predlabelmap, set(falsealarm))
-    # visu = numpy.stack([falsealarm, goodpreds, goodbuilding])
-    visu = numpy.stack([vtlabelmap, vtlabelmap, vtlabelmap]) / nbVT
+    visu = numpy.stack([falsealarm, goodpreds, goodbuilding])
 
     return metric, visu
 
