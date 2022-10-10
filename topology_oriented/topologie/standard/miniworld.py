@@ -200,49 +200,65 @@ class Mobilenet(torch.nn.Module):
         return self.backend(x)["out"]
 
 
-
-
 import skimage
 
-    
-def compare(vtmap,predmap):
-    assert len(vtmap.shape)==2 and len(predmap.shape)==2
-    
-    vtlabelmap,nbVT = skimage.measure.label(vtmap,return_num=True)
-    predlabelmap,nbPRED = skimage.measure.label(predmap,return_num=True)
-    vts,preds = list(range(1,nbVT+1)),list(range(1,nbPRED+1))
-    
-    tmp1,tmp2 = vtlabelmap.flatten(),predlabelmap.flatten()
-    allmatch = set(zip(list(tmp1),list(tmp2)))
-    
+
+def mapfiltered(spatialmap, setofvalue):
+    def myfunction(i):
+        return int(int(i) in setofvalue)
+
+    myfunctionVector = numpy.vectorize(myfunction)
+    return myfunctionVector(spatialmap)
+
+
+def compare(y, z):
+    assert len(y.shape) == 2 and len(z.shape) == 2
+
+    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
+    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
+    vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
+
+    tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
+    allmatch = set(zip(list(tmp1), list(tmp2)))
+
     falsealarm = []
     for j in preds:
-        if len([i for i in vts if i,j in allmatch])!=1:
+        if len([i for i in vts if (i, j) in allmatch]) != 1:
             falsealarm.append(j)
     falsealarm = set(falsealarm)
-    preds = set([j in preds if j not in falsealarm])
-    
-    missbuilding = []
-    for i in vts:
-        tmp = [j for j in preds if i,j in allmatch]
-        if tmp==[]:
-            missbuilding.append(i)
-    missbuilding = set(missbuilding)
-    vts = [i for i in vts if i not in missbuilding]
+    preds = set([j for j in preds if j not in falsealarm])
 
-    goodmatch = []
-    duplatedalarm = []
+    goodmatch, goodbuilding, goodpreds = [], [], []
     for i in vts:
-        tmp = [j for j in preds if i,j in allmatch]
-        goodmatch.append((i,tmp[0]))
-        if len(tmp)>1:
-            duplateddetection.expand(tmp[1:])
-        
-    return vtlabelmap,predlabelmap,goodmatch,duplatedalarm,falsealarm,missbuilding
-    
-if __name__=="__main__":
-    
-    
-    
-    
+        tmp = [j for j in preds if (i, j) in allmatch]
+        if len(tmp) > 0:
+            goodmatch.append((i, tmp[0]))
+            goodbuilding.append(i)
+            goodpreds.append(tmp[0])
 
+    nbGOOD = len(goodpreds)
+    metric = nbGOOD, nbVT, nbPRED, len(falsealarm)
+
+    goodbuilding = mapfiltered(y, set(goodbuilding))
+    goodpreds = mapfiltered(z, set(goodpreds))
+    falsealarm = mapfiltered(z, set(falsealarm))
+    visu = numpy.stack([goodbuilding, goodpreds, falsealarm])
+
+    return metric, visu
+
+
+if __name__ == "__main__":
+    root = (
+        "/home/achanhon/github/delta_tb/topology_oriented/baseline/standard/build/19_"
+    )
+    y = PIL.Image.open(root + "y.png").convert("L").copy()
+    y = numpy.uint8(numpy.asarray(y))
+    y = numpy.uint8(y != 0)
+
+    z = PIL.Image.open(root + "z.png").convert("L").copy()
+    z = numpy.uint8(numpy.asarray(z))
+    z = numpy.uint8(z != 0)
+
+    metric, visu = compare(y, z)
+    print(metric)
+    torchvision.utils.save_image(torch.Tensor(visu), "build/compare.png")
