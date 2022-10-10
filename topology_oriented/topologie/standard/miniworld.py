@@ -8,8 +8,6 @@ import queue
 import threading
 import torchvision
 
-def connectedcomponent
-
 
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
@@ -200,3 +198,57 @@ class Mobilenet(torch.nn.Module):
 
     def forward(self, x):
         return self.backend(x)["out"]
+
+
+
+
+import skimage
+
+def connectedcomponent(binarymap):
+    assert len(binarymap.shape)==2
+    labelmap = skimage.measure.label(binarymap)
+    setofCC = skimage.measure.regionprops(labelmap)
+    return labelmap,setofCC
+    
+def compare(binarymap1,binarymap2):
+    labelmap1,nbL1,setofCC1 = connectedcomponent(binarymap1)
+    labelmap2,nbL2,setofCC2 = connectedcomponent(binarymap2)
+    
+    tmp1,tmp2 = labelmap1.flatten(),labelmap2.flatten()
+    tmp12 = zip(tmp1,tmp2)
+    allmatch = set(tmp12)
+    
+    vts = set([i for i,_ in allmatch])
+    preds = set([j for _,j in allmatch])
+    
+    nbVT,nbPreds = len(vts),len(preds)
+    
+    stupidpreds = []
+    for j in preds:
+        tmp = [i for i in vts if i,j in allmatch]
+        if len(tmp)==1 and tmp[0]==0:
+            stupidpreds.append(j)
+        tmp = [i for i in tmp if i!=0]
+        if len(tmp)==2: #1 blob touch 2 buildings
+            stupidpreds.append(j)
+    stupidpreds = set(stupidpreds)
+    
+    nbStupidpreds = len(stupidpreds)
+    preds = set([j in preds if j not in stupidpreds])
+    
+    missbuilding = []
+    for i in vts:
+        tmp = [j for j in preds if i,j in allmatch and j!=0]
+        if tmp==[]:
+            missbuilding.append(i)
+    missbuilding = set(missbuilding)
+
+    nbMissbuilding = len(missbuilding)
+    vts = [i for i in vts if i not in missbuilding]
+    for i in vts:
+        tmp = [j for j in preds if i,j in allmatch]
+        if len(tmp)==1
+    
+    
+    
+
