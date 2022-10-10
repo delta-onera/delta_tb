@@ -204,50 +204,44 @@ class Mobilenet(torch.nn.Module):
 
 import skimage
 
-def connectedcomponent(binarymap):
-    assert len(binarymap.shape)==2
-    labelmap = skimage.measure.label(binarymap)
-    setofCC = skimage.measure.regionprops(labelmap)
-    return labelmap,setofCC
     
-def compare(binarymap1,binarymap2):
-    labelmap1,nbL1,setofCC1 = connectedcomponent(binarymap1)
-    labelmap2,nbL2,setofCC2 = connectedcomponent(binarymap2)
+def compare(vtmap,predmap):
+    assert len(vtmap.shape)==2 and len(predmap.shape)==2
     
-    tmp1,tmp2 = labelmap1.flatten(),labelmap2.flatten()
-    tmp12 = zip(tmp1,tmp2)
-    allmatch = set(tmp12)
+    vtlabelmap,nbVT = skimage.measure.label(vtmap,return_num=True)
+    predlabelmap,nbPRED = skimage.measure.label(predmap,return_num=True)
+    vts,preds = list(range(1,nbVT+1)),list(range(1,nbPRED+1))
     
-    vts = set([i for i,_ in allmatch])
-    preds = set([j for _,j in allmatch])
+    tmp1,tmp2 = vtlabelmap.flatten(),predlabelmap.flatten()
+    allmatch = set(zip(list(tmp1),list(tmp2)))
     
-    nbVT,nbPreds = len(vts),len(preds)
-    
-    stupidpreds = []
+    falsealarm = []
     for j in preds:
-        tmp = [i for i in vts if i,j in allmatch]
-        if len(tmp)==1 and tmp[0]==0:
-            stupidpreds.append(j)
-        tmp = [i for i in tmp if i!=0]
-        if len(tmp)==2: #1 blob touch 2 buildings
-            stupidpreds.append(j)
-    stupidpreds = set(stupidpreds)
-    
-    nbStupidpreds = len(stupidpreds)
-    preds = set([j in preds if j not in stupidpreds])
+        if len([i for i in vts if i,j in allmatch])!=1:
+            falsealarm.append(j)
+    falsealarm = set(falsealarm)
+    preds = set([j in preds if j not in falsealarm])
     
     missbuilding = []
     for i in vts:
-        tmp = [j for j in preds if i,j in allmatch and j!=0]
+        tmp = [j for j in preds if i,j in allmatch]
         if tmp==[]:
             missbuilding.append(i)
     missbuilding = set(missbuilding)
-
-    nbMissbuilding = len(missbuilding)
     vts = [i for i in vts if i not in missbuilding]
+
+    goodmatch = []
+    duplatedalarm = []
     for i in vts:
         tmp = [j for j in preds if i,j in allmatch]
-        if len(tmp)==1
+        goodmatch.append((i,tmp[0]))
+        if len(tmp)>1:
+            duplateddetection.expand(tmp[1:])
+        
+    return vtlabelmap,predlabelmap,goodmatch,duplatedalarm,falsealarm,missbuilding
+    
+if __name__=="__main__":
+    
     
     
     
