@@ -9,6 +9,13 @@ import threading
 import torchvision
 
 
+def compute0border(y, size=2):
+    yy = torch.nn.functional.max_pool2d(
+        y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
+    )
+    return yy != y
+
+
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
@@ -226,6 +233,7 @@ def compare(y, z):
         if len([i for i in vts if (i, j) in allmatch]) != 1:
             falsealarm.append(j)
     falsealarm = set(falsealarm)
+    nbFalseAlarms = len(falsealarm)
     preds = set([j for j in preds if j not in falsealarm])
 
     goodmatch, goodbuilding, goodpreds = [], [], []
@@ -237,7 +245,7 @@ def compare(y, z):
             goodpreds.append(tmp[0])
 
     nbGOOD = len(goodpreds)
-    metric = nbGOOD, nbVT, nbPRED, len(falsealarm)
+    metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
 
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
@@ -245,6 +253,14 @@ def compare(y, z):
     visu = numpy.stack([falsealarm, goodpreds, goodbuilding])
 
     return metric, visu
+
+
+def perfinstance(metric):
+    nbGOOD, nbVT, nbPRED, nbFalseAlarms = metric
+    recall = nbGOOD / (nbVT + 0.00001)
+    precision = nbGOOD / (nbPRED + 0.00001)
+    gscore = recall * precision
+    return gscore, recall, precision
 
 
 if __name__ == "__main__":
