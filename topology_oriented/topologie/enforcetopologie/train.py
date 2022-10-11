@@ -6,7 +6,9 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+# dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+# dataset = miniworld.getMiniworld("/train/")
+dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/train/")
 
 print("define model")
 net = miniworld.Mobilenet()
@@ -46,13 +48,14 @@ def diceloss(y, z, D):
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
-    D = 19 * miniworld.compute0border(y.float()) + 1
+    D = 1 + 1 * miniworld.compute0border(y.float())
+    D = D + 48 * computecriticalborder3D(y.float())
 
     z = net(x)
 
     CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
-    loss = CE + dice
+    loss = CE + 0.1 * dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
