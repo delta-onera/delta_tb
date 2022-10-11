@@ -239,10 +239,13 @@ def compare(y, z):
     goodmatch, goodbuilding, goodpreds = [], [], []
     for i in vts:
         tmp = [j for j in preds if (i, j) in allmatch]
-        if len(tmp) > 0:
-            goodmatch.append((i, tmp[0]))
-            goodbuilding.append(i)
-            goodpreds.append(tmp[0])
+        if len(tmp) == 0:
+            continue
+        tmp = [(numpy.sum(numpy.int16(predlabelmap == j)), j) for j in tmp]
+        tmp = sorted(tmp)
+        goodmatch.append((i, tmp[-1]))
+        goodbuilding.append(i)
+        goodpreds.append(tmp[-1])
 
     nbGOOD = len(goodpreds)
     metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
