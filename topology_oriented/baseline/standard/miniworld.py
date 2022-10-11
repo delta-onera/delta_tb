@@ -127,7 +127,7 @@ class MiniWorld:
         self.suffix = suffix
 
         self.data = {}
-        for city in cities:
+        for city in self.cities:
             path = prefix + infos[city]["path"] + suffix
             self.data[city] = CropExtractor(path, tile=tile)
 
