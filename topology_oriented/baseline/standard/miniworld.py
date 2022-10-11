@@ -125,6 +125,7 @@ class MiniWorld:
         self.cities = [city for city in infos]
         self.prefix = prefix
         self.suffix = suffix
+        self.NB = len(self.cities)
 
         self.data = {}
         for city in self.cities:
