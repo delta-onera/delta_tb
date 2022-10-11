@@ -5,7 +5,7 @@ os.system("rm -rf __pycache__")
 os.system("rm -rf build")
 os.makedirs("build")
 
-os.system("python3 train.py")
-os.system("python3 test.py")
+os.system("/d/achanhon/miniconda3/bin/python train.py")
+os.system("/d/achanhon/miniconda3/bin/python test.py")
 
 os.system("rm -rf __pycache__")
