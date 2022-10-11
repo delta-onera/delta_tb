@@ -269,36 +269,40 @@ def perfinstance(metric):
     return gscore, recall, precision
 
 
+def inverseValue(y):
+    ym = torch.max(y.flatten())
+    return (ym + 1 - y) * (y != 0).float()
+
+
 def computecriticalborder(y, size=2):
     assert len(y.shape) == 2
     assert "numpy" in str(type(y))
+    vtlabelmap = skimage.measure.label(y)
 
-    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
     vtlabelmap = torch.Tensor(vtlabelmap)
-
-    inversevtlabelmap = (-vtlabelmap + nbVT + 1) * (y != 0).float()
-
     vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
-    inversevtlabelmapE = shortmaxpool(inversevtlabelmap, size=size)
 
-    vtlabelmapEbis = (-inversevtlabelmapE + nbVT + 1) * (y != 0).float()
+    Ivtlabelmap = inverseValue(vtlabelmap)
+    IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
+    vtlabelmapEbis = inverseValue(IvtlabelmapE)
 
-    criticalborder = (y == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
+    return (y == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
 
-    return (yy != y).float()
+
+def computecriticalborder3D(y, size=2):
+    assert len(y.shape) == 3
+    assert "numpy" in str(type(y))
+    yy = [computecriticalborder2D(y[i]) for i in range(y.shape[0])]
+    return torch.stack(yy, dim=0)
 
 
 if __name__ == "__main__":
-    root = "/home/achanhon/github/delta_tb/topology_oriented/topologie/standard/build/"
+    root = "build/"
 
     y = PIL.Image.open(root + "19_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
 
-    z = PIL.Image.open(root + "19_z.png").convert("L").copy()
-    z = numpy.uint8(numpy.asarray(z))
-    z = numpy.uint8(z != 0)
+    yy = computecriticalborder2D(y)
 
-    metric, visu = compare(y, z)
-    print(metric)
-    torchvision.utils.save_image(torch.Tensor(visu), "build/compare.png")
+    torchvision.utils.save_image(torch.Tensor(yy), "build/critical.png")

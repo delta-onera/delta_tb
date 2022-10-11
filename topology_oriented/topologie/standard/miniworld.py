@@ -12,7 +12,7 @@ import torchvision
 def compute0border(y, size=2):
     yy = torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
-    )
+    )[0]
     return (yy != y).float()
 
 
@@ -267,7 +267,7 @@ def perfinstance(metric):
 
 
 if __name__ == "__main__":
-    root = "/home/achanhon/github/delta_tb/topology_oriented/topologie/standard/build/"
+    root = "build/"
 
     y = PIL.Image.open(root + "19_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
