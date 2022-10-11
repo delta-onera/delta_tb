@@ -6,8 +6,8 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-# dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
-dataset = miniworld.getMiniworld("/train/")
+dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+# dataset = miniworld.getMiniworld("/train/")
 
 print("define model")
 net = miniworld.Mobilenet()
