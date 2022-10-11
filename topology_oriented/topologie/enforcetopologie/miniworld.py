@@ -131,13 +131,14 @@ class CropExtractor(threading.Thread):
 class MiniWorld:
     def __init__(self, infos, prefix="", suffix="", tile=128):
         self.run = False
-        self.tilesize = tilesize
+        self.tilesize = tile
         self.cities = [city for city in infos]
         self.prefix = prefix
         self.suffix = suffix
+        self.NB = len(self.cities)
 
         self.data = {}
-        for city in cities:
+        for city in self.cities:
             path = prefix + infos[city]["path"] + suffix
             self.data[city] = CropExtractor(path, tile=tile)
 
@@ -160,7 +161,7 @@ class MiniWorld:
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
-        return x, y.long(), torch.Tensor(batchchoice).long()
+        return x, y.long()  # , torch.Tensor(batchchoice).long()
 
 
 def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
@@ -194,11 +195,11 @@ def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
         infos[city]["path"] = city
         priority = 0
         if infos[city]["label"] == "manual":
-            priority[i] += 1
+            priority += 1
         if infos[city]["size"] == "medium":
-            priority[i] += 1
+            priority += 1
         if infos[city]["size"] == "large":
-            priority[i] += 2
+            priority += 2
         infos[city]["priority"] = priority
 
     return MiniWorld(infos, root, flag, tile=tile)
