@@ -262,8 +262,7 @@ def compare(y, z):
 
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
-    falsealarm = mapfiltered(predlabelmap, set(falsealarm))
-    visu = numpy.stack([falsealarm, goodpreds, goodbuilding])
+    visu = numpy.stack([1 - goodpreds, goodpreds, goodbuilding])
 
     return metric, visu
 
