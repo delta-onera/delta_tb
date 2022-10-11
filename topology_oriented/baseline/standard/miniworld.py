@@ -121,7 +121,7 @@ class CropExtractor(threading.Thread):
 class MiniWorld:
     def __init__(self, infos, prefix="", suffix="", tile=128):
         self.run = False
-        self.tilesize = tilesize
+        self.tilesize = tile
         self.cities = [city for city in infos]
         self.prefix = prefix
         self.suffix = suffix
