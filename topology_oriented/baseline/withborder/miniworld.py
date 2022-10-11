@@ -12,7 +12,7 @@ import torchvision
 def computeborder(y, size=2):
     yy = torch.nn.functional.avg_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
-    )
+    )[0]
     return ((yy - y).abs() > 0.0001).float()
 
 
