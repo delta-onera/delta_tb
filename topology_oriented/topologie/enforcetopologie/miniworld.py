@@ -307,7 +307,7 @@ def computecriticalborder2D(y, size=2):
 def computecriticalborder3D(y, size=2):
     assert len(y.shape) == 3
     yy = [computecriticalborder2D(y[i]) for i in range(y.shape[0])]
-    return torch.stack(yy, dim=0)
+    return torch.stack(yy, dim=0).cuda()
 
 
 if __name__ == "__main__":
