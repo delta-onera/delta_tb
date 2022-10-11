@@ -252,9 +252,10 @@ def compare(y, z):
             continue
         tmp = [(numpy.sum(numpy.int16(predlabelmap == j)), j) for j in tmp]
         tmp = sorted(tmp)
-        goodmatch.append((i, tmp[-1]))
+        _, j = tmp[-1]
+        goodmatch.append((i, j))
         goodbuilding.append(i)
-        goodpreds.append(tmp[-1])
+        goodpreds.append(j)
 
     nbGOOD = len(goodpreds)
     metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
