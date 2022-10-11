@@ -125,17 +125,25 @@ class MiniWorld:
         self.cities = [city for city in infos]
         self.prefix = prefix
         self.suffix = suffix
-        self.NB = len(self.cities)
+        self.NBC = len(self.cities)
 
+        self.allimages = []
         self.data = {}
         for city in self.cities:
             path = prefix + infos[city]["path"] + suffix
             self.data[city] = CropExtractor(path, tile=tile)
+            for i in range(self.data[city].NB):
+                self.allimages.append((city, i))
+        self.NB = len(self.allimages)
 
         self.priority = numpy.ones(len(self.cities))
         for i, city in enumerate(self.cities):
             self.priority[i] += infos[city]["priority"]
         self.priority = numpy.float32(self.priority) / numpy.sum(self.priority)
+
+    def getImageAndLabel(self, i, torchformat=False):
+        city, j = self.allimages[i]
+        return self.data[city].getImageAndLabel(j, torchformat=torchformat)
 
     def start(self):
         if not self.run:
@@ -145,7 +153,7 @@ class MiniWorld:
 
     def getBatch(self, batchsize):
         assert self.run
-        batchchoice = numpy.random.choice(self.NB, batchsize, p=self.priority)
+        batchchoice = numpy.random.choice(self.NBC, batchsize, p=self.priority)
 
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
