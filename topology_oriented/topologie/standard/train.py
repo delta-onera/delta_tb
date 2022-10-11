@@ -6,7 +6,8 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+# dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+dataset = miniworld.getMiniworld("/train/")
 
 print("define model")
 net = miniworld.Mobilenet()
@@ -46,7 +47,7 @@ def diceloss(y, z, D):
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
-    D = 19 * miniworld.compute0border(y.float()) + 1
+    D = 1 + 19 * miniworld.compute0border(y.float())
 
     z = net(x)
 
