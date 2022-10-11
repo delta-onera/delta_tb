@@ -270,9 +270,11 @@ def compare(y, z):
     nbGOOD = len(goodpreds)
     metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
 
+    falseORduplicate = [j for j in list(range(1, nbPRED + 1)) if j not in goodpreds]
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
-    visu = numpy.stack([1 - goodpreds, goodpreds, goodbuilding])
+    falseORduplicate = mapfiltered(predlabelmap, set(falseORduplicate))
+    visu = numpy.stack([falseORduplicate, goodpreds, goodbuilding])
 
     return metric, visu
 
