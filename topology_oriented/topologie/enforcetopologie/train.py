@@ -52,7 +52,7 @@ for i in range(nbbatchs):
 
     CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
-    loss = CE + 0.1*dice
+    loss = CE + dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
