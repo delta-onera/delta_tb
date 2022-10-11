@@ -9,11 +9,14 @@ import threading
 import torchvision
 
 
-def compute0border(y, size=2):
-    yy = torch.nn.functional.max_pool2d(
+def shortmaxpool(y, size=2):
+    return torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    return (yy != y).float()
+    )[0]
+
+
+def compute0border(y, size=2):
+    return (shortmaxpool(y, size=size) != y).float()
 
 
 def confusion(y, z, D):
@@ -275,17 +278,12 @@ def computecriticalborder(y, size=2):
 
     inversevtlabelmap = (-vtlabelmap + nbVT + 1) * (y != 0).float()
 
-    vtlabelmapExtend = torch.nn.functional.max_pool2d(
-        vtlabelmap, kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    inversevtlabelmapExtend = torch.nn.functional.max_pool2d(
-        inversevtlabelmap, kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    vtlabelmapExtendbis = (-inversevtlabelmapExtend + nbVT + 1) * (y != 0).float()
+    vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
+    inversevtlabelmapE = shortmaxpool(inversevtlabelmap, size=size)
 
-    criticalborder = (y == 0).float() * (
-        vtlabelmapExtendbis != vtlabelmapExtend
-    ).float()
+    vtlabelmapEbis = (-inversevtlabelmapE + nbVT + 1) * (y != 0).float()
+
+    criticalborder = (y == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
 
     return (yy != y).float()
 
