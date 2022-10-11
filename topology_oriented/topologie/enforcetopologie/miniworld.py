@@ -292,7 +292,6 @@ def inverseValue(y):
 
 def computecriticalborder2D(y, size=2):
     assert len(y.shape) == 2
-    assert "numpy" in str(type(y))
     vtlabelmap = skimage.measure.label(y)
 
     vtlabelmap = torch.Tensor(vtlabelmap)
@@ -307,7 +306,6 @@ def computecriticalborder2D(y, size=2):
 
 def computecriticalborder3D(y, size=2):
     assert len(y.shape) == 3
-    assert "numpy" in str(type(y))
     yy = [computecriticalborder2D(y[i]) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0)
 
