@@ -184,11 +184,11 @@ def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
         infos[city]["path"] = city
         priority = 0
         if infos[city]["label"] == "manual":
-            priority[i] += 1
+            priority += 1
         if infos[city]["size"] == "medium":
-            priority[i] += 1
+            priority += 1
         if infos[city]["size"] == "large":
-            priority[i] += 2
+            priority += 2
         infos[city]["priority"] = priority
 
     return MiniWorld(infos, root, flag, tile=tile)
