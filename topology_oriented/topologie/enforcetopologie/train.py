@@ -49,7 +49,7 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
     D = 1 + 1 * miniworld.compute0border(y.float())
-    D = D + 48 * computecriticalborder3D(y.float())
+    D = D + 48 * miniworld.computecriticalborder3D(y.float())
 
     z = net(x)
 
