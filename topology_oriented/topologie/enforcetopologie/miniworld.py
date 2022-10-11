@@ -55,6 +55,13 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def smooth(y):
+    yy = 1 - y
+    yy = shortmaxpool(yy, size=1)  # erosion
+    y = 1 - yy
+    return shortmaxpool(y, size=1)  # dilatation
+
+
 class CropExtractor(threading.Thread):
     def __init__(self, path, tile=128):
         threading.Thread.__init__(self)
@@ -79,7 +86,7 @@ class CropExtractor(threading.Thread):
         label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label)
+            return pilTOtorch(image), smooth(torch.Tensor(label))
         else:
             return image, label
 
@@ -117,7 +124,7 @@ class CropExtractor(threading.Thread):
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
+                    x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
 
 
@@ -274,7 +281,7 @@ def inverseValue(y):
     return (ym + 1 - y) * (y != 0).float()
 
 
-def computecriticalborder(y, size=2):
+def computecriticalborder2D(y, size=2):
     assert len(y.shape) == 2
     assert "numpy" in str(type(y))
     vtlabelmap = skimage.measure.label(y)
@@ -286,7 +293,7 @@ def computecriticalborder(y, size=2):
     IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
     vtlabelmapEbis = inverseValue(IvtlabelmapE)
 
-    return (y == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
+    return (vtlabelmap == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
 
 
 def computecriticalborder3D(y, size=2):
@@ -302,7 +309,9 @@ if __name__ == "__main__":
     y = PIL.Image.open(root + "19_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
+    y = smooth(torch.Tensor(y))
+    y = y.numpy()
 
-    yy = computecriticalborder2D(y)
+    yy = computecriticalborder2D(y, size=7)
 
     torchvision.utils.save_image(torch.Tensor(yy), "build/critical.png")
