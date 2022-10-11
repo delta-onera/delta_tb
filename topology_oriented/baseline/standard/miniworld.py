@@ -151,7 +151,7 @@ class MiniWorld:
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.data[self.cities[batchchoice[i]]].getCrop()
-        return x, y.long(), torch.Tensor(batchchoice).long()
+        return x, y.long()  # , torch.Tensor(batchchoice).long()
 
 
 def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
