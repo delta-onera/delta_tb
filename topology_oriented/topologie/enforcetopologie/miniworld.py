@@ -318,8 +318,6 @@ def computebuildingskeleton2D(y, size=5):
 
     skeleton = torch.Tensor(skimage.morphology.skeletonize(y))
 
-    return skeleton
-
     vtlabelmap = torch.Tensor(skimage.measure.label(y))
     nbBuilding = int(vtlabelmap.flatten().max())
 
