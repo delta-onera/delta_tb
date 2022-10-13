@@ -47,15 +47,16 @@ def diceloss(y, z, D):
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
-    D = miniworld.computecriticalborder3D(y.numpy())
+    D0 = miniworld.computecriticalborder3D(y.numpy())
+    D1 = miniworld.computebuildingskeleton3D(y.numpy())
     x, y = x.cuda(), y.cuda()
-    D = 40 * D + 1 + 8 * miniworld.compute0border(y.float())
+    D = 42 * D0 + 21 * D1 + 4 * (y == 0).float() + 0.1
 
     z = net(x)
 
     CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
-    loss = CE + 0.1 * dice
+    loss = CE + 0.01 * dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()

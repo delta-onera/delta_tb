@@ -337,7 +337,7 @@ if __name__ == "__main__":
     y = y.numpy()
 
     yy = computecriticalborder2D(y, size=7)
-    yyy = computebuildingskeleton2D(y, size=10)
+    yyy = computebuildingskeleton2D(y, size=7)
 
     torchvision.utils.save_image(yy, "build/critical.png")
     torchvision.utils.save_image(yyy, "build/skeleton.png")
