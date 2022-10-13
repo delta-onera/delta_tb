@@ -315,7 +315,7 @@ def computecriticalborder3D(y, size=7):
 
 def computebuildingskeleton2D(y, size=10):
     assert len(y.shape) == 2
-    vtlabelmap = -skimage.measure.label(y)
+    vtlabelmap = -torch.Tensor(skimage.measure.label(y))
 
     vtlabelmap = -shortmaxpool(vtlabelmap, size=size)
     return torch.Tensor(vtlabelmap)
