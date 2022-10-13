@@ -309,36 +309,31 @@ def computecriticalborder2D(y, size=7):
 
 def computecriticalborder3D(y, size=7):
     assert len(y.shape) == 3
-    yy = [computecriticalborder2D(y[i]) for i in range(y.shape[0])]
+    yy = [computecriticalborder2D(y[i], size=size) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0).cuda()
 
 
-
-def computebuildingskeleton2D(y, size=10):
+def computebuildingskeleton2D(y, size=5):
     assert len(y.shape) == 2
+
+    skeleton = torch.Tensor(skeletonize(y))
+
     vtlabelmap = torch.Tensor(skimage.measure.label(y))
     nbBuilding = vtlabelmap.flatten().max()
 
-    for i in range(size):
-        tmp = -shortmaxpool(-vtlabelmap, size=1)
-        for j in range(1,nbBuilding+1):
-            if (tmp==j).float().sum()==0:
-                tmp += j*(vtlabelmap==j).float()
-    
-    
-        
-    return torch.Tensor(vtlabelmap)
-    
-    
-def computebuildingskeleton2D(y, size=10):
-    for i in range(size):
-        y = onesteperosion(y)
-    return y
+    vtlabelmapE = -shortmaxpool(-vtlabelmap, size=size)
+    for i in range(1, nbBuilding + 1):
+        if (vtlabelmapE == i).float().sum > 0:
+            mask = (vtlabelmap != i).float() + (vtlabelmapE == i).float()
+            skeleton = skeleton * mask
+
+    vtlabelmapE = -shortmaxpool(-vtlabelmap, size=size * 2)
+    return (vtlabelmapE != 0) + skeleton
 
 
-def computebuildingskeleton3D(y, size=10):
+def computebuildingskeleton3D(y, size=5):
     assert len(y.shape) == 3
-    yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
+    yy = [computebuildingskeleton2D(y[i], size=size) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0).cuda()
 
 
