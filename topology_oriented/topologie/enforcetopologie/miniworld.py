@@ -292,7 +292,7 @@ def inverseValue(y):
     return (ym + 1 - y) * (y != 0).float()
 
 
-def computecriticalborder2D(y, size=2):
+def computecriticalborder2D(y, size=7):
     assert len(y.shape) == 2
     vtlabelmap = skimage.measure.label(y)
 
@@ -303,12 +303,27 @@ def computecriticalborder2D(y, size=2):
     IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
     vtlabelmapEbis = inverseValue(IvtlabelmapE)
 
-    return (vtlabelmap == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
+    out = (vtlabelmap == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
+    return torch.Tensor(out)
 
 
-def computecriticalborder3D(y, size=2):
+def computecriticalborder3D(y, size=7):
     assert len(y.shape) == 3
     yy = [computecriticalborder2D(y[i]) for i in range(y.shape[0])]
+    return torch.stack(yy, dim=0).cuda()
+
+
+def computebuildingskeleton2D(y, size=10):
+    assert len(y.shape) == 2
+    vtlabelmap = -skimage.measure.label(y)
+
+    vtlabelmap = -shortmaxpool(vtlabelmap, size=size)
+    return torch.Tensor(vtlabelmap)
+
+
+def computebuildingskeleton3D(y, size=10):
+    assert len(y.shape) == 3
+    yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0).cuda()
 
 
@@ -322,5 +337,7 @@ if __name__ == "__main__":
     y = y.numpy()
 
     yy = computecriticalborder2D(y, size=7)
+    yyy = computebuildingskeleton2D(y, size=10)
 
-    torchvision.utils.save_image(torch.Tensor(yy), "build/critical.png")
+    torchvision.utils.save_image(yy, "build/critical.png")
+    torchvision.utils.save_image(yyy, "build/skeleton.png")
