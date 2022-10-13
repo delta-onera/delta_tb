@@ -313,12 +313,27 @@ def computecriticalborder3D(y, size=7):
     return torch.stack(yy, dim=0).cuda()
 
 
+
 def computebuildingskeleton2D(y, size=10):
     assert len(y.shape) == 2
-    vtlabelmap = -torch.Tensor(skimage.measure.label(y))
+    vtlabelmap = torch.Tensor(skimage.measure.label(y))
+    nbBuilding = vtlabelmap.flatten().max()
 
-    vtlabelmap = -shortmaxpool(vtlabelmap, size=size)
+    for i in range(size):
+        tmp = -shortmaxpool(-vtlabelmap, size=1)
+        for j in range(1,nbBuilding+1):
+            if (tmp==j).float().sum()==0:
+                tmp += j*(vtlabelmap==j).float()
+    
+    
+        
     return torch.Tensor(vtlabelmap)
+    
+    
+def computebuildingskeleton2D(y, size=10):
+    for i in range(size):
+        y = onesteperosion(y)
+    return y
 
 
 def computebuildingskeleton3D(y, size=10):
