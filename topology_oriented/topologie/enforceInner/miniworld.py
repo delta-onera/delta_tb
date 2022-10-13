@@ -9,11 +9,21 @@ import threading
 import torchvision
 
 
-def compute0border(y, size=2):
-    yy = torch.nn.functional.max_pool2d(
+def shortmaxpool(y, size=2):
+    return torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
     )[0]
-    return (yy != y).float()
+
+
+def compute0border(y, size=2):
+    return (shortmaxpool(y, size=size) != y).float()
+
+
+def computeInner(y, size=7):
+    inner0 = (shortmaxpool(y, size=size) == 0).float()
+    inner1 = (shortmaxpool(1 - y, size=size) == 0).float()
+
+    return inner0 + inner1
 
 
 def confusion(y, z, D):
@@ -284,10 +294,5 @@ if __name__ == "__main__":
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
 
-    z = PIL.Image.open(root + "19_z.png").convert("L").copy()
-    z = numpy.uint8(numpy.asarray(z))
-    z = numpy.uint8(z != 0)
-
-    metric, visu = compare(y, z)
-    print(metric)
-    torchvision.utils.save_image(torch.Tensor(visu), "build/compare.png")
+    visu = computeInner(torch.Tensor(y))
+    torchvision.utils.save_image(visu, "build/inner.png")
