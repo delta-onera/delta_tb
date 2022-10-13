@@ -323,7 +323,7 @@ def computebuildingskeleton2D(y, size=5):
 
     vtlabelmapE = -shortmaxpool(-vtlabelmap, size=size)
     for i in range(1, nbBuilding + 1):
-        if (vtlabelmapE == i).float().sum > 0:
+        if (vtlabelmapE == i).float().sum() > 0:
             mask = (vtlabelmap != i).float() + (vtlabelmapE == i).float()
             skeleton = skeleton * mask
 
