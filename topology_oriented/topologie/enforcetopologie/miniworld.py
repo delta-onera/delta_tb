@@ -316,7 +316,7 @@ def computecriticalborder3D(y, size=7):
 def computebuildingskeleton2D(y, size=5):
     assert len(y.shape) == 2
 
-    skeleton = torch.Tensor(skimage.skeletonize(y))
+    skeleton = torch.Tensor(skimage.morphology.skeletonize(y))
 
     vtlabelmap = torch.Tensor(skimage.measure.label(y))
     nbBuilding = vtlabelmap.flatten().max()
