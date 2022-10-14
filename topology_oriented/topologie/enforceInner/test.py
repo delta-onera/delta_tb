@@ -6,9 +6,8 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-# dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/test/")
 # dataset = miniworld.getMiniworld("/test/")
-dataset = miniworld.CropExtractor("/scratchf/miniworld/potsdam/test/")
+dataset = miniworld.CropExtractor("/scratchf/miniworld/christchurch/test/")
 
 print("load model")
 with torch.no_grad():

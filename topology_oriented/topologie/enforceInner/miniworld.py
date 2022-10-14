@@ -226,6 +226,18 @@ class Mobilenet(torch.nn.Module):
         return self.backend(x)["out"]
 
 
+class Deeplab(torch.nn.Module):
+    def __init__(self):
+        super(Deeplab, self).__init__()
+        self.backend = torchvision.models.segmentation.deeplabv3_resnet101(
+            weights="DEFAULT"
+        )
+        backend.classifier[4] = torch.nn.Conv2d(256, 2, kernel_size=1)
+
+    def forward(self, x):
+        return self.backend(x)["out"]
+
+
 import skimage
 
 
