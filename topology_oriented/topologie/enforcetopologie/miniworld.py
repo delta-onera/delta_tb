@@ -330,10 +330,9 @@ def computebuildingskeleton2D(y, size=2):
     skeleton = torch.Tensor(skimage.morphology.skeletonize(y))
 
     huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-    for k in range(size):
-        print(skeleton.nonzero())
-        row, col = skeleton.nonzero()
-        rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
+    for k in range(size * 2):
+        rowcol = skeleton.nonzero()
+        rowcol = [(rowcol[i][0], col[i][1]) for i in range(rowcol.shape[0])]
         rowcol = set(rowcol)
 
         notborderskeleton = []
@@ -354,7 +353,6 @@ def computebuildingskeleton2D(y, size=2):
     skeleton = skeleton * (yy == 1).float()
 
     yyy = 1 - shortmaxpool(1 - y, size=7)
-
     return 0.2 * (yyy != 0) + skeleton
 
 
