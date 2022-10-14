@@ -10,7 +10,7 @@ print("load data")
 dataset = miniworld.CropExtractor("/scratchf/miniworld/christchurch/train/")
 
 print("define model")
-net = miniworld.Deeplab()
+net = miniworld.Mobilenet()
 net = net.cuda()
 net.train()
 
