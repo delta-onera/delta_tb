@@ -363,6 +363,6 @@ if __name__ == "__main__":
     y = torch.Tensor(y)
 
     yyyy = y * (yyy == 0).float()
-    visu = torch.stack([yyyy, yyy, yy], dim=0)
+    visu = torch.stack([yy, yyy, yyyy], dim=0)
 
     torchvision.utils.save_image(visu, "build/visu.png")
