@@ -50,7 +50,7 @@ for i in range(nbbatchs):
     D0 = miniworld.computecriticalborder3D(y.numpy())
     D1 = miniworld.computebuildingskeleton3D(y.numpy())
     x, y = x.cuda(), y.cuda()
-    D = 42 * (D0 + D1) + 4 * (y == 0).float() + 0.1
+    D = 32 * (D0 + D1) + 4 * (y == 0).float() + 0.5
 
     z = net(x)
 
@@ -77,7 +77,7 @@ for i in range(nbbatchs):
             perf = miniworld.perf(stats)
             stats = torch.zeros((2, 2)).cuda()
             print(i, "perf", perf)
-            if perf[0] > 92:
+            if perf[0] > 98:
                 os._exit(0)
 
     if i > nbbatchs * 0.1:
