@@ -226,6 +226,19 @@ class Mobilenet(torch.nn.Module):
         return self.backend(x)["out"]
 
 
+class Deeplab(torch.nn.Module):
+    def __init__(self):
+        super(Deeplab, self).__init__()
+        self.backend = torchvision.models.segmentation.deeplabv3_resnet101(
+            weights="DEFAULT"
+        )
+        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 2, kernel_size=1)
+        self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
+
+    def forward(self, x):
+        return self.backend(x)["out"]
+
+
 import skimage
 
 
@@ -350,6 +363,7 @@ if __name__ == "__main__":
     yy = computecriticalborder2D(y, size=7)
     yyy = computebuildingskeleton2D(y, size=5)
 
-    visu = torch.stack([y, yyy, yy], dim=0)
+    yyyy = y * (yyy == 0).float()
+    visu = torch.stack([yyyy, yyy, yy], dim=0)
 
     torchvision.utils.save_image(visu, "build/visu.png")
