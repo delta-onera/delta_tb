@@ -232,8 +232,7 @@ class Deeplab(torch.nn.Module):
         self.backend = torchvision.models.segmentation.deeplabv3_resnet101(
             weights="DEFAULT"
         )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 2, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
+        backend.classifier[4] = torch.nn.Conv2d(256, 2, kernel_size=1)
 
     def forward(self, x):
         return self.backend(x)["out"]
