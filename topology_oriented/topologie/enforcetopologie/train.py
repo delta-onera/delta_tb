@@ -77,7 +77,7 @@ for i in range(nbbatchs):
             perf = miniworld.perf(stats)
             stats = torch.zeros((2, 2)).cuda()
             print(i, "perf", perf)
-            if perf[0] > 92 or True:
+            if perf[0] > 92:
                 os._exit(0)
 
     if i > nbbatchs * 0.1:
