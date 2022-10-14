@@ -327,13 +327,12 @@ def computecriticalborder3D(y, size=9):
 
 def computebuildingskeleton2D(y, size=2):
     assert len(y.shape) == 2
-    skeleton = torch.Tensor(skimage.morphology.skeletonize(y))
+    skeleton = skimage.morphology.skeletonize(y)
 
     huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     for k in range(size * 2):
-        rowcol = skeleton.nonzero()
-        print("#############", rowcol)
-        rowcol = [(rowcol[i][0], rowcol[i][1]) for i in range(rowcol.shape[0])]
+        row, col = skeleton.nonzero()
+        rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
         rowcol = set(rowcol)
 
         notborderskeleton = []
