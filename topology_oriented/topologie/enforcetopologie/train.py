@@ -50,13 +50,13 @@ for i in range(nbbatchs):
     D0 = miniworld.computecriticalborder3D(y.numpy())
     D1 = miniworld.computebuildingskeleton3D(y.numpy())
     x, y = x.cuda(), y.cuda()
-    D = 42 * D0 + 21 * D1 + 4 * (y == 0).float() + 0.1
+    D = 42 * (D0 + D1) + 4 * (y == 0).float() + 0.1
 
     z = net(x)
 
     CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
-    loss = CE + 0.01 * dice
+    loss = CE + 0.0001 * dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
