@@ -325,12 +325,12 @@ def computecriticalborder3D(y, size=9):
     return torch.stack(yy, dim=0).cuda()
 
 
-def computebuildingskeleton2D(y, size=2):
+def computebuildingskeleton2D(y):
     assert len(y.shape) == 2
     skeleton = skimage.morphology.skeletonize(y)
 
     huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-    for k in range(size * 2):
+    for k in range(2):
         row, col = skeleton.nonzero()
         rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
         rowcol = set(rowcol)
@@ -341,24 +341,24 @@ def computebuildingskeleton2D(y, size=2):
             voisin = sum(voisin)
             if voisin > 1:
                 notborderskeleton.append((row, col))
-        skeleton = numpy.uint8(numpy.zeros(skeleton.shape))
+        skeleton = numpy.zeros(skeleton.shape)
         for row, col in notborderskeleton:
             skeleton[row][col] = 1
 
-    skeleton = torch.Tensor(skeleton).float()
-    skeleton = shortmaxpool(skeleton, size=size)
+    skeleton = torch.Tensor(skeleton)
+    skeleton = shortmaxpool(skeleton, size=1)
 
     y = torch.Tensor(y)
     yy = 1 - shortmaxpool(1 - y, size=1)
     skeleton = skeleton * (yy == 1).float()
 
     yyy = 1 - shortmaxpool(1 - y, size=7)
-    return 0.2 * (yyy != 0) + skeleton
+    return 0.1 * (yyy != 0) + skeleton
 
 
-def computebuildingskeleton3D(y, size=2):
+def computebuildingskeleton3D(y):
     assert len(y.shape) == 3
-    yy = [computebuildingskeleton2D(y[i], size=size) for i in range(y.shape[0])]
+    yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0).cuda()
 
 
