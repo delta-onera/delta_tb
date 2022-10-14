@@ -332,6 +332,7 @@ def computebuildingskeleton2D(y, size=2):
     huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     for k in range(size * 2):
         rowcol = skeleton.nonzero()
+        print(rowcol)
         rowcol = [(rowcol[i][0], rowcol[i][1]) for i in range(rowcol.shape[0])]
         rowcol = set(rowcol)
 
