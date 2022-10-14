@@ -325,27 +325,39 @@ def computecriticalborder3D(y, size=9):
     return torch.stack(yy, dim=0).cuda()
 
 
-def computebuildingskeleton2D(y, size=5):
+def computebuildingskeleton2D(y, size=2):
     assert len(y.shape) == 2
-
     skeleton = torch.Tensor(skimage.morphology.skeletonize(y))
 
-    vtlabelmap = torch.Tensor(skimage.measure.label(y))
-    nbBuilding = int(vtlabelmap.flatten().max())
+    huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    for k in range(size):
+        row, col = skeleton.nonzero()
+        rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
+        rowcol = set(rowcol)
 
-    vtlabelmapE = -shortmaxpool(-vtlabelmap, size=size)
-    for i in range(1, nbBuilding + 1):
-        if (vtlabelmapE == i).float().sum() > 0:
-            mask = (vtlabelmap != i).float() + (vtlabelmapE == i).float()
-            skeleton = skeleton * mask
+        notborderskeleton = []
+        for row, col in rowcol:
+            voisin = [1 for dr, dc in huitV if (row + dr, col + dc) in rowcol]
+            voisin = sum(voisin)
+            if voisin > 1:
+                notborderskeleton.append((row, col))
+        skeleton = numpy.uint8(numpy.zeros(skeleton.shape))
+        for row, col in notborderskeleton:
+            skeleton[row][col] = 1
 
-    skeleton = shortmaxpool(skeleton, size=1)
+    skeleton = torch.Tensor(skeleton).float()
+    skeleton = shortmaxpool(skeleton, size=size)
 
-    vtlabelmapE = -shortmaxpool(-vtlabelmap, size=size * 2)
-    return 0.1 * (vtlabelmapE != 0) + skeleton
+    y = torch.Tensor(y)
+    yy = 1 - shortmaxpool(1 - y, size=1)
+    skeleton = skeleton * (yy == 1).float()
+
+    yyy = 1 - shortmaxpool(1 - y, size=7)
+
+    return 0.2 * (yyy != 0) + skeleton
 
 
-def computebuildingskeleton3D(y, size=5):
+def computebuildingskeleton3D(y, size=2):
     assert len(y.shape) == 3
     yy = [computebuildingskeleton2D(y[i], size=size) for i in range(y.shape[0])]
     return torch.stack(yy, dim=0).cuda()
@@ -360,8 +372,8 @@ if __name__ == "__main__":
     y = smooth(torch.Tensor(y))
     y = y.numpy()
 
-    yy = computecriticalborder2D(y, size=7)
-    yyy = computebuildingskeleton2D(y, size=5)
+    yy = computecriticalborder2D(y)
+    yyy = computebuildingskeleton2D(y)
     y = torch.Tensor(y)
 
     yyyy = y * (yyy == 0).float()
