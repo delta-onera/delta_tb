@@ -358,9 +358,9 @@ if __name__ == "__main__":
     y = smooth(torch.Tensor(y))
     y = y.numpy()
 
-    y = torch.Tensor(y)
     yy = computecriticalborder2D(y, size=7)
     yyy = computebuildingskeleton2D(y, size=5)
+    y = torch.Tensor(y)
 
     yyyy = y * (yyy == 0).float()
     visu = torch.stack([yyyy, yyy, yy], dim=0)
