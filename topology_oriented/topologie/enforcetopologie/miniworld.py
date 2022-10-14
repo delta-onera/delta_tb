@@ -340,14 +340,16 @@ def computebuildingskeleton3D(y, size=5):
 if __name__ == "__main__":
     root = "build/"
 
-    y = PIL.Image.open(root + "19_y.png").convert("L").copy()
+    y = PIL.Image.open(root + "1_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
     y = smooth(torch.Tensor(y))
     y = y.numpy()
 
+    y = torch.Tensor(y)
     yy = computecriticalborder2D(y, size=7)
     yyy = computebuildingskeleton2D(y, size=5)
 
-    torchvision.utils.save_image(yy, "build/critical.png")
-    torchvision.utils.save_image(yyy, "build/skeleton.png")
+    visu = torch.stack([y, yyy, yy], dim=0)
+
+    torchvision.utils.save_image(visu, "build/visu.png")
