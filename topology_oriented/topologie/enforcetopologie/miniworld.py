@@ -352,7 +352,7 @@ def computebuildingskeleton3D(y, size=5):
 if __name__ == "__main__":
     root = "build/"
 
-    y = PIL.Image.open(root + "1_y.png").convert("L").copy()
+    y = PIL.Image.open(root + "2_y.png").convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
     y = smooth(torch.Tensor(y))
