@@ -9,13 +9,6 @@ import threading
 import torchvision
 
 
-def compute0border(y, size=2):
-    yy = torch.nn.functional.max_pool2d(
-        y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
-    )[0]
-    return (yy != y).float()
-
-
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
