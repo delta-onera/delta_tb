@@ -15,10 +15,6 @@ def shortmaxpool(y, size=2):
     )[0]
 
 
-def compute0border(y, size=2):
-    return (shortmaxpool(y, size=size) != y).float()
-
-
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
