@@ -9,21 +9,11 @@ import threading
 import torchvision
 
 
-def shortmaxpool(y, size=2):
-    return torch.nn.functional.max_pool2d(
+def compute0border(y, size=2):
+    yy = torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
     )[0]
-
-
-def compute0border(y, size=2):
-    return (shortmaxpool(y, size=size) != y).float()
-
-
-def computeInner(y, size=7):
-    inner0 = (shortmaxpool(y, size=size) == 0).float()
-    inner1 = (shortmaxpool(1 - y, size=size) == 0).float()
-
-    return inner0 + inner1
+    return (yy != y).float()
 
 
 def confusion(y, z, D):
@@ -238,9 +228,6 @@ class Deeplab(torch.nn.Module):
         return self.backend(x)["out"]
 
 
-import skimage
-
-
 def mapfiltered(spatialmap, setofvalue):
     def myfunction(i):
         return int(int(i) in setofvalue)
@@ -249,12 +236,32 @@ def mapfiltered(spatialmap, setofvalue):
     return myfunctionVector(spatialmap)
 
 
+def sortmap(spatialmap):
+    tmp = torch.Tensor(spatialmap)
+    nb = int(tmp.flatten().max())
+    tmp = sorted([(-(tmp == i).float().sum(), i) for i in range(1, nb + 1)])
+    valuemap = {}
+    valuemap[0] = 0
+    for i, (k, j) in enumerate(tmp):
+        valuemap[j] = i + 1
+
+    def myfunction(i):
+        return int(valuemap[int(i)])
+
+    myfunctionVector = numpy.vectorize(myfunction)
+    return myfunctionVector(spatialmap)
+
+
+import skimage
+
+
 def compare(y, z):
     assert len(y.shape) == 2 and len(z.shape) == 2
 
     vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
     predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
     vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
+    vtlabelmap, predlabelmap = sortmap(vtlabelmap), sortmap(predlabelmap)
 
     tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
     allmatch = set(zip(list(tmp1), list(tmp2)))
@@ -272,22 +279,23 @@ def compare(y, z):
         tmp = [j for j in preds if (i, j) in allmatch]
         if len(tmp) == 0:
             continue
-        tmp = [(numpy.sum(numpy.int16(predlabelmap == j)), j) for j in tmp]
-        tmp = sorted(tmp)
-        _, j = tmp[-1]
-        goodmatch.append((i, j))
+        goodmatch.append((i, tmp[0]))
         goodbuilding.append(i)
-        goodpreds.append(j)
+        goodpreds.append(tmp[0])
 
     nbGOOD = len(goodpreds)
     metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
 
-    falseORduplicate = [j for j in list(range(1, nbPRED + 1)) if j not in goodpreds]
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
-    falseORduplicate = mapfiltered(predlabelmap, set(falseORduplicate))
-    visu = numpy.stack([falseORduplicate, goodpreds, goodbuilding])
+    perfect = goodbuilding * goodpreds
+    vert = goodbuilding + goodpreds - perfect
+    vert = vert / 2 + perfect / 2
 
+    rouge = (1 - goodpreds) * (z != 0)
+    bleu = (1 - goodbuilding) * (y != 0)
+
+    visu = numpy.stack([rouge, vert, bleu])
     return metric, visu
 
 
@@ -306,5 +314,10 @@ if __name__ == "__main__":
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
 
-    visu = computeInner(torch.Tensor(y))
-    torchvision.utils.save_image(visu, "build/inner.png")
+    z = PIL.Image.open(root + "19_z.png").convert("L").copy()
+    z = numpy.uint8(numpy.asarray(z))
+    z = numpy.uint8(z != 0)
+
+    metric, visu = compare(y, z)
+    print(metric)
+    torchvision.utils.save_image(torch.Tensor(visu), "build/compare.png")

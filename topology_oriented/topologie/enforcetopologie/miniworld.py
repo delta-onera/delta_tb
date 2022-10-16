@@ -238,9 +238,6 @@ class Deeplab(torch.nn.Module):
         return self.backend(x)["out"]
 
 
-import skimage
-
-
 def mapfiltered(spatialmap, setofvalue):
     def myfunction(i):
         return int(int(i) in setofvalue)
@@ -249,12 +246,32 @@ def mapfiltered(spatialmap, setofvalue):
     return myfunctionVector(spatialmap)
 
 
+def sortmap(spatialmap):
+    tmp = torch.Tensor(spatialmap)
+    nb = int(tmp.flatten().max())
+    tmp = sorted([(-(tmp == i).float().sum(), i) for i in range(1, nb + 1)])
+    valuemap = {}
+    valuemap[0] = 0
+    for i, (k, j) in enumerate(tmp):
+        valuemap[j] = i + 1
+
+    def myfunction(i):
+        return int(valuemap[int(i)])
+
+    myfunctionVector = numpy.vectorize(myfunction)
+    return myfunctionVector(spatialmap)
+
+
+import skimage
+
+
 def compare(y, z):
     assert len(y.shape) == 2 and len(z.shape) == 2
 
     vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
     predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
     vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
+    vtlabelmap, predlabelmap = sortmap(vtlabelmap), sortmap(predlabelmap)
 
     tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
     allmatch = set(zip(list(tmp1), list(tmp2)))
@@ -272,22 +289,23 @@ def compare(y, z):
         tmp = [j for j in preds if (i, j) in allmatch]
         if len(tmp) == 0:
             continue
-        tmp = [(numpy.sum(numpy.int16(predlabelmap == j)), j) for j in tmp]
-        tmp = sorted(tmp)
-        _, j = tmp[-1]
-        goodmatch.append((i, j))
+        goodmatch.append((i, tmp[0]))
         goodbuilding.append(i)
-        goodpreds.append(j)
+        goodpreds.append(tmp[0])
 
     nbGOOD = len(goodpreds)
     metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
 
-    falseORduplicate = [j for j in list(range(1, nbPRED + 1)) if j not in goodpreds]
     goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
     goodpreds = mapfiltered(predlabelmap, set(goodpreds))
-    falseORduplicate = mapfiltered(predlabelmap, set(falseORduplicate))
-    visu = numpy.stack([falseORduplicate, goodpreds, goodbuilding])
+    perfect = goodbuilding * goodpreds
+    vert = goodbuilding + goodpreds - perfect
+    vert = vert / 2 + perfect / 2
 
+    rouge = (1 - goodpreds) * (z != 0)
+    bleu = (1 - goodbuilding) * (y != 0)
+
+    visu = numpy.stack([rouge, vert, bleu])
     return metric, visu
 
 
