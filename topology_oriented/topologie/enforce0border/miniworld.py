@@ -9,11 +9,14 @@ import threading
 import torchvision
 
 
-def compute0border(y, size=2):
-    yy = torch.nn.functional.max_pool2d(
+def shortmaxpool(y, size=2):
+    return torch.nn.functional.max_pool2d(
         y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
     )[0]
-    return (yy != y).float()
+
+
+def compute0border(y, size=2):
+    return (shortmaxpool(y) == 1).float() * (y == 0).float()
 
 
 def confusion(y, z, D):
@@ -52,6 +55,13 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def smooth(y):
+    yy = 1 - y
+    yy = shortmaxpool(yy, size=1)  # erosion
+    y = 1 - yy
+    return shortmaxpool(y, size=1)  # dilatation
+
+
 class CropExtractor(threading.Thread):
     def __init__(self, path, tile=128):
         threading.Thread.__init__(self)
@@ -76,7 +86,7 @@ class CropExtractor(threading.Thread):
         label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label)
+            return pilTOtorch(image), smooth(torch.Tensor(label))
         else:
             return image, label
 
@@ -114,7 +124,7 @@ class CropExtractor(threading.Thread):
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
+                    x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
 
 
@@ -305,19 +315,3 @@ def perfinstance(metric):
     precision = nbGOOD / (nbPRED + 0.00001)
     gscore = recall * precision
     return gscore, recall, precision
-
-
-if __name__ == "__main__":
-    root = "build/"
-
-    y = PIL.Image.open(root + "19_y.png").convert("L").copy()
-    y = numpy.uint8(numpy.asarray(y))
-    y = numpy.uint8(y != 0)
-
-    z = PIL.Image.open(root + "19_z.png").convert("L").copy()
-    z = numpy.uint8(numpy.asarray(z))
-    z = numpy.uint8(z != 0)
-
-    metric, visu = compare(y, z)
-    print(metric)
-    torchvision.utils.save_image(torch.Tensor(visu), "build/compare.png")
