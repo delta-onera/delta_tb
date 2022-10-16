@@ -313,17 +313,16 @@ def perfinstance(metric):
     return gscore, recall, precision
 
 
-def inverseValue(y):
-    ym = torch.max(y.flatten())
-    return (ym + 1 - y) * (y != 0).float()
-
-
 def computecriticalborder2D(y, size=9):
     assert len(y.shape) == 2
     vtlabelmap = skimage.measure.label(y)
 
     vtlabelmap = torch.Tensor(vtlabelmap)
     vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
+
+    def inverseValue(y):
+        ym = torch.max(y.flatten())
+        return (ym + 1 - y) * (y != 0).float()
 
     Ivtlabelmap = inverseValue(vtlabelmap)
     IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
@@ -377,9 +376,9 @@ def computebuildingskeleton3D(y):
 
 
 if __name__ == "__main__":
-    root = "build/"
+    root = "/home/achanhon/github/potsdam/train/7_y.png"
 
-    y = PIL.Image.open(root + "2_y.png").convert("L").copy()
+    y = PIL.Image.open(root).convert("L").copy()
     y = numpy.uint8(numpy.asarray(y))
     y = numpy.uint8(y != 0)
     y = smooth(torch.Tensor(y))
