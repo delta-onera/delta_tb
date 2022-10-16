@@ -9,6 +9,12 @@ import threading
 import torchvision
 
 
+def shortmaxpool(y, size=2):
+    return torch.nn.functional.max_pool2d(
+        y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
+    )[0]
+
+
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
@@ -45,6 +51,13 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def smooth(y):
+    yy = 1 - y
+    yy = shortmaxpool(yy, size=1)  # erosion
+    y = 1 - yy
+    return shortmaxpool(y, size=1)  # dilatation
+
+
 class CropExtractor(threading.Thread):
     def __init__(self, path, tile=128):
         threading.Thread.__init__(self)
@@ -69,7 +82,7 @@ class CropExtractor(threading.Thread):
         label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label)
+            return pilTOtorch(image), smooth(torch.Tensor(label))
         else:
             return image, label
 
@@ -107,7 +120,7 @@ class CropExtractor(threading.Thread):
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
+                    x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
 
 
