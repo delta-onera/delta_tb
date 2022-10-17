@@ -23,7 +23,7 @@ dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
-    x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
+    x, D = x.cuda(), torch.ones(y.shape).cuda()
 
     z = net(x=x, y=y)
 
@@ -32,7 +32,7 @@ for i in range(nbbatchs):
 
     with torch.no_grad():
         printloss += loss.clone().detach()
-        z = net(x=x)
+        y, z = y.cuda(), net(x=x)
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         stats += miniworld.confusion(y, z, D)
 

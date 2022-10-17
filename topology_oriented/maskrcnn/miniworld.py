@@ -353,13 +353,9 @@ def computebuildingskeleton3D(y):
 def getboundingbox(y):
     if (y != 0).float().sum() == 0:
         return None
-    coords = y.nonzero()
-    return (
-        coords[:, 0].min(),
-        coords[:, 1].min(),
-        coords[:, 0].max() + 1,
-        coords[:, 1].max() + 1,
-    )
+    bb = y.nonzero()
+    bb = bb[:, 0].min(), bb[:, 1].min(), bb[:, 0].max() + 1, bb[:, 1].max() + 1
+    return torch.Tensor(list(bb))
 
 
 class MaskRCNN(torch.nn.Module):
@@ -374,25 +370,25 @@ class MaskRCNN(torch.nn.Module):
         vt = [dict() for i in range(len(x))]
 
         for i in range(len(x)):
-            labels = torch.ones(nbVT).long()
-            boxes = torch.Tensor(nbVT, 4)
+            vtlabelmap = skimage.measure.label(y[i].numpy())
+            vtlabelmap = torch.Tensor(vtlabelmap)
+            nbVT = int(vtlabelmap.flatten().max())
+            labels, boxes = torch.ones(nbVT).long(), torch.Tensor(nbVT, 4)
             masks = torch.zeros(nbVT, y.shape[1], y.shape[2])
 
-            vtlabelmap, nbVT = skimage.measure.label(y[i], return_num=True)
             for j in range(nbVT):
                 masks[j] = vtlabelmap == j + 1
-                boxes[boxes_[j].label] = getboundingbox(masks[j])
+                boxes[j] = getboundingbox(masks[j])
             masks = masks.type(torch.uint8)
 
-            vt[i]["boxes"] = boxes
-            vt[i]["labels"] = labels
-            vt[i]["masks"] = masks
-
+            vt[i]["boxes"] = boxes.cuda()
+            vt[i]["labels"] = labels.cuda()
+            vt[i]["masks"] = masks.cuda()
         return self.backend(x, targets=vt)
 
     def test(self, x):
         tmp = self.backend([x[0] / 255])[0]
-        z = torch.zeros(x.shape[2], x.shape[3])
+        z = torch.zeros(x.shape[2], x.shape[3]).cuda()
         masks = tmp["masks"]
         for i in range(masks.shape[0]):
             z += (masks[i] - 0.5).float()
@@ -403,8 +399,8 @@ class MaskRCNN(torch.nn.Module):
         if x is None:
             return None
         if y is None:
-            self.backend.train()
-            return self.train(x, y)
-        else:
             self.backend.eval()
             return self.test(x)
+        else:
+            self.backend.train()
+            return self.train(x, y)
