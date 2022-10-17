@@ -388,7 +388,7 @@ class MaskRCNN(torch.nn.Module):
 
     def testsingle(self, x):
         tmp = self.backend([x / 255])[0]
-        z = torch.zeros(x.shape[2], x.shape[3]).cuda()
+        z = torch.zeros(x.shape[1], x.shape[2]).cuda()
         masks = tmp["masks"]
         for i in range(masks.shape[0]):
             z += (masks[i][0] - 0.5).float()
