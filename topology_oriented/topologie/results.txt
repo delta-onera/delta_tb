@@ -1,0 +1,29 @@
+########### TEST AVEC MOBILENET ###########
+
+Avec standard et enforceInner, on a beaucoup trop de blobs qui passent la composante connexe d'à coté. Ce qui donne des résultats catastrophiques comme : 
+tensor([[1.8966e+08, 1.0990e+06],
+        [4.0902e+06, 1.3584e+07]], device='cuda:0')
+tensor([84.8477, 97.5104, 97.3368, 72.3587])
+tensor([ 8186., 23074., 14743.,  6373.])
+(tensor(0.1970), tensor(0.3548), tensor(0.5552))
+
+Inversement, avec enforce0border et enforcetopologie, on diminue fortement ces fausses alarmes :
+tensor([[1.9356e+08, 5.8634e+06],
+        [1.9109e+05, 8.8197e+06]], device='cuda:0')
+tensor([78.1312, 97.0952, 96.9669, 59.2955])
+tensor([18368., 23074., 22566.,  1924.])
+(tensor(0.6480), tensor(0.7960), tensor(0.8140))
+
+et
+
+tensor([[1.9296e+08, 4.1308e+06],
+        [7.8788e+05, 1.0552e+07]], device='cuda:0')
+tensor([82.8607, 97.6402, 97.5143, 68.2072])
+tensor([19062., 23074., 24387.,  4145.])
+(tensor(0.6457), tensor(0.8261), tensor(0.7816))
+
+je pense que enforcetopologie pourrait être mieux régler car c'est quand même bizarre qu'on ait autant de fausses alarmes avec enforce inner
+
+indépendamment dans les 2 cas, on n'arrive pas à converger en train => pertinent de passer sur un plus gros modèle
+
+
