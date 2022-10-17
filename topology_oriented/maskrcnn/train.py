@@ -47,7 +47,8 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
 
-    z = net(x)
+    z = net(x, y)
+    #'loss_classifier', 'loss_box_reg', 'loss_mask', 'loss_objectness', 'loss_rpn_box_reg'
 
     CE = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
