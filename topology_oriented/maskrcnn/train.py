@@ -6,7 +6,8 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
+root = "/home/achanhon/github/potsdam/train/"
+dataset = miniworld.CropExtractor(root, tile=256)
 
 print("define model")
 net = miniworld.MaskRCNN()
@@ -17,7 +18,7 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
-batchsize = 2
+batchsize = 16
 nbbatchs = 75000
 dataset.start()
 
