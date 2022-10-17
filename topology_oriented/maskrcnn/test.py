@@ -13,7 +13,6 @@ print("load model")
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.cuda()
-    net.eval()
 
 print("test")
 
@@ -22,7 +21,7 @@ def largeforward(net, image, tilesize=512, stride=256):
     pred = torch.zeros(2, image.shape[2], image.shape[3]).cuda()
     for row in range(0, image.shape[2] - tilesize + 1, stride):
         for col in range(0, image.shape[3] - tilesize + 1, stride):
-            tmp = net(image[:, row : row + tilesize, col : col + tilesize])
+            tmp = net(x=image[:, row : row + tilesize, col : col + tilesize])
             pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
     return pred
 

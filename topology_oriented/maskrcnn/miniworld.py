@@ -364,7 +364,7 @@ def getboundingbox(y):
 
 class MaskRCNN(torch.nn.Module):
     def __init__(self):
-        super(Mobilenet, self).__init__()
+        super(MaskRCNN, self).__init__()
         self.backend = torchvision.models.detection.maskrcnn_resnet50_fpn(
             trainable_backbone_layers=True, weights=None
         )
@@ -388,7 +388,7 @@ class MaskRCNN(torch.nn.Module):
             vt[i]["labels"] = labels
             vt[i]["masks"] = masks
 
-        return self.backend(x, vt)
+        return self.backend(x, targets=vt)
 
     def test(self, x):
         tmp = self.backend([x[0] / 255])[0]
@@ -399,10 +399,12 @@ class MaskRCNN(torch.nn.Module):
         z = z.unsqueeze(0)
         return torch.stack([-z, z], dim=1)
 
-    def forward(self, x, y=None):
+    def forward(self, x=None, y=None):
+        if x is None:
+            return None
         if y is None:
             self.backend.train()
             return self.train(x, y)
         else:
-            self.backend.train()
+            self.backend.eval()
             return self.test(x)

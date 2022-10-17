@@ -9,16 +9,15 @@ print("load data")
 dataset = miniworld.CropExtractor("/home/achanhon/github/potsdam/train/")
 
 print("define model")
-net = miniworld.Mobilenet()
+net = miniworld.MaskRCNN()
 net = net.cuda()
-net.train()
 
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
-batchsize = 32
+batchsize = 2
 nbbatchs = 75000
 dataset.start()
 
@@ -26,13 +25,14 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
 
-    z = net(x, y)
+    z = net(x=x, y=y)
 
     loss = z["loss_objectness"] + z["loss_mask"] + z["loss_rpn_box_reg"]
     loss = loss + z["loss_classifier"] * 0.001 + z["loss_box_reg"] * 0.1
 
     with torch.no_grad():
         printloss += loss.clone().detach()
+        z = net(x=x)
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
         stats += miniworld.confusion(y, z, D)
 
