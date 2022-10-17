@@ -362,7 +362,7 @@ class MaskRCNN(torch.nn.Module):
     def __init__(self):
         super(MaskRCNN, self).__init__()
         self.backend = torchvision.models.detection.maskrcnn_resnet50_fpn(
-            trainable_backbone_layers=True, weights=None
+            trainable_backbone_layers=True, weights="DEFAULT"
         )
 
     def train(self, x, y):
