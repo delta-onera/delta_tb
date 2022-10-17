@@ -9,6 +9,12 @@ import threading
 import torchvision
 
 
+def shortmaxpool(y, size=2):
+    return torch.nn.functional.max_pool2d(
+        y.unsqueeze(0), kernel_size=2 * size + 1, stride=1, padding=size
+    )[0]
+
+
 def confusion(y, z, D):
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
@@ -45,6 +51,13 @@ def symetrie(x, y, ijk):
     return x.copy(), y.copy()
 
 
+def smooth(y):
+    yy = 1 - y
+    yy = shortmaxpool(yy, size=1)  # erosion
+    y = 1 - yy
+    return shortmaxpool(y, size=1)  # dilatation
+
+
 class CropExtractor(threading.Thread):
     def __init__(self, path, tile=128):
         threading.Thread.__init__(self)
@@ -69,7 +82,7 @@ class CropExtractor(threading.Thread):
         label = numpy.uint8(label != 0)
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label)
+            return pilTOtorch(image), smooth(torch.Tensor(label))
         else:
             return image, label
 
@@ -107,7 +120,7 @@ class CropExtractor(threading.Thread):
                     im = image[r : r + tilesize, c : c + tilesize, :]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
+                    x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
 
 
@@ -196,14 +209,200 @@ def getMiniworld(flag, root="/scratchf/miniworld/", tile=128):
     return MiniWorld(infos, root, flag, tile=tile)
 
 
-class Mobilenet(torch.nn.Module):
+def mapfiltered(spatialmap, setofvalue):
+    def myfunction(i):
+        return int(int(i) in setofvalue)
+
+    myfunctionVector = numpy.vectorize(myfunction)
+    return myfunctionVector(spatialmap)
+
+
+def sortmap(spatialmap):
+    tmp = torch.Tensor(spatialmap)
+    nb = int(tmp.flatten().max())
+    tmp = sorted([(-(tmp == i).float().sum(), i) for i in range(1, nb + 1)])
+    valuemap = {}
+    valuemap[0] = 0
+    for i, (k, j) in enumerate(tmp):
+        valuemap[j] = i + 1
+
+    def myfunction(i):
+        return int(valuemap[int(i)])
+
+    myfunctionVector = numpy.vectorize(myfunction)
+    return myfunctionVector(spatialmap)
+
+
+import skimage
+
+
+def compare(y, z):
+    assert len(y.shape) == 2 and len(z.shape) == 2
+
+    vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
+    predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
+    vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
+    vtlabelmap, predlabelmap = sortmap(vtlabelmap), sortmap(predlabelmap)
+
+    tmp1, tmp2 = vtlabelmap.flatten(), predlabelmap.flatten()
+    allmatch = set(zip(list(tmp1), list(tmp2)))
+
+    falsealarm = []
+    for j in preds:
+        if len([i for i in vts if (i, j) in allmatch]) != 1:
+            falsealarm.append(j)
+    falsealarm = set(falsealarm)
+    nbFalseAlarms = len(falsealarm)
+    preds = set([j for j in preds if j not in falsealarm])
+
+    goodmatch, goodbuilding, goodpreds = [], [], []
+    for i in vts:
+        tmp = [j for j in preds if (i, j) in allmatch]
+        if len(tmp) == 0:
+            continue
+        goodmatch.append((i, tmp[0]))
+        goodbuilding.append(i)
+        goodpreds.append(tmp[0])
+
+    nbGOOD = len(goodpreds)
+    metric = torch.Tensor([nbGOOD, nbVT, nbPRED, nbFalseAlarms])
+
+    goodbuilding = mapfiltered(vtlabelmap, set(goodbuilding))
+    goodpreds = mapfiltered(predlabelmap, set(goodpreds))
+    perfect = goodbuilding * goodpreds
+    vert = goodbuilding + goodpreds - perfect
+    vert = vert / 2 + perfect / 2
+
+    rouge = (1 - goodpreds) * (z != 0)
+    bleu = (1 - goodbuilding) * (y != 0)
+
+    visu = numpy.stack([rouge, vert, bleu])
+    return metric, visu
+
+
+def perfinstance(metric):
+    nbGOOD, nbVT, nbPRED, nbFalseAlarms = metric
+    recall = nbGOOD / (nbVT + 0.00001)
+    precision = nbGOOD / (nbPRED + 0.00001)
+    gscore = recall * precision
+    return gscore, recall, precision
+
+
+def computecriticalborder2D(y, size=9):
+    assert len(y.shape) == 2
+    vtlabelmap = skimage.measure.label(y)
+
+    vtlabelmap = torch.Tensor(vtlabelmap)
+    vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
+
+    def inverseValue(y):
+        ym = torch.max(y.flatten())
+        return (ym + 1 - y) * (y != 0).float()
+
+    Ivtlabelmap = inverseValue(vtlabelmap)
+    IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
+    vtlabelmapEbis = inverseValue(IvtlabelmapE)
+
+    out = (vtlabelmap == 0).float() * (vtlabelmapEbis != vtlabelmapE).float()
+    return torch.Tensor(out)
+
+
+def computecriticalborder3D(y, size=9):
+    assert len(y.shape) == 3
+    yy = [computecriticalborder2D(y[i], size=size) for i in range(y.shape[0])]
+    return torch.stack(yy, dim=0).cuda()
+
+
+def computebuildingskeleton2D(y):
+    assert len(y.shape) == 2
+    skeleton = skimage.morphology.skeletonize(y)
+
+    huitV = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    for k in range(2):
+        row, col = skeleton.nonzero()
+        rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
+        rowcol = set(rowcol)
+
+        notborderskeleton = []
+        for row, col in rowcol:
+            voisin = [1 for dr, dc in huitV if (row + dr, col + dc) in rowcol]
+            voisin = sum(voisin)
+            if voisin > 1:
+                notborderskeleton.append((row, col))
+        skeleton = numpy.zeros(skeleton.shape)
+        for row, col in notborderskeleton:
+            skeleton[row][col] = 1
+
+    skeleton = torch.Tensor(skeleton)
+    skeleton = shortmaxpool(skeleton, size=1)
+
+    y = torch.Tensor(y)
+    yy = 1 - shortmaxpool(1 - y, size=1)
+    skeleton = skeleton * (yy == 1).float()
+
+    yyy = 1 - shortmaxpool(1 - y, size=7)
+    return 0.1 * (yyy != 0) + skeleton
+
+
+def computebuildingskeleton3D(y):
+    assert len(y.shape) == 3
+    yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
+    return torch.stack(yy, dim=0).cuda()
+
+
+def getboundingbox(y):
+    if (y != 0).float().sum() == 0:
+        return None
+    coords = y.nonzero()
+    return (
+        coords[:, 0].min(),
+        coords[:, 1].min(),
+        coords[:, 0].max() + 1,
+        coords[:, 1].max() + 1,
+    )
+
+
+class MaskRCNN(torch.nn.Module):
     def __init__(self):
         super(Mobilenet, self).__init__()
-        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
-            weights="DEFAULT"
+        self.backend = torchvision.models.detection.maskrcnn_resnet50_fpn(
+            trainable_backbone_layers=True, weights="DEFAULT"
         )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 2, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
 
-    def forward(self, x):
-        return self.backend(x)["out"]
+    def train(self, x, y):
+        x = [x[i] / 255 for i in range(x.shape[0])]
+        vt = [dict() for i in range(len(x))]
+
+        for i in range(len(x)):
+            labels = torch.ones(nbVT).long()
+            boxes = torch.Tensor(nbVT, 4)
+            masks = torch.zeros(nbVT, y.shape[1], y.shape[2])
+
+            vtlabelmap, nbVT = skimage.measure.label(y[i], return_num=True)
+            for j in range(nbVT):
+                masks[j] = vtlabelmap == j + 1
+                boxes[boxes_[j].label] = getboundingbox(masks[j])
+            masks = masks.type(torch.uint8)
+
+            vt[i]["boxes"] = boxes
+            vt[i]["labels"] = labels
+            vt[i]["masks"] = masks
+
+        return self.backend(x, vt)
+
+    def test(self, x):
+        tmp = self.backend([x[0] / 255])[0]
+        z = torch.zeros(x.shape[2], x.shape[3])
+        masks = tmp["masks"]
+        for i in range(masks.shape[0]):
+            z += (masks[i] - 0.5).float()
+        z = z.unsqueeze(0)
+        return torch.stack([-z, z], dim=1)
+
+    def forward(self, x, y=None):
+        if y is None:
+            self.backend.train()
+            return self.train(x, y)
+        else:
+            self.backend.train()
+            return self.test(x)
