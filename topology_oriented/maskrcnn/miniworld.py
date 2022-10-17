@@ -388,11 +388,10 @@ class MaskRCNN(torch.nn.Module):
 
     def test(self, x):
         tmp = self.backend([x[0] / 255])[0]
-        z = torch.zeros(x.shape[2], x.shape[3]).cuda()
+        z = torch.zeros(1, x.shape[2], x.shape[3]).cuda()
         masks = tmp["masks"]
         for i in range(masks.shape[0]):
             z += (masks[i] - 0.5).float()
-        z = z.unsqueeze(0)
         return torch.stack([-z, z], dim=1)
 
     def forward(self, x=None, y=None):
