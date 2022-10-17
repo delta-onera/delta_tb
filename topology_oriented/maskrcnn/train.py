@@ -22,37 +22,14 @@ batchsize = 32
 nbbatchs = 75000
 dataset.start()
 
-
-def crossentropy(y, z, D):
-    tmp = torch.nn.CrossEntropyLoss(reduction="none")
-    rawloss = tmp(z, y.long())
-    return (rawloss * D).mean()
-
-
-def diceloss(y, z, D):
-    eps = 0.00001
-    z = z.softmax(dim=1)
-    z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
-    y0, y1 = (y == 0).float(), (y == 1).float()
-
-    inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
-    union0, union1 = ((y0 + z1 * y0) * D).sum(), ((y1 + z0 * y1) * D).sum()
-    iou0, iou1 = (inter0 + eps) / (union0 + eps), (inter1 + eps) / (union1 + eps)
-    iou = 0.5 * (iou0 + iou1)
-
-    return 1 - iou
-
-
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
 
     z = net(x, y)
-    #'loss_classifier', 'loss_box_reg', 'loss_mask', 'loss_objectness', 'loss_rpn_box_reg'
 
-    CE = crossentropy(y, z, D)
-    dice = diceloss(y, z, D)
-    loss = CE + dice
+    loss = z["loss_objectness"] + z["loss_mask"] + z["loss_rpn_box_reg"]
+    loss = loss + z["loss_classifier"] * 0.001 + z["loss_box_reg"] * 0.1
 
     with torch.no_grad():
         printloss += loss.clone().detach()
