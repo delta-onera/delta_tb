@@ -36,12 +36,9 @@ with torch.no_grad():
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
         power2resize = torch.nn.AdaptiveAvgPool2d(((h // 256) * 256, (w // 256) * 256))
         x = power2resize(x)
-
-        print(x.shape)
-
         z = largeforward(net, x)
-        print((z[1, :, :] > 0).float().sum())
         z = globalresize(z)
+
         z = (z[1, :, :] > z[0, :, :]).float()
 
         cm += miniworld.confusion(y, z, D)
