@@ -40,6 +40,7 @@ with torch.no_grad():
         print(x.shape)
 
         z = largeforward(net, x)
+        print((z[1, :, :] != 0).float().sum())
         z = globalresize(z)
         z = (z[1, :, :] > z[0, :, :]).float()
 
