@@ -21,7 +21,7 @@ def largeforward(net, image, tilesize=512, stride=256):
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
             tmp = net(x=image[:, row : row + tilesize, col : col + tilesize])
-            pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
+            pred[:, row : row + tilesize, col : col + tilesize] += tmp
     return pred
 
 
@@ -42,7 +42,7 @@ with torch.no_grad():
         z = largeforward(net, x)
         print((z[1, :, :] > 0).float().sum())
         z = globalresize(z)
-        z = (z[1, :, :] > 0 * z[0, :, :]).float()
+        z = (z[1, :, :] > z[0, :, :]).float()
 
         cm += miniworld.confusion(y, z, D)
         metric, visu = miniworld.compare(y.cpu().numpy(), z.cpu().numpy())
