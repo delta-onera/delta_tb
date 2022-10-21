@@ -42,7 +42,7 @@ with torch.no_grad():
         z = largeforward(net, x)
         print((z[1, :, :] != 0).float().sum())
         z = globalresize(z)
-        z = (z[1, :, :] > z[0, :, :]).float()
+        z = (z[1, :, :] > 0 * z[0, :, :]).float()
 
         cm += miniworld.confusion(y, z, D)
         metric, visu = miniworld.compare(y.cpu().numpy(), z.cpu().numpy())
