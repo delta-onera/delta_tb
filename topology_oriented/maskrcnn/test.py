@@ -34,7 +34,7 @@ with torch.no_grad():
 
         h, w = y.shape[0], y.shape[1]
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
-        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
+        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 256) * 256, (w // 256) * 256))
         x = power2resize(x)
 
         z = largeforward(net, x)
