@@ -388,6 +388,7 @@ class MaskRCNN(torch.nn.Module):
 
     def testsingle(self, x):
         tmp = self.backend([x / 255])[0]
+        tmp["boxes"] = tmp["boxes"].long()
 
         print(tmp)
         quit()
