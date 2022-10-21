@@ -388,6 +388,10 @@ class MaskRCNN(torch.nn.Module):
 
     def testsingle(self, x):
         tmp = self.backend([x / 255])[0]
+
+        print(tmp)
+        quit()
+
         z = torch.zeros(x.shape[1], x.shape[2]).cuda()
         masks = tmp["masks"]
         for i in range(masks.shape[0]):
