@@ -391,7 +391,7 @@ class MaskRCNN(torch.nn.Module):
         z = z["masks"][:, 0, :, :]
         _, z = z.max(0)
         z = z - 0.5
-        print((z[:, :] > 0).float().sum())
+        print((z > 0).float().sum())
         return torch.stack([-z, z], dim=0)
 
     def test(self, x):
