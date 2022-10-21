@@ -393,8 +393,7 @@ class MaskRCNN(torch.nn.Module):
         masks = tmp["masks"]
         for i in range(masks.shape[0]):
             z += masks[i][0]
-        z = z - 0.5
-        return torch.stack([-z, z], dim=0)
+        return torch.stack([torch.ones(z.shape) / 2, z], dim=0)
 
     def test(self, x):
         if len(x.shape) == 3:
