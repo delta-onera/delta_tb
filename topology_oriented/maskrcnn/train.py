@@ -15,15 +15,16 @@ net = net.cuda()
 
 
 print("train")
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
-batchsize = 16
+batchsize = 4
 nbbatchs = 75000
 dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
+    x[:, 0, :, :] = y  # les toits rouges de toulouse XD
     x, D = x.cuda(), torch.ones(y.shape).cuda()
 
     z = net(x=x, y=y)
