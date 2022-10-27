@@ -377,7 +377,7 @@ class MaskRCNN(torch.nn.Module):
             masks = torch.zeros(nbVT, y.shape[1], y.shape[2])
 
             for j in range(nbVT):
-                masks[j] = vtlabelmap == j + 1
+                masks[j] = vtlabelmap == (j + 1)
                 boxes[j] = getboundingbox(masks[j])
             masks = masks.type(torch.uint8)
 
@@ -392,10 +392,21 @@ class MaskRCNN(torch.nn.Module):
         z = z.sum(0) - 0.5
         return torch.stack([-z, z], dim=0)
 
+    def rahh(self, x):
+        z = self.backend([x / 255])[0]
+        boxes = z["boxes"]
+        scores = z["scores"]
+        z = -torch.ones(x.shape[1], x.shape[2])
+        for i in range(scores.shape[0]):
+            if scores[i] > 0.5:
+                z[boxes[i][0] : boxes[i][2], boxes[i][1] : boxes[i][3]] = 1
+        return torch.stack([-z, z], dim=0)
+
     def test(self, x):
         if len(x.shape) == 3:
             return self.testsingle(x)
-        z = [self.testsingle(x[i]) for i in range(x.shape[0])]
+        # z = [self.testsingle(x[i]) for i in range(x.shape[0])]
+        z = [self.rahh(x[i]) for i in range(x.shape[0])]
         return torch.stack(z, dim=0)
 
     def forward(self, x=None, y=None):
