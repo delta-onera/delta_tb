@@ -405,9 +405,9 @@ class MaskRCNN(torch.nn.Module):
 
     def test(self, x):
         if len(x.shape) == 3:
-            return self.testsingle(x)
-        # z = [self.testsingle(x[i]) for i in range(x.shape[0])]
-        z = [self.rahh(x[i]) for i in range(x.shape[0])]
+            # return self.testsingle(x)
+            return self.rahh(x[i])
+        z = [self.testsingle(x[i]) for i in range(x.shape[0])]
         return torch.stack(z, dim=0)
 
     def forward(self, x=None, y=None):
