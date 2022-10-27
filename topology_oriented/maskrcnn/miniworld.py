@@ -396,6 +396,7 @@ class MaskRCNN(torch.nn.Module):
         z = self.backend([x / 255])[0]
         boxes = z["boxes"]
         scores = z["scores"]
+        print(boxes.shape)
         z = -torch.ones(x.shape[1], x.shape[2])
         for i in range(scores.shape[0]):
             if scores[i] > 0.5:
