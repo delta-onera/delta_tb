@@ -397,7 +397,7 @@ class MaskRCNN(torch.nn.Module):
         boxes = z["boxes"]
         scores = z["scores"]
         print(boxes.shape)
-        z = -torch.ones(x.shape[1], x.shape[2])
+        z = -torch.ones(x.shape[1], x.shape[2]).cuda()
         for i in range(scores.shape[0]):
             if scores[i] > 0.5:
                 z[boxes[i][0] : boxes[i][2], boxes[i][1] : boxes[i][3]] = 1
