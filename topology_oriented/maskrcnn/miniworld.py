@@ -373,7 +373,7 @@ class MaskRCNN(torch.nn.Module):
             vtlabelmap = skimage.measure.label(y[i].numpy())
             vtlabelmap = torch.Tensor(vtlabelmap)
             nbVT = int(vtlabelmap.flatten().max())
-            labels, boxes = torch.ones(nbVT).long(), torch.Tensor(nbVT, 4)
+            labels, boxes = torch.ones(nbVT).long(), torch.zeros(nbVT, 4)
             masks = torch.zeros(nbVT, y.shape[1], y.shape[2])
 
             for j in range(nbVT):
@@ -403,7 +403,7 @@ class MaskRCNN(torch.nn.Module):
         z = -torch.ones(x.shape[1], x.shape[2]).cuda()
         for i in range(10):
             print(tmp[i])
-            z[tmp[i][0] : tmp[i][2], tmp[i][1] : tmp[i][3]] = 1
+            z[tmp[i][1] : tmp[i][3], tmp[i][0] : tmp[i][2]] = 1
         return torch.stack([-z, z], dim=0)
 
     def test(self, x):
