@@ -394,7 +394,7 @@ class MaskRCNN(torch.nn.Module):
 
     def rahh(self, x):
         z = self.backend([x / 255])[0]
-        boxes = z["boxes"]
+        boxes = z["boxes"].long()
         scores = z["scores"]
         tmp = [(-scores[i], boxes[i]) for i in range(boxes.shape[0])]
         tmp = sorted(tmp)
