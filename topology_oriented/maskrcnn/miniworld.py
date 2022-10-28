@@ -389,27 +389,12 @@ class MaskRCNN(torch.nn.Module):
     def testsingle(self, x):
         z = self.backend([x / 255])[0]
         z = z["masks"][:, 0, :, :].float()
-        z = z.sum(0) - 0.5
-        return torch.stack([-z, z], dim=0)
-
-    def rahh(self, x):
-        z = self.backend([x / 255])[0]
-        boxes = z["boxes"].long()
-        scores = z["scores"]
-        tmp = [(-scores[i], boxes[i]) for i in range(boxes.shape[0])]
-        tmp = sorted(tmp)
-        tmp = [box for (_, box) in tmp]
-
-        z = -torch.ones(x.shape[1], x.shape[2]).cuda()
-        for i in range(10):
-            print(tmp[i])
-            z[tmp[i][1] : tmp[i][3], tmp[i][0] : tmp[i][2]] = 1
+        z = z.max(0)[0] - 0.5
         return torch.stack([-z, z], dim=0)
 
     def test(self, x):
         if len(x.shape) == 3:
             return self.testsingle(x)
-            return self.rahh(x)
         z = [self.testsingle(x[i]) for i in range(x.shape[0])]
         return torch.stack(z, dim=0)
 
