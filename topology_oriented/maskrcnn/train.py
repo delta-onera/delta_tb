@@ -24,7 +24,7 @@ dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
-    x[:, 0, :, :] = y  # les toits rouges de toulouse XD
+    x[:, 0, :, :] = y * 255  # les toits rouges de toulouse XD
     x, D = x.cuda(), torch.ones(y.shape).cuda()
 
     z = net(x=x, y=y)
