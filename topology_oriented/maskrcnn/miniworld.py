@@ -354,7 +354,7 @@ def getboundingbox(y):
     if (y != 0).float().sum() == 0:
         return None
     bb = y.nonzero()
-    bb = bb[:, 0].min(), bb[:, 1].min(), bb[:, 0].max() + 1, bb[:, 1].max() + 1
+    bb = bb[:, 1].min(), bb[:, 0].min(), bb[:, 1].max() + 1, bb[:, 0].max() + 1
     return torch.Tensor(list(bb))
 
 
