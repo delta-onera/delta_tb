@@ -396,11 +396,13 @@ class MaskRCNN(torch.nn.Module):
         z = self.backend([x / 255])[0]
         boxes = z["boxes"]
         scores = z["scores"]
-        print(boxes.shape)
+        tmp = [(-scores[i], boxes[i]) for i in range(boxes.shape[0])]
+        tmp = sorted(tmp)
+        tmp = [box for (_, box) in tmp]
+
         z = -torch.ones(x.shape[1], x.shape[2]).cuda()
-        for i in range(scores.shape[0]):
-            if scores[i] > 0.5:
-                z[boxes[i][0] : boxes[i][2], boxes[i][1] : boxes[i][3]] = 1
+        for i in range(10):
+            z[tmp[i][0] : tmp[i][2], tmp[i][1] : tmp[i][3]] = 1
         return torch.stack([-z, z], dim=0)
 
     def test(self, x):
