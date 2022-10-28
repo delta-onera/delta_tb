@@ -402,6 +402,7 @@ class MaskRCNN(torch.nn.Module):
 
         z = -torch.ones(x.shape[1], x.shape[2]).cuda()
         for i in range(10):
+            print(tmp[i])
             z[tmp[i][0] : tmp[i][2], tmp[i][1] : tmp[i][3]] = 1
         return torch.stack([-z, z], dim=0)
 
