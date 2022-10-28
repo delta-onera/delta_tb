@@ -30,7 +30,6 @@ with torch.no_grad():
     instance = torch.zeros(4)
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
-        x[0, :, :] = y * 255  # les toits rouges de toulouse XD
         x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
 
         h, w = y.shape[0], y.shape[1]
