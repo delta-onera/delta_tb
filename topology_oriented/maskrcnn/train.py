@@ -6,7 +6,7 @@ import miniworld
 assert torch.cuda.is_available()
 
 print("load data")
-root = "/scratchf/miniworld/potsdam/train/"
+root = "/scratchf/miniworld/christchurch/train/"
 dataset = miniworld.CropExtractor(root, tile=256)
 
 print("define model")
