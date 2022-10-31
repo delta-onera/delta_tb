@@ -393,7 +393,10 @@ class MaskRCNN(torch.nn.Module):
     def testsingle(self, x):
         z = self.backend([x / 255])[0]
         if z["masks"].shape[0] == 0:
-            return -torch.ones(x.shape[1], x.shape[2]).cuda()
+            tmp = torch.zeros(2, x.shape[1], x.shape[2]).cuda()
+            tmp[0] = 1
+            tmp[1] = -1
+            return tmp
 
         z = z["masks"][:, 0, :, :].float()
         z = z.max(0)[0] - 0.5
