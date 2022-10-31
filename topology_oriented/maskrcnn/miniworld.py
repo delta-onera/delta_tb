@@ -121,6 +121,8 @@ class CropExtractor(threading.Thread):
                     mask = label[r : r + tilesize, c : c + tilesize]
                     if numpy.sum(numpy.int64(mask != 0)) == 0:
                         continue
+                    if numpy.sum(numpy.int64(mask == 0)) == 0:
+                        continue
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
                     x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
