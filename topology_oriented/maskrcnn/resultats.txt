@@ -1,0 +1,27 @@
+resultats sur potsdam
+la carte est pas mal mais ça fait pas du tout de l'instance !!!
+
+
+39599 / 75000 tensor([0.1676], device='cuda:0')
+39899 / 75000 tensor([0.1704], device='cuda:0')
+39999 perf tensor([93.4750, 97.4766, 96.7085, 90.2415])
+40199 / 75000 tensor([0.1642], device='cuda:0')
+40499 / 75000 tensor([0.1720], device='cuda:0')
+40799 / 75000 tensor([0.1743], device='cuda:0')
+40999 perf tensor([93.4684, 97.4697, 96.6969, 90.2399])
+41099 / 75000 tensor([0.1724], device='cuda:0')
+41399 / 75000 tensor([0.1725], device='cuda:0')
+41699 / 75000 tensor([0.1749], device='cuda:0')
+41999 / 75000 tensor([0.1733], device='cuda:0')
+41999 perf tensor([93.3986, 97.4357, 96.6495, 90.1477])
+42299 / 75000 tensor([0.1736], device='cuda:0')
+42599 / 75000 tensor([0.1733], device='cuda:0')
+Terminated
+load data
+load model
+test
+tensor([[2027954.,  118459.],
+        [ 439485., 1014102.]], device='cuda:0')
+tensor([71.4660, 84.5015, 78.4236, 64.5084])
+tensor([124., 336., 239.,  96.])
+(tensor(0.1915), tensor(0.3690), tensor(0.5188))
