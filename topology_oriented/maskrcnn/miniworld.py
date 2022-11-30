@@ -222,12 +222,12 @@ def mapfiltered(spatialmap, setofvalue):
 
 
 def removeSmallBlob(label):
-    maxV = label.long().flatten().max()
+    maxV = label.flatten().max()
     for i in range(maxV):
         tmp = (label == (i + 1)).float().sum()
         if tmp < 30:
             label = label * (label != (i + 1)).float()
-    return label
+    return label.long()
 
 
 def sortmap(spatialmap):
