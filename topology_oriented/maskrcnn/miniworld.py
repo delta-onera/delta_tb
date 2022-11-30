@@ -65,7 +65,7 @@ def smooth(y):
             tmp = (label == (i + 1)).float().sum()
             if tmp < 30:
                 y = y * (label != (i + 1)).float()
-    return y
+        return y
 
 
 class CropExtractor(threading.Thread):
@@ -302,14 +302,14 @@ def perfinstance(metric):
 def computecriticalborder2D(y, size=9):
     assert len(y.shape) == 2
 
-    vtlabelmap = skimage.measure.label(y)
-    vtlabelmap = torch.Tensor(vtlabelmap)
-    with torch.no_grad():
-        vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
-
     def inverseValue(y):
         ym = torch.max(y.flatten())
         return (ym + 1 - y) * (y != 0).float()
+
+    vtlabelmap = skimage.measure.label(y)
+    vtlabelmap = torch.Tensor(vtlabelmap)
+
+    vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
 
     Ivtlabelmap = inverseValue(vtlabelmap)
     IvtlabelmapE = shortmaxpool(Ivtlabelmap, size=size)
@@ -321,8 +321,9 @@ def computecriticalborder2D(y, size=9):
 
 def computecriticalborder3D(y, size=9):
     assert len(y.shape) == 3
-    yy = [computecriticalborder2D(y[i], size=size) for i in range(y.shape[0])]
-    return torch.stack(yy, dim=0).cuda()
+    with torch.no_grad():
+        yy = [computecriticalborder2D(y[i], size=size) for i in range(y.shape[0])]
+        return torch.stack(yy, dim=0).cuda()
 
 
 def computebuildingskeleton2D(y):
@@ -358,8 +359,9 @@ def computebuildingskeleton2D(y):
 
 def computebuildingskeleton3D(y):
     assert len(y.shape) == 3
-    yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
-    return torch.stack(yy, dim=0).cuda()
+    with torch.no_grad():
+        yy = [computebuildingskeleton2D(y[i]) for i in range(y.shape[0])]
+        return torch.stack(yy, dim=0).cuda()
 
 
 def getboundingbox(y):
