@@ -62,9 +62,9 @@ def smooth(y):
         vtlabelmap = skimage.measure.label(y.numpy())
         maxV = int(vtlabelmap.flatten().max())
         for i in range(maxV):
-            tmp = (label == (i + 1)).float().sum()
+            tmp = (vtlabelmap == (i + 1)).float().sum()
             if tmp < 30:
-                y = y * (label != (i + 1)).float()
+                y = y * (vtlabelmap != (i + 1)).float()
         return y
 
 
