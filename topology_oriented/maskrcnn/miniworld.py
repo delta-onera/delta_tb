@@ -59,7 +59,7 @@ def smooth(y):
         y = 1 - yy
         y = shortmaxpool(y, size=1)  # dilatation
 
-        vtlabelmap = skimage.measure.label(y.numpy())
+        vtlabelmap = torch.Tensor(skimage.measure.label(y.numpy()))
         maxV = int(vtlabelmap.flatten().max())
         for i in range(maxV):
             tmp = (vtlabelmap == (i + 1)).float().sum()
