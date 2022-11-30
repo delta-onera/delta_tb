@@ -7,6 +7,7 @@ import random
 import queue
 import threading
 import torchvision
+import skimage
 
 
 def shortmaxpool(y, size=2):
@@ -52,10 +53,19 @@ def symetrie(x, y, ijk):
 
 
 def smooth(y):
-    yy = 1 - y
-    yy = shortmaxpool(yy, size=1)  # erosion
-    y = 1 - yy
-    return shortmaxpool(y, size=1)  # dilatation
+    with torch.no_grad():
+        yy = 1 - y
+        yy = shortmaxpool(yy, size=1)  # erosion
+        y = 1 - yy
+        y = shortmaxpool(y, size=1)  # dilatation
+
+        vtlabelmap = skimage.measure.label(y.numpy())
+        maxV = int(vtlabelmap.flatten().max())
+        for i in range(maxV):
+            tmp = (label == (i + 1)).float().sum()
+            if tmp < 30:
+                y = y * (label != (i + 1)).float()
+    return y
 
 
 class CropExtractor(threading.Thread):
@@ -221,15 +231,6 @@ def mapfiltered(spatialmap, setofvalue):
     return myfunctionVector(spatialmap)
 
 
-def removeSmallBlob(label):
-    maxV = int(label.flatten().max())
-    for i in range(maxV):
-        tmp = (label == (i + 1)).float().sum()
-        if tmp < 30:
-            label = label * (label != (i + 1)).float()
-    return label.long()
-
-
 def sortmap(spatialmap):
     tmp = torch.Tensor(spatialmap)
     nb = int(tmp.flatten().max())
@@ -246,20 +247,10 @@ def sortmap(spatialmap):
     return myfunctionVector(spatialmap)
 
 
-import skimage
-
-
 def compare(y, z):
     assert len(y.shape) == 2 and len(z.shape) == 2
 
     vtlabelmap, nbVT = skimage.measure.label(y, return_num=True)
-
-    ####### remove small component #######
-    vtlabelmap = torch.Tensor(vtlabelmap)
-    with torch.no_grad():
-        vtlabelmap = removeSmallBlob(vtlabelmap).numpy()
-    ######################################
-
     predlabelmap, nbPRED = skimage.measure.label(z, return_num=True)
     vts, preds = list(range(1, nbVT + 1)), list(range(1, nbPRED + 1))
     vtlabelmap, predlabelmap = sortmap(vtlabelmap), sortmap(predlabelmap)
@@ -314,7 +305,6 @@ def computecriticalborder2D(y, size=9):
     vtlabelmap = skimage.measure.label(y)
     vtlabelmap = torch.Tensor(vtlabelmap)
     with torch.no_grad():
-        vtlabelmap = removeSmallBlob(vtlabelmap)  ####### remove small component
         vtlabelmapE = shortmaxpool(vtlabelmap, size=size)
 
     def inverseValue(y):
@@ -394,7 +384,6 @@ class MaskRCNN(torch.nn.Module):
         for i in range(len(x)):
             vtlabelmap = skimage.measure.label(y[i].numpy())
             vtlabelmap = torch.Tensor(vtlabelmap)
-            vtlabelmap = removeSmallBlob(vtlabelmap)  ####### remove small component
             nbVT = int(vtlabelmap.flatten().max())
             labels, boxes = torch.ones(nbVT).long(), torch.zeros(nbVT, 4)
             masks = torch.zeros(nbVT, y.shape[1], y.shape[2])
