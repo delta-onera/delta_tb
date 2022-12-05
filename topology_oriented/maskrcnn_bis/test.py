@@ -16,7 +16,7 @@ with torch.no_grad():
 print("test")
 
 
-def largeforward(net, image, tilesize=256, stride=128):
+def largeforward(net, image, tilesize=256, stride=64):
     pred = torch.zeros(2, image.shape[1], image.shape[2]).cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
@@ -34,7 +34,7 @@ with torch.no_grad():
 
         h, w = y.shape[0], y.shape[1]
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
-        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 128) * 128, (w // 128) * 128))
+        power2resize = torch.nn.AdaptiveAvgPool2d(((h // 64) * 64, (w // 64) * 64))
         x = power2resize(x)
         z = largeforward(net, x)
         z = globalresize(z)
