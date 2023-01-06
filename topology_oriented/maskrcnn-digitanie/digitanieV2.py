@@ -399,7 +399,7 @@ class MaskRCNN(torch.nn.Module):
         return self.backend(x, targets=vt)
 
     def testsingle(self, x):
-        z = self.backend([x / 255])[0]
+        z = self.backend([x])[0]
         if z["masks"].shape[0] == 0:
             tmp = torch.zeros(2, x.shape[1], x.shape[2]).cuda()
             tmp[0] = 1

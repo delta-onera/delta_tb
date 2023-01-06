@@ -23,8 +23,9 @@ dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
+    x = x.cuda()
 
-    z = net(x=x.cuda(), y=y.long())
+    z = net(x=x, y=y.long())
 
     loss = z["loss_objectness"] + z["loss_mask"] + z["loss_rpn_box_reg"]
     loss = loss + z["loss_classifier"] * 0.001 + z["loss_box_reg"] * 0.1
