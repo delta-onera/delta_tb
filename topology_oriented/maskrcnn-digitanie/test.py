@@ -38,6 +38,7 @@ with torch.no_grad():
         x = power2resize(x)
         z = largeforward(net, x)
         z = globalresize(z)
+        x = globalresize(x)
 
         z = (z[1, :, :] > z[0, :, :]).float()
 
