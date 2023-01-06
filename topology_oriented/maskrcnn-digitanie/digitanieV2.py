@@ -170,7 +170,7 @@ class DIGITANIE:
             pathvt = root + city + "/COS9/" + city + "_"
             paths = pathdata, pathvt, infos[city]["suffixvt"]
             self.data[city] = CropExtractor(paths, flag, tile=tile)
-            self.allimages.append([(city, i) for i in range(self.data[city].NB)])
+            self.allimages.extend([(city, i) for i in range(self.data[city].NB)])
         self.NB = len(self.allimages)
 
     def getImageAndLabel(self, i, torchformat=False):
