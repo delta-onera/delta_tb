@@ -1,12 +1,12 @@
 import os
 import torch
 import torchvision
-import miniworld
+import digitanieV2
 
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = miniworld.getMiniworld("/test/")
+dataset = digitanieV2.getDIGITANIE("odd")
 
 print("load model")
 with torch.no_grad():
@@ -30,7 +30,7 @@ with torch.no_grad():
     instance = torch.zeros(4)
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
-        x, y, D = x.cuda(), y.cuda(), torch.ones(y.shape).cuda()
+        x, y = x.cuda(), y.cuda()
 
         h, w = y.shape[0], y.shape[1]
         globalresize = torch.nn.AdaptiveAvgPool2d((h, w))
@@ -41,13 +41,13 @@ with torch.no_grad():
 
         z = (z[1, :, :] > z[0, :, :]).float()
 
-        cm += miniworld.confusion(y, z, D)
-        metric, visu = miniworld.compare(y.cpu().numpy(), z.cpu().numpy())
+        cm += digitanieV2.confusion(y, z)
+        metric, visu = digitanieV2.compare(y.cpu().numpy(), z.cpu().numpy())
         instance += metric
 
         if True:
             nextI = str(len(os.listdir("build")))
-            torchvision.utils.save_image(x / 255, "build/" + nextI + "_x.png")
+            torchvision.utils.save_image(x, "build/" + nextI + "_x.png")
             debug = torch.stack([y, y, y], dim=0)
             torchvision.utils.save_image(debug, "build/" + nextI + "_y.png")
             debug = torch.stack([z, z, z], dim=0)
@@ -56,8 +56,8 @@ with torch.no_grad():
             torchvision.utils.save_image(debug, "build/" + nextI + "_v.png")
 
     print(cm)
-    print(miniworld.perf(cm))
+    print(digitanieV2.perf(cm))
     print(instance)
-    print(miniworld.perfinstance(instance))
+    print(digitanieV2.perfinstance(instance))
 
 os._exit(0)

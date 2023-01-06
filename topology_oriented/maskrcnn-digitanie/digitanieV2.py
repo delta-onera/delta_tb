@@ -189,7 +189,7 @@ class DIGITANIE:
         return x, y
 
 
-def getMiniworld(flag, root="/scratchf/AI4GEO/DIGITANIE/", tile=256):
+def getDIGITANIE(flag, root="/scratchf/AI4GEO/DIGITANIE/", tile=256):
     assert flag in ["odd", "even", "all"]
 
     infos = {}
@@ -373,7 +373,7 @@ class MaskRCNN(torch.nn.Module):
         )
 
     def train(self, x, y):
-        x = [x[i] / 255 for i in range(x.shape[0])]
+        x = [x[i] for i in range(x.shape[0])]
         vt = [dict() for i in range(len(x))]
 
         for i in range(len(x)):
