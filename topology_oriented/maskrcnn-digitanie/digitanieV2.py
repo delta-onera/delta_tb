@@ -25,6 +25,10 @@ def confusion(y, z, D=None):
     return cm
 
 
+def numpyTOtorch(x):
+    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
+
+
 def perf(cm):
     accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
     iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
@@ -142,14 +146,12 @@ class CropExtractor(threading.Thread):
                     mask = label[r : r + tilesize, c : c + tilesize]
 
                     if numpy.sum(numpy.int64(mask != 0)) == 0:
-                        print(self.pathdata, "???")
                         continue
                     if numpy.sum(numpy.int64(mask == 0)) == 0:
-                        print(self.pathdata, "????")
                         continue
 
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), smooth(torch.Tensor(y))
+                    x, y = numpyTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
 
 
