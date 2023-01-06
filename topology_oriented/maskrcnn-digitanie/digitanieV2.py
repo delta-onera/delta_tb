@@ -198,15 +198,15 @@ def getDIGITANIE(flag, root="/scratchf/AI4GEO/DIGITANIE/", tile=256):
     infos["Brisbane"] = {"pathdata": "/Brisbane_EPSG32756_", "suffixvt": "-v4.tif"}
     infos["Can-Tho"] = {"pathdata": "/Can-Tho_EPSG32648_", "suffixvt": "-v4.tif"}
     infos["Helsinki"] = {"pathdata": "/Helsinki_EPSG32635_", "suffixvt": "-v4.tif"}
-    infos["Lagos"] = {"pathdata": "/Lagos_EPSG32631_", "suffixvt": ".tif"}
-    infos["Marcos"] = {"pathdata": "/Maros_EPSG32750_", "suffixvt": "-v4.tif"}
+    infos["Lagos"] = {"pathdata": "/Lagos_EPSG32631_", "suffixvt": "_mask.tif"}
+    infos["Maros"] = {"pathdata": "/Maros_EPSG32750_", "suffixvt": "-v4.tif"}
     infos["Montpellier"] = {"pathdata": "/Montpellier_EPSG2154_", "suffixvt": "-v4.tif"}
     infos["Munich"] = {"pathdata": "/Munich_EPSG32632_", "suffixvt": "-v4.tif"}
     infos["Nantes"] = {"pathdata": "/Nantes_EPSG32630_", "suffixvt": "-v4.tif"}
     infos["Paris"] = {"pathdata": "/Paris_EPSG2154_", "suffixvt": "-v4.tif"}
     infos["Port-Elisabeth"] = {
         "pathdata": "/Port-Elisabeth_EPSG32735_",
-        "suffixvt": ".tif",
+        "suffixvt": "_mask.tif",
     }
     infos["Shanghai"] = {"pathdata": "/Shanghai_EPSG32651_", "suffixvt": "-v4.tif"}
     infos["Strasbourg"] = {"pathdata": "/Strasbourg_EPSG32632_", "suffixvt": "-v4.tif"}
