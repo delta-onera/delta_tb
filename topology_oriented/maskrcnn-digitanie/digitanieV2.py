@@ -66,13 +66,16 @@ def smooth(y):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, pathdata, pathvt, suffixvt, flag, tile=256):
+    def __init__(self, paths, flag, tile=256):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
         self.tilesize = tile
+
+        pathdata, pathvt, suffixvt = paths
         self.pathdata = pathdata
         self.pathvt = pathvt
+        self.suffixvt = suffixvt
         assert flag in ["even", "odd", "all"]
         self.flag = flag
 
@@ -98,7 +101,7 @@ class CropExtractor(threading.Thread):
             else:
                 x = numpy.stack([r, g, b], axis=-1)
 
-        y = PIL.Image.open(self.pathvt + str(i) + suffixvt).convert("RGB").copy()
+        y = PIL.Image.open(self.pathvt + str(i) + self.suffixvt).convert("RGB").copy()
         y = numpy.asarray(y)
         y = numpy.uint8((y[:, :, 0] == 255) * (y[:, :, 1] == 50) * (y[:, :, 2] == 50))
 
@@ -159,14 +162,11 @@ class DIGITANIE:
         self.data = {}
         for city in self.cities:
             pathdata = root + city + infos[city]["pathdata"]
-            pathvt = root + city + +"/COS9/" + city + "_"
-            self.data[city] = CropExtractor(
-                pathdata, pathvt, infos[city]["suffixvt"], tile=tile
-            )
+            pathvt = root + city + "/COS9/" + city + "_"
+            paths = pathdata, pathvt, infos[city]["suffixvt"]
+            self.data[city] = CropExtractor(paths, tile=tile)
             self.allimages.append([(city, i) for i in range(self.data[city].NB)])
         self.NB = len(self.allimages)
-
-        self.priority = numpy.ones(self.NBC) / self.NBC
 
     def getImageAndLabel(self, i, torchformat=False):
         city, j = self.allimages[i]
@@ -180,7 +180,7 @@ class DIGITANIE:
 
     def getBatch(self, batchsize):
         assert self.run
-        batchchoice = numpy.random.choice(self.NBC, batchsize, p=self.priority)
+        batchchoice = (torch.rand(batchsize) * self.NBC).long()
 
         x = torch.zeros(batchsize, 3, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, self.tilesize, self.tilesize)
