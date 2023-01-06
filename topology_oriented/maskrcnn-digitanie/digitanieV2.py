@@ -103,7 +103,7 @@ class CropExtractor(threading.Thread):
 
         y = PIL.Image.open(self.pathvt + str(i) + self.suffixvt).convert("RGB").copy()
         y = numpy.asarray(y)
-        y = numpy.uint8((y[:, :, 0] == 255) * (y[:, :, 1] == 50) * (y[:, :, 2] == 50))
+        y = numpy.uint8((y[:, :, 0] == 250) * (y[:, :, 1] == 50) * (y[:, :, 2] == 50))
 
         if torchformat:
             return torch.Tensor(x), torch.Tensor(y)
@@ -130,8 +130,6 @@ class CropExtractor(threading.Thread):
 
         while True:
             for i in range(self.NB):
-                if not debug:
-                    print(self.pathdata, "wtf")
                 image, label = self.getImageAndLabel(i)
 
                 ntile = 50
@@ -153,10 +151,6 @@ class CropExtractor(threading.Thread):
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
                     x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
-
-                    if debug:
-                        debug = False
-                        print(self.pathdata, "started")
 
 
 class DIGITANIE:
