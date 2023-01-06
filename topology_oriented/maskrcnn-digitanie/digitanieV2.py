@@ -126,6 +126,7 @@ class CropExtractor(threading.Thread):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
         tilesize = self.tilesize
+        print(self.pathdata, "started")
 
         while True:
             for i in range(self.NB):

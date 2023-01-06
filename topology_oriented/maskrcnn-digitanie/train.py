@@ -18,7 +18,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 8
-nbbatchs = 100
+nbbatchs = 1000
 dataset.start()
 
 for i in range(nbbatchs):
