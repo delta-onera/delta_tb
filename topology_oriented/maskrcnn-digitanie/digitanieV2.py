@@ -126,7 +126,7 @@ class CropExtractor(threading.Thread):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
         tilesize = self.tilesize
-        print(self.pathdata, "started")
+        debug = True
 
         while True:
             for i in range(self.NB):
@@ -149,6 +149,10 @@ class CropExtractor(threading.Thread):
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
                     x, y = pilTOtorch(x), smooth(torch.Tensor(y))
                     self.q.put((x, y), block=True)
+
+                    if debug:
+                        debug = False
+                        print(self.pathdata, "started")
 
 
 class DIGITANIE:
