@@ -18,7 +18,7 @@ def shortmaxpool(y, size=2):
 
 def confusion(y, z, D=None):
     if D is None:
-        D = torch.ones(y.shape)
+        D = 1
     cm = torch.zeros(2, 2).cuda()
     for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
         cm[a][b] = ((z == a).float() * (y == b).float() * D).sum()
