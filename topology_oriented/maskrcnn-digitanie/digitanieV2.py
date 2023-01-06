@@ -130,6 +130,8 @@ class CropExtractor(threading.Thread):
 
         while True:
             for i in range(self.NB):
+                if not debug:
+                    print(self.pathdata, "wtf")
                 image, label = self.getImageAndLabel(i)
 
                 ntile = 50
@@ -142,8 +144,10 @@ class CropExtractor(threading.Thread):
                     mask = label[r : r + tilesize, c : c + tilesize]
 
                     if numpy.sum(numpy.int64(mask != 0)) == 0:
+                        print(self.pathdata, "???")
                         continue
                     if numpy.sum(numpy.int64(mask == 0)) == 0:
+                        print(self.pathdata, "????")
                         continue
 
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
