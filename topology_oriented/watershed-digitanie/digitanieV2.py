@@ -303,7 +303,7 @@ def computebuildingskeleton3D(y):
     ske = [yy[i].cpu().numpy() for i in range(yy.shape[0])]
     ske = [skimage.morphology.skeletonize(m) for m in ske]
     ske = [torch.Tensor(m).cuda() for m in ske]
-    return torch.stack(yy, dim=0).cuda()
+    return torch.stack(ske, dim=0).cuda()
 
 
 class Mobilenet(torch.nn.Module):
