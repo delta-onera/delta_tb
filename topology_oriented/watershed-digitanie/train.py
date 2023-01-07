@@ -9,7 +9,7 @@ print("load data")
 dataset = digitanieV2.getDIGITANIE("even")
 
 print("define model")
-net = miniworld.Mobilenet()
+net = digitanieV2.Mobilenet()
 net = net.cuda()
 net.train()
 
