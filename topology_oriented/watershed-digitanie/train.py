@@ -47,7 +47,7 @@ dataset.start()
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
-    skeleton = digitanieV2.compute(y)
+    skeleton = digitanieV2.computebuildingskeleton3D(y)
     D = y + 100 * (y == 0).float() + 500 * skeleton
 
     z = net(x)
