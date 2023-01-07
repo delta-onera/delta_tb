@@ -16,6 +16,7 @@ net.train()
 
 print("train")
 
+
 def crossentropy(y, z, D):
     tmp = torch.nn.CrossEntropyLoss(reduction="none")
     rawloss = tmp(z, y.long())
@@ -45,20 +46,20 @@ dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
-    x,y = x.cuda(),y.cuda()
+    x, y = x.cuda(), y.cuda()
     skeleton = digitanieV2.compute(y)
-    D = y+100*(y==0).float()+500*skeleton
+    D = y + 100 * (y == 0).float() + 500 * skeleton
 
     z = net(x)
 
-    ce = crossentropy(y,z,D)
-    dice = diceloss(y,z,D)
-    loss = ce+dice*0.1
+    ce = crossentropy(y, z, D)
+    dice = diceloss(y, z, D)
+    loss = ce + dice * 0.1
 
     with torch.no_grad():
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
-        stats += digitanieV2.confusion(y, z,D)
+        stats += digitanieV2.confusion(y, z)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)

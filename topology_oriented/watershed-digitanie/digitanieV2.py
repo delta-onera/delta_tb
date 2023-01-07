@@ -298,35 +298,8 @@ def perfinstance(metric):
     return gscore, recall, precision
 
 
-def computebuildingskeleton2D_slow(y):
-    assert len(y.shape) == 2
-    
-    skeleton = skimage.morphology.skeletonize(y.cpy().numpy())
-    skeleton = torch.Tensor(skeleton).cuda()
-    yy = y.clone()
-    
-    for k in range(3):
-        row, col = skeleton.nonzero()
-        rowcol = [(row[i], col[i]) for i in range(row.shape[0])]
-
-        for row, col in rowcol:
-            #remove skeleton pixel to close to image border
-            if row<1 or row>y.shape[0]-2 or col<1 or col>y.shape[1]-2:
-                skeleton[row][col]=0
-                yy[row][col]=0
-                continue
-                
-            #remove skeleton pixel to close to building border    
-            voisinnage = yy[row-1:row+2,col-1:col+2]
-            if voisinnage.flatten().sum()<9: 
-                skeleton[row][col]=0
-                yy[row][col]=0
-
-    return skeleton
-
-
 def computebuildingskeleton3D(y):
-    yy = -shortmaxpool(-y,size=1)
+    yy = -shortmaxpool(-y, size=1)
     ske = [yy[i].cpu().numpy() for i in range(yy.shape[0])]
     ske = [skimage.morphology.skeletonize(m) for m in ske]
     ske = [torch.Tensor(m).cuda() for m in ske]
