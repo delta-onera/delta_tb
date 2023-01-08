@@ -37,7 +37,7 @@ def diceloss(y, z, D):
     return 1 - iou
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 8
@@ -55,6 +55,7 @@ for i in range(nbbatchs):
     ce = crossentropy(y, z, D)
     dice = diceloss(y, z, D)
     loss = ce + dice * 0.1
+    loss = loss / 50
 
     with torch.no_grad():
         printloss += loss.clone().detach()
