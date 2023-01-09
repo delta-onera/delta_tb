@@ -6,7 +6,7 @@ import digitanieV2
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = digitanieV2.getDIGITANIE("even")
+dataset = digitanieV2.getDIGITANIE("odd")
 
 print("load model")
 with torch.no_grad():
