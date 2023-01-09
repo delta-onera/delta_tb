@@ -101,17 +101,14 @@ class CropExtractor(threading.Thread):
             r = minmax01(src.read(1))
             g = minmax01(src.read(2))
             b = minmax01(src.read(3))
-            if torchformat:
-                x = numpy.stack([r, g, b], axis=0)
-            else:
-                x = numpy.stack([r, g, b], axis=-1)
+            x = numpy.stack([r, g, b], axis=-1)
 
         y = PIL.Image.open(self.pathvt + str(i) + self.suffixvt).convert("RGB").copy()
         y = numpy.asarray(y)
         y = numpy.uint8((y[:, :, 0] == 250) * (y[:, :, 1] == 50) * (y[:, :, 2] == 50))
 
         if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
+            return numpyTOtorch(x), torch.Tensor(y)
         else:
             return x, y
 
