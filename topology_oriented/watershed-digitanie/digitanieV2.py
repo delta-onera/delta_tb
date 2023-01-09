@@ -108,7 +108,7 @@ class CropExtractor(threading.Thread):
         y = numpy.uint8((y[:, :, 0] == 250) * (y[:, :, 1] == 50) * (y[:, :, 2] == 50))
 
         if torchformat:
-            return numpyTOtorch(x), torch.Tensor(y)
+            return numpyTOtorch(x), smooth(torch.Tensor(y))
         else:
             return x, y
 

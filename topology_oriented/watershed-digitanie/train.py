@@ -11,7 +11,7 @@ dataset = digitanieV2.getDIGITANIE("even")
 print("define model")
 net = digitanieV2.Mobilenet()
 net = net.cuda()
-net.train()
+net.eval()
 
 
 print("train")
