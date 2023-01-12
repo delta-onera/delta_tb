@@ -343,7 +343,7 @@ class GlobalLocal(torch.nn.Module):
     def forwardlocal(self, x):
         z = torch.nn.functional.leaky_relu(self.local1(x))
         z = torch.cat([z, x], dim=1)
-        z = torch.nn.functional.leaky_relu(self.local2(z)
+        z = torch.nn.functional.leaky_relu(self.local2(z))
         z = torch.cat([z, x], dim=1)
         z = torch.nn.functional.leaky_relu(self.local3(z))
         z = torch.cat([z, x], dim=1)
