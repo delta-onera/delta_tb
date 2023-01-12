@@ -9,9 +9,9 @@ print("load data")
 dataset = digitanieV2.getDIGITANIE("even")
 
 print("define model")
-net = digitanieV2.Mobilenet()
+net = digitanieV2.Raaanet()
 net = net.cuda()
-net.eval()
+net.train()
 
 
 print("train")
