@@ -312,25 +312,32 @@ class Raaanet(torch.nn.Module):
 
         self.hack = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
 
-        self.fc1 = torch.nn.Conv2d(40 + 128 + 20, 128, kernel_size=1)
-        self.fc2 = torch.nn.Conv2d(128, 64, kernel_size=1)
+        self.fc1 = torch.nn.Conv2d(
+            40 + 960 // 4 + 1280 // 16, 128, kernel_size=5, padding=2
+        )
+        self.fc2 = torch.nn.Conv2d(128, 64, kernel_size=3, padding=1)
         self.fc = torch.nn.Conv2d(64, 2, kernel_size=1)
 
     def innerforward(self, x):
-        tmp = self.backend(x)
-        part1 = tmp["low"]  # 40 channels
-        part2 = tmp["high"]  # 128 channels
+        tmp = self.backend(x)  # 3x256x256
+        part1 = tmp["low"]  # 40x32x32
 
-        part3 = self.hack(x)  # 1280*8*8
-        part3.view(x.shape[0], 20, 64, 64)
-        resize = torch.nn.AdaptiveAvgPool2d((x.shape[2], x.shape[3]))
-        part3 = resize(part3)
-        
-        print(part1.shape)
-        print(part2.shape)
-        print(part3.shape)
+        part2 = tmp["high"]  # 128x16x16
+        part2size = part2.shape
+        part2 = part2.view(
+            x.shape[0], part2size[1] // 4, part2size[2] * 2, part2size[3] * 2
+        )
+
+        part3 = self.hack(x)  # 1280x8x8
+        part3size = part3.shape
+        part3 = part3.view(
+            x.shape[0], part3size[1] // 16, part3size[2] * 4, part3size[3] * 4
+        )
 
         x = torch.cat([part1, part2, part3], dim=1)
+        return torch.nn.functional.interpolate(
+            out, size=x.shape[-2:], mode="bilinear", align_corners=False
+        )
 
     def forward(self, x, firsttrainstep=False):
         if firsttrainstep:
