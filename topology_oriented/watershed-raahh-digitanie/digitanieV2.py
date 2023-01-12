@@ -358,7 +358,7 @@ class GlobalLocal(torch.nn.Module):
         else:
             z = self.backbone(x)
 
-        z = forwardglobal(x, (x.shape[2], x.shape[3]))
-        x = forwardlocal(x)
+        z = self.forwardglobal(x, (x.shape[2], x.shape[3]))
+        x = self.forwardlocal(x)
         x = torch.cat([z, x], dim=1)
         return self.classif(torch.nn.functional.leaky_relu(x))
