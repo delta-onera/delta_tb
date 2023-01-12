@@ -334,7 +334,7 @@ class Raaanet(torch.nn.Module):
             x.shape[0], part3size[1] // 16, part3size[2] * 4, part3size[3] * 4
         )
 
-        x = torch.cat([part1, part2, part3], dim=1)
+        out = torch.cat([part1, part2, part3], dim=1)
         return torch.nn.functional.interpolate(
             out, size=x.shape[-2:], mode="bilinear", align_corners=False
         )
