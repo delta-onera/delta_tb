@@ -343,13 +343,13 @@ class GlobalLocal(torch.nn.Module):
     def forwardlocal(self, x):
         z = torch.nn.functional.leaky_relu(self.local1(x))
         z = torch.cat([z, x], dim=1)
-        z = torch.nn.functional.leaky_relu(self.local2(x))
+        z = torch.nn.functional.leaky_relu(self.local2(z)
         z = torch.cat([z, x], dim=1)
-        z = torch.nn.functional.leaky_relu(self.local3(x))
+        z = torch.nn.functional.leaky_relu(self.local3(z))
         z = torch.cat([z, x], dim=1)
-        z = torch.nn.functional.leaky_relu(self.local4(x))
+        z = torch.nn.functional.leaky_relu(self.local4(z))
         z = torch.cat([z, x], dim=1)
-        return self.local5(x)
+        return self.local5(z)
 
     def forward(self, x, firsttrainstep=False):
         if firsttrainstep:
@@ -359,6 +359,5 @@ class GlobalLocal(torch.nn.Module):
             z = self.backbone(x)
 
         z = self.forwardglobal(z, (x.shape[2], x.shape[3]))
-        x = self.forwardlocal(x)
-        x = torch.cat([z, x], dim=1)
-        return self.classif(torch.nn.functional.leaky_relu(x))
+        z = torch.cat([z, self.forwardlocal(x)], dim=1)
+        return self.classif(torch.nn.functional.leaky_relu(z))
