@@ -329,11 +329,11 @@ class GlobalLocal(torch.nn.Module):
         resizefull4 = torch.nn.AdaptiveAvgPool2d((xsize[0] // 4, xsize[1] // 4))
         resizefull16 = torch.nn.AdaptiveAvgPool2d((xsize[0] // 16, xsize[1] // 16))
 
-        feature3 = self.global31(resizefull16(feature3))
+        feature3 = self.global31(resizefull16(feature))
         feature3 = torch.nn.functional.leaky_relu(feature3)
         feature3 = self.global32(resizefull(feature3))
 
-        feature2 = self.global21(resizefull4(feature2))
+        feature2 = self.global21(resizefull4(feature))
         feature2 = torch.nn.functional.leaky_relu(feature2)
         feature2 = self.global22(resizefull(feature2))
 
