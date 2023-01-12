@@ -314,6 +314,8 @@ class GlobalLocal(torch.nn.Module):
         self.local4 = torch.nn.Conv2d(35, 64, kernel_size=3, padding=1)
         self.local5 = torch.nn.Conv2d(64, 64, kernel_size=3, padding=1)
 
+        self.K = 1280
+
         self.global11 = torch.nn.Conv2d(self.K, 64, kernel_size=1)
         self.global21 = torch.nn.Conv2d(self.K, 256, kernel_size=1)
         self.global22 = torch.nn.Conv2d(256, 64, kernel_size=1)
