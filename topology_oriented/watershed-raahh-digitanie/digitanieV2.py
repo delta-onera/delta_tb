@@ -325,6 +325,10 @@ class Raaanet(torch.nn.Module):
         part3.view(x.shape[0], 20, 64, 64)
         resize = torch.nn.AdaptiveAvgPool2d((x.shape[2], x.shape[3]))
         part3 = resize(part3)
+        
+        print(part1.shape)
+        print(part2.shape)
+        print(part3.shape)
 
         x = torch.cat([part1, part2, part3], dim=1)
 
