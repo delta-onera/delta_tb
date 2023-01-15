@@ -133,10 +133,10 @@ class GlobalLocal(torch.nn.Module):
         self.classiflow = torch.nn.Conv2d(1280, 2, kernel_size=1)
 
         self.local1 = torch.nn.Conv2d(3, 32, kernel_size=5, padding=2)
-        self.local2 = torch.nn.Conv2d(195, 32, kernel_size=5, padding=2)
-        self.local3 = torch.nn.Conv2d(195, 32, kernel_size=5, padding=2)
-        self.local4 = torch.nn.Conv2d(256, 32, kernel_size=3, padding=1)
-        self.local5 = torch.nn.Conv2d(256, 32, kernel_size=3, padding=1)
+        self.local2 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
+        self.local3 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
+        self.local4 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
+        self.local5 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
         self.classifhigh = torch.nn.Conv2d(32, 2, kernel_size=1)
 
     def forwardglobal(self, x):
@@ -160,7 +160,7 @@ class GlobalLocal(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.local4(z))
         z = torch.cat([z, z * zz, z * f, zz * f], dim=1)
         z = torch.nn.functional.leaky_relu(self.local5(z))
-        return self.classifhigh(z)
+        return self.classifhigh(z / 100)
 
     def forward(self, x, firsttrainstep=False):
         if firsttrainstep:
