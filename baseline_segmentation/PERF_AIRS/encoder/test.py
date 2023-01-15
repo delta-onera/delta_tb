@@ -1,12 +1,12 @@
 import os
 import torch
 import torchvision
-import digitanieV2
+import dataloader
 
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = digitanieV2.getDIGITANIE("odd")
+dataset = dataloader.CropExtractor("/home/achanhon/github/potsdam/test/")
 
 print("load model")
 with torch.no_grad():
@@ -28,7 +28,6 @@ def largeforward(net, image, tilesize=256, stride=128):
 
 with torch.no_grad():
     cm = torch.zeros((2, 2)).cuda()
-    instance = torch.zeros(4)
     for i in range(dataset.NB):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
         x, y = x.cuda(), y.cuda()
@@ -42,24 +41,15 @@ with torch.no_grad():
         x = globalresize(x)
 
         z = (z[1, :, :] > z[0, :, :]).float()
-
-        cm += digitanieV2.confusion(y, z)
-        metric, visu = digitanieV2.compare(y.cpu().numpy(), z.cpu().numpy())
-        instance += metric
-
+        cm += dataloader.confusion(y, z)
         if True:
-            nextI = str(len(os.listdir("build")))
-            torchvision.utils.save_image(x, "build/" + nextI + "_x.png")
+            torchvision.utils.save_image(x, "build/" + str(i) + "_x.png")
             debug = torch.stack([y, y, y], dim=0)
-            torchvision.utils.save_image(debug, "build/" + nextI + "_y.png")
+            torchvision.utils.save_image(debug, "build/" + str(i) + "_y.png")
             debug = torch.stack([z, z, z], dim=0)
-            torchvision.utils.save_image(debug, "build/" + nextI + "_z.png")
-            debug = torch.Tensor(visu)
-            torchvision.utils.save_image(debug, "build/" + nextI + "_v.png")
+            torchvision.utils.save_image(debug, "build/" + str(i) + "_z.png")
 
     print(cm)
-    print(digitanieV2.perf(cm))
-    print(instance)
-    print(digitanieV2.perfinstance(instance))
+    print(dataloader.perf(cm))
 
 os._exit(0)
