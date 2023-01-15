@@ -178,4 +178,4 @@ class GlobalLocal(torch.nn.Module):
         f = torch.nn.functional.interpolate(
             f, size=(x.shape[2], x.shape[3]), mode="bilinear"
         )
-        return forwardlocal(x, f) + z * 0.1
+        return self.forwardlocal(x, f) + z * 0.1
