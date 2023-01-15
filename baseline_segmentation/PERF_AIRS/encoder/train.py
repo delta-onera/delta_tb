@@ -6,7 +6,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.CropExtractor("/home/achanhon/github/potsdam/train/")
+dataset = dataloader.CropExtractor("/scratchf/miniworld/potsdam/train/")
 
 print("define model")
 net = dataloader.GlobalLocal()

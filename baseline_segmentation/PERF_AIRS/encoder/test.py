@@ -6,7 +6,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.CropExtractor("/home/achanhon/github/potsdam/test/")
+dataset = dataloader.CropExtractor("/scratchf/miniworld/potsdam/test/")
 
 print("load model")
 with torch.no_grad():
