@@ -1,15 +1,15 @@
 import os
 import torch
 import torchvision
-import digitanieV2
+import dataloader
 
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = digitanieV2.getDIGITANIE("even")
+dataset = dataloader.CropExtractor("/home/achanhon/github/potsdam/train/")
 
 print("define model")
-net = digitanieV2.Mobilenet()
+net = dataloader.GlobalLocal()
 net = net.cuda()
 net.eval()
 
@@ -17,20 +17,20 @@ net.eval()
 print("train")
 
 
-def crossentropy(y, z, D):
+def crossentropy(y, z):
     tmp = torch.nn.CrossEntropyLoss(reduction="none")
     rawloss = tmp(z, y.long())
-    return (rawloss * D).mean()
+    return (rawloss).mean()
 
 
-def diceloss(y, z, D):
+def diceloss(y, z):
     eps = 0.00001
     z = z.softmax(dim=1)
     z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
     y0, y1 = (y == 0).float(), (y == 1).float()
 
-    inter0, inter1 = (y0 * z0 * D).sum(), (y1 * z1 * D).sum()
-    union0, union1 = ((y0 + z1 * y0) * D).sum(), ((y1 + z0 * y1) * D).sum()
+    inter0, inter1 = (y0 * z0).sum(), (y1 * z1).sum()
+    union0, union1 = (y0 + z1 * y0).sum(), (y1 + z0 * y1).sum()
     iou0, iou1 = (inter0 + eps) / (union0 + eps), (inter1 + eps) / (union1 + eps)
     iou = 0.5 * (iou0 + iou1)
 
@@ -40,27 +40,24 @@ def diceloss(y, z, D):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
-batchsize = 8
-nbbatchs = 600000
+batchsize = 3
+nbbatchs = 1000
 dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
-    skeleton = digitanieV2.computebuildingskeleton3D(y)
-    D = y + 100 * (y == 0).float() + 500 * skeleton
 
     z = net(x)
 
-    ce = crossentropy(y, z, D)
-    dice = diceloss(y, z, D)
-    loss = ce + dice * 0.1
-    loss = loss / 32
+    ce = crossentropy(y, z)
+    dice = diceloss(y, z)
+    loss = ce + dice
 
     with torch.no_grad():
         printloss += loss.clone().detach()
         z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
-        stats += digitanieV2.confusion(y, z)
+        stats += dataloader.confusion(y, z)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -73,7 +70,7 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = digitanieV2.perf(stats)
+            perf = dataloader.perf(stats)
             stats = torch.zeros((2, 2)).cuda()
             print(i, "perf", perf)
             if perf[0] > 95:
