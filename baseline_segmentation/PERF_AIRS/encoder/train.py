@@ -6,7 +6,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.CropExtractor("/scratchf/miniworld/potsdam/train/")
+dataset = dataloader.CropExtractor("/scratchf/miniworld/christchurch/train/")
 
 print("define model")
 net = dataloader.GlobalLocal()
@@ -40,7 +40,7 @@ def diceloss(y, z):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
-batchsize = 8
+batchsize = 6
 nbbatchs = 100000
 dataset.start()
 
@@ -51,7 +51,7 @@ for i in range(nbbatchs):
     mode = "normal"
     if i < 2000:
         mode = "globalonly"
-    if i < 6000:
+    if i < 5000:
         mode = "nofinetuning"
     z = net(x, mode=mode)
 
