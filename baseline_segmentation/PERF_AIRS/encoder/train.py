@@ -37,7 +37,7 @@ def diceloss(y, z):
     return 1 - iou
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((2, 2)).cuda()
 batchsize = 8
