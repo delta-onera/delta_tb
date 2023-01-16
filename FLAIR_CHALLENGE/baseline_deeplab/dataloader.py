@@ -39,28 +39,23 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, path, tile=256):
+    def __init__(self, paths, tile=256):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
         self.tilesize = tile
-        self.path = path
+        self.paths = paths
 
-        self.NB = 0
-        while os.path.exists(self.path + str(self.NB) + "_x.png"):
-            self.NB += 1
-        if self.NB == 0:
-            print("wrong path", self.path)
-            quit()
+        self.K = 3
 
     def getImageAndLabel(self, i, torchformat=False):
-        assert i < self.NB
-
-        x = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
+        x = PIL.Image.open(self.path[i][0]).convert("RGB").copy()
         x = numpy.uint8(numpy.asarray(x))
 
-        y = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
+        y = PIL.Image.open(self.path[i][1]).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y) != 0)
+
+        # self.path[i][2] contient metadata à ajouter à x ?
 
         if torchformat:
             return numpyTOtorch(x), torch.Tensor(y)
@@ -73,7 +68,7 @@ class CropExtractor(threading.Thread):
 
     def getBatch(self, batchsize):
         tilesize = self.tilesize
-        x = torch.zeros(batchsize, 3, self.tilesize, tilesize)
+        x = torch.zeros(batchsize, self.K, self.tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
@@ -101,14 +96,80 @@ class CropExtractor(threading.Thread):
                     self.q.put((x, y), block=True)
 
 
+class FLAIR:
+    def __init__(root, flag):
+        assert flag in ["odd", "even", "all"]
+        self.root = root
+        self.flag = flag
+        self.K = 3
+
+        # TODO indiquer la sous distribution en utilisant les metadata
+        self.paths = []
+        level1 = os.listdir(root)
+        for folder in level1:
+            level2 = os.listdir(root + folder)
+
+            for subfolder in level2:
+                path = root + level1 + "/" + level2
+                level3 = os.listdir(path + "/img")
+                level3 = set([name[4:] for name in level3 if ".aux" not in name])
+
+                level3bis = os.listdir(path + "/msk")
+                level3bis = [name[4:] for name in level3bis if ".aux" not in name]
+
+                names = [name for name in level3bis if name in level3]
+
+                for name in names:
+                    x = path + "/img/IMG_" + name
+                    y = path + "/msk/MSK_" + name
+                    self.paths.append(("TODO", x, y, None))
+
+        # séparer les sous distributions
+        self.paths = sorted(self.paths)
+        if flag != "all":
+            if flag == "even":
+                tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
+            else:
+                tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+            self.paths = [self.paths[i] for i in tmp]
+
+        self.pathssubdistrib = {}
+        for i in range(len(self.paths)):
+            sousdistrib, x, y, meta = self.paths[i]
+            if sousdis not in self.pathssubdistrib:
+                self.pathssubdistrib[sousdis] = []
+            self.pathssubdistrib[sousdistrib].append((x, y, meta))
+            self.paths[i] = (sousdis, len(self.pathssubdistrib[sousdis]) - 1)
+
+        self.subdistrib = self.pathssubdistrib.keys()
+        self.data = {}
+        for sousdis in self.pathssubdistrib.keys():
+            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdistrib])
+
+    def getImageAndLabel(self, i, torchformat=False):
+        sousdistrib, j = self.paths[i]
+        return self.data[sousdistrib].getImageAndLabel(j, torchformat=torchformat)
+
+    def getBatch(self, batchsize):
+        seed = (torch.rand(batchsize) * len(self.data)).long()
+        seed = [self.subdistrib[i] for i in seed]
+        x = torch.zeros(batchsize, self.K, self.tilesize, tilesize)
+        y = torch.zeros(batchsize, tilesize, tilesize)
+        for i in range(batchsize):
+            x[i], y[i] = self.data[seed[i]].getCrop()
+        return x, y
+
+
 class Mobilenet(torch.nn.Module):
     def __init__(self):
         super(Mobilenet, self).__init__()
         self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
             weights="DEFAULT"
         )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 2, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
+        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
+        self.backend.classifier.high_classifier = torch.nn.Conv2d(
+            128, 13, kernel_size=1
+        )
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
@@ -121,7 +182,7 @@ class Deeplab(torch.nn.Module):
         self.backend = torchvision.models.segmentation.deeplabv3_resnet101(
             weights="DEFAULT"
         )
-        self.backend.classifier[4] = torch.nn.Conv2d(256, 2, kernel_size=1)
+        self.backend.classifier[4] = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
@@ -133,14 +194,14 @@ class GlobalLocal(torch.nn.Module):
         super(GlobalLocal, self).__init__()
         self.backbone = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.compress = torch.nn.Conv2d(1280, 32, kernel_size=1)
-        self.classiflow = torch.nn.Conv2d(1280, 2, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
         self.local1 = torch.nn.Conv2d(3, 32, kernel_size=5, padding=2)
         self.local2 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
         self.local3 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
         self.local4 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
         self.local5 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
-        self.classifhigh = torch.nn.Conv2d(32, 2, kernel_size=1)
+        self.classifhigh = torch.nn.Conv2d(32, 13, kernel_size=1)
 
     def forwardglobal(self, x):
         x = 2 * (x / 255) - 1
@@ -185,4 +246,4 @@ class GlobalLocal(torch.nn.Module):
         f = torch.nn.functional.interpolate(
             f, size=(x.shape[2], x.shape[3]), mode="bilinear"
         )
-        return self.forwardlocal(x, f) + z * 0.1
+        return self.forwardlocal(x, f) + z

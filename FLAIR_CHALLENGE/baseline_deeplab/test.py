@@ -6,7 +6,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "1in4")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "odd")
 
 print("load model")
 with torch.no_grad():
@@ -28,7 +28,7 @@ def largeforward(net, image, tilesize=256, stride=128):
 
 with torch.no_grad():
     cm = torch.zeros((13, 13)).cuda()
-    for i in range(dataset.NB):
+    for i in range(min(len(paths), 10)):
         x, y = dataset.getImageAndLabel(i, torchformat=True)
         x, y = x.cuda(), y.cuda()
 
