@@ -96,7 +96,7 @@ class CropExtractor(threading.Thread):
 
 
 class FLAIR:
-    def __init__(self,root, flag):
+    def __init__(self, root, flag):
         assert flag in ["odd", "even", "all"]
         self.root = root
         self.flag = flag
@@ -111,7 +111,7 @@ class FLAIR:
             level2 = os.listdir(root + folder)
 
             for subfolder in level2:
-                path = root + level1 + "/" + level2
+                path = root + folder + "/" + subfolder
                 level3 = os.listdir(path + "/img")
                 level3 = set([name[4:] for name in level3 if ".aux" not in name])
 
