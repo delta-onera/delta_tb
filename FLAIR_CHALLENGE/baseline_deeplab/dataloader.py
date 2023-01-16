@@ -96,7 +96,7 @@ class CropExtractor(threading.Thread):
 
 
 class FLAIR:
-    def __init__(root, flag):
+    def __init__(self,root, flag):
         assert flag in ["odd", "even", "all"]
         self.root = root
         self.flag = flag

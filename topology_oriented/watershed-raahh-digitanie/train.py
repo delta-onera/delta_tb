@@ -50,7 +50,12 @@ for i in range(nbbatchs):
     skeleton = digitanieV2.computebuildingskeleton3D(y)
     D = y + 100 * (y == 0).float() + 500 * skeleton
 
-    z = net(x, firsttrainstep=(i < 1000))
+    mode = "normal"
+    if i < 2000:
+        mode = "globalonly"
+    if i < 5000:
+        mode = "nofinetuning"
+    z = net(x, mode=mode)
 
     ce = crossentropy(y, z, D)
     dice = diceloss(y, z, D)

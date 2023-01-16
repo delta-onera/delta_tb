@@ -307,57 +307,57 @@ class GlobalLocal(torch.nn.Module):
     def __init__(self):
         super(GlobalLocal, self).__init__()
         self.backbone = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
+        self.compress = torch.nn.Conv2d(1280, 32, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(1280, 2, kernel_size=1)
 
         self.local1 = torch.nn.Conv2d(3, 32, kernel_size=5, padding=2)
-        self.local2 = torch.nn.Conv2d(35, 32, kernel_size=5, padding=2)
-        self.local3 = torch.nn.Conv2d(35, 32, kernel_size=5, padding=2)
-        self.local4 = torch.nn.Conv2d(35, 64, kernel_size=3, padding=1)
-        self.local5 = torch.nn.Conv2d(67, 64, kernel_size=3, padding=1)
+        self.local2 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
+        self.local3 = torch.nn.Conv2d(99, 32, kernel_size=5, padding=2)
+        self.local4 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
+        self.local5 = torch.nn.Conv2d(128, 32, kernel_size=3, padding=1)
+        self.classifhigh = torch.nn.Conv2d(32, 2, kernel_size=1)
 
-        self.K = 1280
+    def forwardglobal(self, x):
+        x = 2 * (x / 255) - 1
+        x = torch.nn.functional.interpolate(
+            x, size=(x.shape[2] * 2, x.shape[3] * 2), mode="bilinear"
+        )
+        return torch.nn.functional.leaky_relu(self.backbone(x))
 
-        self.global11 = torch.nn.Conv2d(self.K, 64, kernel_size=1)
-        self.global21 = torch.nn.Conv2d(self.K, 256, kernel_size=1)
-        self.global22 = torch.nn.Conv2d(256, 64, kernel_size=1)
-        self.global31 = torch.nn.Conv2d(self.K, 512, kernel_size=1)
-        self.global32 = torch.nn.Conv2d(512, 64, kernel_size=1)
-
-        self.classif = torch.nn.Conv2d(256, 2, kernel_size=1)
-
-    def forwardglobal(self, feature, xsize):
-        resizefull = torch.nn.AdaptiveAvgPool2d(xsize)
-        resizefull4 = torch.nn.AdaptiveAvgPool2d((xsize[0] // 4, xsize[1] // 4))
-        resizefull16 = torch.nn.AdaptiveAvgPool2d((xsize[0] // 16, xsize[1] // 16))
-
-        feature3 = self.global31(resizefull16(feature))
-        feature3 = torch.nn.functional.leaky_relu(feature3)
-        feature3 = self.global32(resizefull(feature3))
-
-        feature2 = self.global21(resizefull4(feature))
-        feature2 = torch.nn.functional.leaky_relu(feature2)
-        feature2 = self.global22(resizefull(feature2))
-
-        feature = resizefull(self.global11(feature))
-        return torch.cat([feature, feature2, feature3], dim=1)
-
-    def forwardlocal(self, x):
-        z = torch.nn.functional.leaky_relu(self.local1(x))
-        z = torch.cat([z, x], dim=1)
+    def forwardlocal(self, x, f):
+        z = self.local1(x)
+        z = torch.cat([z, x, z * f, f], dim=1)
         z = torch.nn.functional.leaky_relu(self.local2(z))
-        z = torch.cat([z, x], dim=1)
+        z = torch.cat([z, x, z * f, f], dim=1)
         z = torch.nn.functional.leaky_relu(self.local3(z))
-        z = torch.cat([z, x], dim=1)
+
+        zz = torch.nn.functional.max_pool2d(z, kernel_size=3, stride=1, padding=1)
+        zz = torch.nn.functional.relu(100 * z - 99 * zz)
+
+        z = torch.cat([z, zz, z * f, zz * f], dim=1)
         z = torch.nn.functional.leaky_relu(self.local4(z))
-        z = torch.cat([z, x], dim=1)
-        return self.local5(z)
+        z = torch.cat([z, z * zz, z * f, zz * f], dim=1)
+        z = torch.nn.functional.leaky_relu(self.local5(z))
+        return self.classifhigh(z)
 
-    def forward(self, x, firsttrainstep=False):
-        if firsttrainstep:
+    def forward(self, x, mode="normal"):
+        assert mode in ["normal", "globalonly", "nofinetuning"]
+
+        if mode != "normal":
             with torch.no_grad():
-                z = self.backbone(x)
+                f = self.forwardglobal(x)
         else:
-            z = self.backbone(x)
+            f = self.forwardglobal(x)
 
-        z = self.forwardglobal(z, (x.shape[2], x.shape[3]))
-        z = torch.cat([z, self.forwardlocal(x)], dim=1)
-        return self.classif(torch.nn.functional.leaky_relu(z))
+        z = self.classiflow(f)
+        z = torch.nn.functional.interpolate(
+            z, size=(x.shape[2], x.shape[3]), mode="bilinear"
+        )
+        if mode == "globalonly":
+            return z
+
+        f = torch.nn.functional.leaky_relu(self.compress(f))
+        f = torch.nn.functional.interpolate(
+            f, size=(x.shape[2], x.shape[3]), mode="bilinear"
+        )
+        return self.forwardlocal(x, f) + z * 0.1
