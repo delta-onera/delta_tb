@@ -162,7 +162,7 @@ class GlobalLocal(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.local4(z))
         z = torch.cat([z, z * zz, z * f, zz * f], dim=1)
         z = torch.nn.functional.leaky_relu(self.local5(z))
-        return self.classifhigh(z / 100)
+        return self.classifhigh(z)
 
     def forward(self, x, firsttrainstep=False):
         if firsttrainstep:
