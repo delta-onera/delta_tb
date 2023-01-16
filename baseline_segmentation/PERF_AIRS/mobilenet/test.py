@@ -43,7 +43,7 @@ with torch.no_grad():
         z = (z[1, :, :] > z[0, :, :]).float()
         cm += dataloader.confusion(y, z)
         if True:
-            torchvision.utils.save_image(x, "build/" + str(i) + "_x.png")
+            torchvision.utils.save_image(x / 255, "build/" + str(i) + "_x.png")
             debug = torch.stack([y, y, y], dim=0)
             torchvision.utils.save_image(debug, "build/" + str(i) + "_y.png")
             debug = torch.stack([z, z, z], dim=0)
