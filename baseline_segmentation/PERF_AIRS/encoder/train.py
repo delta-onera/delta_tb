@@ -48,7 +48,7 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
-    z = net(x,firsttrainstep=(i < nbbatchs * 0.05))
+    z = net(x, firsttrainstep=(i < nbbatchs * 0.05))
 
     ce = crossentropy(y, z)
     dice = diceloss(y, z)
