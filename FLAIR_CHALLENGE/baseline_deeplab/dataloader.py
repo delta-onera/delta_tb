@@ -9,9 +9,10 @@ import torchvision
 
 
 def confusion(y, z):
-    cm = torch.zeros(2, 2).cuda()
-    for a, b in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-        cm[a][b] = ((z == a).float() * (y == b).float()).sum()
+    cm = torch.zeros(13, 13).cuda()
+    for a in range(13):
+        for b in range(13):
+            cm[a][b] = ((z == a).float() * (y == b).float()).sum()
     return cm
 
 

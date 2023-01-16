@@ -6,10 +6,10 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/scratch")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "3in4")
 
 print("define model")
-net = dataloader.Deeplab()
+net = dataloader.Mobilenet()
 net = net.cuda()
 net.eval()
 
@@ -23,11 +23,15 @@ def crossentropy(y, z):
     return (rawloss).mean()
 
 
-def diceloss(y, z):
+def dicelossi(y, z, i):
     eps = 0.00001
     z = z.softmax(dim=1)
-    z0, z1 = z[:, 0, :, :], z[:, 1, :, :]
-    y0, y1 = (y == 0).float(), (y == 1).float()
+
+    indexmap = torch.ones(z.shape)
+    indexmap[:, i, :, :] = 0
+
+    z0, z1 = z[:, i, :, :], (z * indexmap).sum(1)
+    y0, y1 = (y == i).float(), (y != i).float()
 
     inter0, inter1 = (y0 * z0).sum(), (y1 * z1).sum()
     union0, union1 = (y0 + z1 * y0).sum(), (y1 + z0 * y1).sum()
@@ -37,11 +41,18 @@ def diceloss(y, z):
     return 1 - iou
 
 
+def diceloss(y, z):
+    alldice = torch.zeros(13).cuda()
+    for i in range(13):
+        alldice[i] = dicelossi(y, z, i)
+    return alldice.mean()
+
+
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(1).cuda()
-stats = torch.zeros((2, 2)).cuda()
+stats = torch.zeros((13, 13)).cuda()
 batchsize = 8
-nbbatchs = 100000
+nbbatchs = 2000
 dataset.start()
 
 for i in range(nbbatchs):
@@ -56,7 +67,7 @@ for i in range(nbbatchs):
 
     with torch.no_grad():
         printloss += loss.clone().detach()
-        z = (z[:, 1, :, :] > z[:, 0, :, :]).clone().detach().float()
+        _, z = z.max(1)
         stats += dataloader.confusion(y, z)
 
         if i < 10:
@@ -71,7 +82,7 @@ for i in range(nbbatchs):
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
             perf = dataloader.perf(stats)
-            stats = torch.zeros((2, 2)).cuda()
+            stats = torch.zeros((13, 13)).cuda()
             print(i, "perf", perf)
             if perf[0] > 95:
                 os._exit(0)
