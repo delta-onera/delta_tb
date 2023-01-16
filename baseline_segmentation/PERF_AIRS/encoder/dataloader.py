@@ -110,6 +110,7 @@ class Mobilenet(torch.nn.Module):
         self.backend.classifier.high_classifier = torch.nn.Conv2d(128, 2, kernel_size=1)
 
     def forward(self, x):
+        x = ((x / 255) - 0.5) / 0.25
         return self.backend(x)["out"]
 
 
@@ -122,6 +123,7 @@ class Deeplab(torch.nn.Module):
         self.backend.classifier[4] = torch.nn.Conv2d(256, 2, kernel_size=1)
 
     def forward(self, x):
+        x = ((x / 255) - 0.5) / 0.25
         return self.backend(x)["out"]
 
 
@@ -140,7 +142,7 @@ class GlobalLocal(torch.nn.Module):
         self.classifhigh = torch.nn.Conv2d(32, 2, kernel_size=1)
 
     def forwardglobal(self, x):
-        x = 2 * x - 1
+        x = 2 * (x / 255) - 1
         x = torch.nn.functional.interpolate(
             x, size=(x.shape[2] * 2, x.shape[3] * 2), mode="bilinear"
         )
