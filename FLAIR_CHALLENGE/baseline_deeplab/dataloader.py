@@ -45,7 +45,6 @@ class CropExtractor(threading.Thread):
         self.maxsize = 500
         self.tilesize = tile
         self.paths = paths
-
         self.K = 3
 
     def getImageAndLabel(self, i, torchformat=False):
@@ -102,8 +101,10 @@ class FLAIR:
         self.root = root
         self.flag = flag
         self.K = 3
+        self.run = False
 
         # TODO indiquer la sous distribution en utilisant les metadata
+        # pourrait aussi faciliter l'indexation...
         self.paths = []
         level1 = os.listdir(root)
         for folder in level1:
@@ -122,7 +123,8 @@ class FLAIR:
                 for name in names:
                     x = path + "/img/IMG_" + name
                     y = path + "/msk/MSK_" + name
-                    self.paths.append(("TODO", x, y, None))
+                    meta = None
+                    self.paths.append(("TODO", x, y, meta))
 
         # séparer les sous distributions
         self.paths = sorted(self.paths)
@@ -151,6 +153,7 @@ class FLAIR:
         return self.data[sousdistrib].getImageAndLabel(j, torchformat=torchformat)
 
     def getBatch(self, batchsize):
+        assert self.run
         seed = (torch.rand(batchsize) * len(self.data)).long()
         seed = [self.subdistrib[i] for i in seed]
         x = torch.zeros(batchsize, self.K, self.tilesize, tilesize)
@@ -158,6 +161,12 @@ class FLAIR:
         for i in range(batchsize):
             x[i], y[i] = self.data[seed[i]].getCrop()
         return x, y
+
+    def start(self):
+        if not self.run:
+            self.run = True
+            for sousdis in self.subdistrib:
+                self.data[sousdis].start()
 
 
 class Mobilenet(torch.nn.Module):
