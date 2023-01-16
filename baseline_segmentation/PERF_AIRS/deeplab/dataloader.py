@@ -164,8 +164,10 @@ class GlobalLocal(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.local5(z))
         return self.classifhigh(z)
 
-    def forward(self, x, firsttrainstep=False):
-        if firsttrainstep:
+    def forward(self, x, mode="normal"):
+        assert mode in ["normal", "globalonly", "nofinetuning"]
+
+        if mode != "normal":
             with torch.no_grad():
                 f = self.forwardglobal(x)
         else:
@@ -175,6 +177,8 @@ class GlobalLocal(torch.nn.Module):
         z = torch.nn.functional.interpolate(
             z, size=(x.shape[2], x.shape[3]), mode="bilinear"
         )
+        if mode == "globalonly":
+            return z
 
         f = torch.nn.functional.leaky_relu(self.compress(f))
         f = torch.nn.functional.interpolate(
