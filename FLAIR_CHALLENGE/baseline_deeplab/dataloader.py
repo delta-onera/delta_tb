@@ -53,6 +53,8 @@ class CropExtractor(threading.Thread):
         # x = numpy.uint8(numpy.asarray(x))
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
+            print(x.shape)
+            quit()
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y) != 0)
