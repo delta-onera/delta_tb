@@ -70,7 +70,7 @@ class CropExtractor(threading.Thread):
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
-        y = numpy.nan_to_num(x)
+        y = numpy.nan_to_num(y)
 
         # self.path[i][2] contient metadata à ajouter à x ?
 
