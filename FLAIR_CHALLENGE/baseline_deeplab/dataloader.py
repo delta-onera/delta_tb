@@ -70,7 +70,7 @@ class CropExtractor(threading.Thread):
 
     def getBatch(self, batchsize):
         tilesize = self.tilesize
-        x = torch.zeros(batchsize, self.K, self.tilesize, tilesize)
+        x = torch.zeros(batchsize, self.K, tilesize, tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
@@ -161,7 +161,7 @@ class FLAIR:
         seed = (torch.rand(batchsize) * len(self.data)).long()
         seed = [self.subdistrib[i] for i in seed]
         x = torch.zeros(batchsize, self.K, self.tilesize, self.tilesize)
-        y = torch.zeros(batchsize, tilesize, tilesize)
+        y = torch.zeros(batchsize, self.tilesize, self.tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.data[seed[i]].getCrop()
         return x, y
