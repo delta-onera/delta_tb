@@ -17,10 +17,6 @@ def confusion(y, z):
     return cm
 
 
-def numpyTOtorch(x):
-    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
-
-
 def perf(cm):
     accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
     iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
@@ -31,11 +27,11 @@ def perf(cm):
 def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
-        x, y = numpy.transpose(x, axes=(1, 0, 2)), numpy.transpose(y, axes=(1, 0))
+        x, y = numpy.transpose(x, axes=(0, 2, 1)), numpy.transpose(y, axes=(1, 0))
     if j == 1:
         x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
     if k == 1:
-        x, y = numpy.flip(x, axis=0), numpy.flip(y, axis=0)
+        x, y = numpy.flip(x, axis=2), numpy.flip(y, axis=2)
     return x.copy(), y.copy()
 
 
@@ -53,8 +49,7 @@ class CropExtractor(threading.Thread):
         # x = numpy.uint8(numpy.asarray(x))
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            print(x.shape)
-            quit()
+            x = x[0:3, :, :]  # pour le moment
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y) != 0)
@@ -62,7 +57,7 @@ class CropExtractor(threading.Thread):
         # self.path[i][2] contient metadata à ajouter à x ?
 
         if torchformat:
-            return numpyTOtorch(x), torch.Tensor(y)
+            return torch.Tensor(x), torch.Tensor(y)
         else:
             return x, y
 
@@ -93,10 +88,10 @@ class CropExtractor(threading.Thread):
                 for j in range(ntile):
                     r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
                     c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
-                    im = image[r : r + tilesize, c : c + tilesize, :]
+                    im = image[:, r : r + tilesize, c : c + tilesize]
                     mask = label[r : r + tilesize, c : c + tilesize]
                     x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = numpyTOtorch(x), torch.Tensor(y)
+                    x, y = torch.Tensor(x), torch.Tensor(y)
                     self.q.put((x, y), block=True)
 
 
