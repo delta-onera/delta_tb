@@ -56,7 +56,6 @@ class CropExtractor(threading.Thread):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
-        self.tilesize = 256
         self.paths = paths
         self.K = 3
 
@@ -83,8 +82,8 @@ class CropExtractor(threading.Thread):
 
     def getBatch(self, batchsize):
         tilesize = self.tilesize
-        x = torch.zeros(batchsize, self.K, tilesize, tilesize)
-        y = torch.zeros(batchsize, tilesize, tilesize)
+        x = torch.zeros(batchsize, self.K, 512, 512)
+        y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
         return x, y
@@ -95,20 +94,12 @@ class CropExtractor(threading.Thread):
         tilesize = self.tilesize
 
         while True:
-            for i in range(len(self.paths)):
-                image, label = self.getImageAndLabel(i)
-
-                ntile = 3
-                RC = numpy.random.rand(ntile, 2)
-                flag = numpy.random.randint(0, 2, size=(ntile, 3))
-                for j in range(ntile):
-                    r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
-                    c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
-                    im = image[:, r : r + tilesize, c : c + tilesize]
-                    mask = label[r : r + tilesize, c : c + tilesize]
-                    x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = torch.Tensor(x), torch.Tensor(y)
-                    self.q.put((x, y), block=True)
+            i = int(torch.rand(1) * len(self.paths))
+            flag = numpy.random.randint(0, 2, size=3)
+            x, y = self.getImageAndLabel(i)
+            x, y = symetrie(x, y, flag)
+            x, y = torch.Tensor(x), torch.Tensor(y)
+            self.q.put((x, y), block=True)
 
 
 class FLAIR:
@@ -118,7 +109,6 @@ class FLAIR:
         self.flag = flag
         self.K = 3
         self.run = False
-        self.tilesize = 256
 
         # TODO indiquer la sous distribution en utilisant les metadata
         # pourrait aussi faciliter l'indexation...
@@ -173,8 +163,8 @@ class FLAIR:
         assert self.run
         seed = (torch.rand(batchsize) * len(self.data)).long()
         seed = [self.subdistrib[i] for i in seed]
-        x = torch.zeros(batchsize, self.K, self.tilesize, self.tilesize)
-        y = torch.zeros(batchsize, self.tilesize, self.tilesize)
+        x = torch.zeros(batchsize, self.K, 512, 512)
+        y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.data[seed[i]].getCrop()
         return x, y
