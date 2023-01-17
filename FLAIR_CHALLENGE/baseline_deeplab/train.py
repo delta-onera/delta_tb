@@ -48,7 +48,7 @@ def diceloss(y, z):
     return alldice.mean()
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.00005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
 batchsize = 8
