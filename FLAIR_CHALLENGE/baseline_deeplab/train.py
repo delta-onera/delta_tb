@@ -73,7 +73,7 @@ for i in range(nbbatchs):
         _, z = z.max(1)
         stats += dataloader.confusion(y, z)
 
-        if i < 10:
+        if i < 100:
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
