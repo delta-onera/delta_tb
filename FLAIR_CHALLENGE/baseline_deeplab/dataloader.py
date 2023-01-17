@@ -27,11 +27,17 @@ def perf(cm):
 def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
-        x, y = numpy.transpose(x, axes=(0, 2, 1)), numpy.transpose(y, axes=(1, 0))
+        y = numpy.transpose(y, axes=(1, 0))
+        for u in x.shape[0]:
+            x[u] = numpy.transpose(x[u], axes=(1, 0))
     if j == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=0)
+        y = numpy.flip(y, axis=0)
+        for u in x.shape[0]:
+            x[u] = numpy.flip(x[u], axis=0)
     if k == 1:
-        x, y = numpy.flip(x, axis=2), numpy.flip(y, axis=1)
+        y = numpy.flip(y, axis=1)
+        for u in x.shape[0]:
+            x[u] = numpy.flip(x[u], axis=1)
     return x.copy(), y.copy()
 
 
