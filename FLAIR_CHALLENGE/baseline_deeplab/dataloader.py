@@ -28,7 +28,7 @@ def perf(cm):
     iou = 0
     for i in range(13):
         inter = cm[i][i]
-        union = cm[i].sum() + cmt[i].sum() - cm[i][i]
+        union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 1)
         iou += inter / union
 
     return (iou / 13 * 100, accu * 100)
