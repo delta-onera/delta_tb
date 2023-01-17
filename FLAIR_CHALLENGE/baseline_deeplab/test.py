@@ -45,9 +45,9 @@ with torch.no_grad():
 
         if True:
             torchvision.utils.save_image(x / 255, "build/" + str(i) + "_x.png")
-            debug = torch.stack([y, y, y], dim=0)
+            debug = torch.stack([y, y, y], dim=0) * 255 / 13
             torchvision.utils.save_image(debug, "build/" + str(i) + "_y.png")
-            debug = torch.stack([z, z, z], dim=0)
+            debug = torch.stack([z, z, z], dim=0).float() * 255 / 13
             torchvision.utils.save_image(debug, "build/" + str(i) + "_z.png")
 
     print(cm)
