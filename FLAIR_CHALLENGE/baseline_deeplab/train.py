@@ -74,16 +74,26 @@ for i in range(nbbatchs):
     if torch.isnan(z).long().flatten().sum() > 0:
         print("la faute à z")
         quit()
+    if (torch.abs(z) > 100000).long().flatten().sum() > 0:
+        print("la faute à z sans nan")
+        quit()
 
     ce = crossentropy(y, z)
     if torch.isnan(ce):
         print("la faute à ce")
+        quit()
+    if ce > 100000:
+        print("la faute à ce sans nan")
         quit()
 
     dice = diceloss(y, z)
     if torch.isnan(ce):
         print("la faute à dice")
         quit()
+    if dice > 100000:
+        print("la faute à ce sans nan")
+        quit()
+
     loss = ce + dice
 
     with torch.no_grad():
