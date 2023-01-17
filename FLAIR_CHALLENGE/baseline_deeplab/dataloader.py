@@ -28,15 +28,15 @@ def symetrie(x, y, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
         y = numpy.transpose(y, axes=(1, 0))
-        for u in x.shape[0]:
+        for u in range(x.shape[0]):
             x[u] = numpy.transpose(x[u], axes=(1, 0))
     if j == 1:
         y = numpy.flip(y, axis=0)
-        for u in x.shape[0]:
+        for u in range(x.shape[0]):
             x[u] = numpy.flip(x[u], axis=0)
     if k == 1:
         y = numpy.flip(y, axis=1)
-        for u in x.shape[0]:
+        for u in range(x.shape[0]):
             x[u] = numpy.flip(x[u], axis=1)
     return x.copy(), y.copy()
 
