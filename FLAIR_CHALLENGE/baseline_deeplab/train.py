@@ -27,7 +27,7 @@ def dicelossi(y, z, i):
     eps = 0.00001
     z = z.softmax(dim=1)
 
-    indexmap = torch.ones(z.shape)
+    indexmap = torch.ones(z.shape).cuda()
     indexmap[:, i, :, :] = 0
 
     z0, z1 = z[:, i, :, :], (z * indexmap).sum(1)
