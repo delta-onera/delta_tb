@@ -18,10 +18,20 @@ def confusion(y, z):
 
 
 def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-    return torch.Tensor((iou0 + iou1, accu, iou0 * 2, iou1 * 2))
+    cmt = torch.transpose(cm, 0, 1)
+
+    accu = 0
+    for i in range(13):
+        accu += cm[i][i]
+    accu /= cm.flatten().sum()
+
+    iou = 0
+    for i in range(13):
+        inter = cm[i][i]
+        union = cm[i].sum() + cmt[i].sum() - cm[i][i]
+        iou += inter / union
+
+    return (accu * 100, iou / 13 * 100)
 
 
 def symetrie(x, y, ijk):
