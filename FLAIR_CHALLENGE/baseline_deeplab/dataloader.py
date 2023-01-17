@@ -29,9 +29,9 @@ def symetrie(x, y, ijk):
     if i == 1:
         x, y = numpy.transpose(x, axes=(0, 2, 1)), numpy.transpose(y, axes=(1, 0))
     if j == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
+        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=0)
     if k == 1:
-        x, y = numpy.flip(x, axis=2), numpy.flip(y, axis=2)
+        x, y = numpy.flip(x, axis=2), numpy.flip(y, axis=1)
     return x.copy(), y.copy()
 
 
