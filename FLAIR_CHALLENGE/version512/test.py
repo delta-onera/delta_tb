@@ -22,8 +22,8 @@ with torch.no_grad():
         x, y = dataset.getImageAndLabel(i, torchformat=True)
         x, y = x.cuda(), y.cuda()
 
-        z = net(x)
-        _, z = z.max(0)
+        z = net(x.unsqueeze(0))
+        _, z = z[0].max(0)
         cm += dataloader.confusion(y, z)
 
         if True:
