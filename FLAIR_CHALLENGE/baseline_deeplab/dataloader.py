@@ -66,11 +66,11 @@ class CropExtractor(threading.Thread):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
             x = x[0:3, :, :]  # pour le moment
-            x = numpy.nan_to_num(x)
+            x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
-        y = numpy.nan_to_num(y)
+        y = numpy.clip(numpy.nan_to_num(y), 0, 12)
 
         # self.path[i][2] contient metadata à ajouter à x ?
 

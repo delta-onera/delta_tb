@@ -18,7 +18,8 @@ print("train")
 
 
 def crossentropy(y, z):
-    tmp = torch.nn.CrossEntropyLoss()
+    class_weights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0]
+    tmp = torch.nn.CrossEntropyLoss(weight=torch.Tensor(class_weights).cuda())
     return tmp(z, y.long())
 
 
@@ -61,38 +62,10 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
-    if torch.isnan(x).long().flatten().sum() > 0:
-        print("la faute à x")
-        quit()
-    if torch.isnan(y).long().flatten().sum() > 0:
-        print("la faute à y")
-        quit()
-
     z = net(x)
 
-    if torch.isnan(z).long().flatten().sum() > 0:
-        print("la faute à z")
-        quit()
-    if (torch.abs(z) > 100000).long().flatten().sum() > 0:
-        print("la faute à z sans nan")
-        quit()
-
     ce = crossentropy(y, z)
-    if torch.isnan(ce):
-        print("la faute à ce")
-        quit()
-    if ce > 100000:
-        print("la faute à ce sans nan")
-        quit()
-
     dice = diceloss(y, z)
-    if torch.isnan(ce):
-        print("la faute à dice")
-        quit()
-    if dice > 100000:
-        print("la faute à ce sans nan")
-        quit()
-
     loss = ce + dice
 
     with torch.no_grad():
