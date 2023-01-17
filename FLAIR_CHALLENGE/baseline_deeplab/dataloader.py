@@ -137,16 +137,16 @@ class FLAIR:
 
         self.pathssubdistrib = {}
         for i in range(len(self.paths)):
-            sousdistrib, x, y, meta = self.paths[i]
+            sousdis, x, y, meta = self.paths[i]
             if sousdis not in self.pathssubdistrib:
                 self.pathssubdistrib[sousdis] = []
-            self.pathssubdistrib[sousdistrib].append((x, y, meta))
+            self.pathssubdistrib[sousdis].append((x, y, meta))
             self.paths[i] = (sousdis, len(self.pathssubdistrib[sousdis]) - 1)
 
         self.subdistrib = self.pathssubdistrib.keys()
         self.data = {}
         for sousdis in self.pathssubdistrib.keys():
-            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdistrib])
+            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis])
 
     def getImageAndLabel(self, i, torchformat=False):
         sousdistrib, j = self.paths[i]
