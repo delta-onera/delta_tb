@@ -31,7 +31,7 @@ def perf(cm):
         union = cm[i].sum() + cmt[i].sum() - cm[i][i]
         iou += inter / union
 
-    return (accu * 100, iou / 13 * 100)
+    return (iou / 13 * 100, accu * 100)
 
 
 def symetrie(x, y, ijk):
