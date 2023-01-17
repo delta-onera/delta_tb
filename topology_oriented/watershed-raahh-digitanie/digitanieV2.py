@@ -318,7 +318,7 @@ class GlobalLocal(torch.nn.Module):
         self.classifhigh = torch.nn.Conv2d(32, 2, kernel_size=1)
 
     def forwardglobal(self, x):
-        x = 2 * (x / 255) - 1
+        x = 2 * x - 1
         x = torch.nn.functional.interpolate(
             x, size=(x.shape[2] * 2, x.shape[3] * 2), mode="bilinear"
         )
