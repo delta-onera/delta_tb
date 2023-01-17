@@ -62,10 +62,28 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
+    if torch.isnan(x).long().flatten().sum() > 0:
+        print("la faute à x")
+        quit()
+    if torch.isnan(y).long().flatten().sum() > 0:
+        print("la faute à y")
+        quit()
+
     z = net(x)
 
+    if torch.isnan(z).long().flatten().sum() > 0:
+        print("la faute à z")
+        quit()
+
     ce = crossentropy(y, z)
+    if torch.isnan(ce):
+        print("la faute à ce")
+        quit()
+
     dice = diceloss(y, z)
+    if torch.isnan(ce):
+        print("la faute à dice")
+        quit()
     loss = ce + dice
 
     with torch.no_grad():
@@ -101,7 +119,7 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 0.5)
-    # optimizer.step()
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
+    optimizer.step()
 
 os._exit(0)
