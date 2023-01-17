@@ -143,7 +143,7 @@ class FLAIR:
             self.pathssubdistrib[sousdis].append((x, y, meta))
             self.paths[i] = (sousdis, len(self.pathssubdistrib[sousdis]) - 1)
 
-        self.subdistrib = self.pathssubdistrib.keys()
+        self.subdistrib = list(self.pathssubdistrib.keys())
         self.data = {}
         for sousdis in self.pathssubdistrib.keys():
             self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis])
