@@ -48,10 +48,10 @@ class CropExtractor(threading.Thread):
         self.K = 3
 
     def getImageAndLabel(self, i, torchformat=False):
-        x = PIL.Image.open(self.path[i][0]).convert("RGB").copy()
+        x = PIL.Image.open(self.paths[i][0]).convert("RGB").copy()
         x = numpy.uint8(numpy.asarray(x))
 
-        y = PIL.Image.open(self.path[i][1]).convert("L").copy()
+        y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y) != 0)
 
         # self.path[i][2] contient metadata à ajouter à x ?
@@ -79,7 +79,7 @@ class CropExtractor(threading.Thread):
         tilesize = self.tilesize
 
         while True:
-            for i in range(self.NB):
+            for i in range(len(self.paths)):
                 image, label = self.getImageAndLabel(i)
 
                 ntile = 50
