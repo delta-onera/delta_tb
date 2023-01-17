@@ -21,17 +21,17 @@ def perf(cm):
     cmt = torch.transpose(cm, 0, 1)
 
     accu = 0
-    for i in range(13):
+    for i in range(12):
         accu += cm[i][i]
-    accu /= cm.flatten().sum()
+    accu /= cm[0:12, 0:12].flatten().sum()
 
     iou = 0
-    for i in range(13):
+    for i in range(12):
         inter = cm[i][i]
         union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 0)
         iou += inter / union
 
-    return (iou / 13 * 100, accu * 100)
+    return (iou / 12 * 100, accu * 100)
 
 
 def symetrie(x, y, ijk):

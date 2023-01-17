@@ -101,7 +101,7 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 3)
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     optimizer.step()
 
 os._exit(0)

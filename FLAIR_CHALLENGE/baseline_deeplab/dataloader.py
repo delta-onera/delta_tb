@@ -21,17 +21,17 @@ def perf(cm):
     cmt = torch.transpose(cm, 0, 1)
 
     accu = 0
-    for i in range(13):
+    for i in range(12):
         accu += cm[i][i]
-    accu /= cm.flatten().sum()
+    accu /= cm[0:12, 0:12].flatten().sum()
 
     iou = 0
-    for i in range(13):
+    for i in range(12):
         inter = cm[i][i]
         union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 0)
         iou += inter / union
 
-    return (iou / 13 * 100, accu * 100)
+    return (iou / 12 * 100, accu * 100)
 
 
 def symetrie(x, y, ijk):
@@ -95,20 +95,20 @@ class CropExtractor(threading.Thread):
         tilesize = self.tilesize
 
         while True:
-            for i in range(len(self.paths)):
-                image, label = self.getImageAndLabel(i)
+            i = int(torch.rand(1) * len(self.paths))
+            image, label = self.getImageAndLabel(i)
 
-                ntile = 3
-                RC = numpy.random.rand(ntile, 2)
-                flag = numpy.random.randint(0, 2, size=(ntile, 3))
-                for j in range(ntile):
-                    r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
-                    c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
-                    im = image[:, r : r + tilesize, c : c + tilesize]
-                    mask = label[r : r + tilesize, c : c + tilesize]
-                    x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = torch.Tensor(x), torch.Tensor(y)
-                    self.q.put((x, y), block=True)
+            ntile = 3
+            RC = numpy.random.rand(ntile, 2)
+            flag = numpy.random.randint(0, 2, size=(ntile, 3))
+            for j in range(ntile):
+                r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
+                c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
+                im = image[:, r : r + tilesize, c : c + tilesize]
+                mask = label[r : r + tilesize, c : c + tilesize]
+                x, y = symetrie(im.copy(), mask.copy(), flag[j])
+                x, y = torch.Tensor(x), torch.Tensor(y)
+                self.q.put((x, y), block=True)
 
 
 class FLAIR:
