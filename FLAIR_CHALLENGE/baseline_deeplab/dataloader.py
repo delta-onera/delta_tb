@@ -40,11 +40,11 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths, tile=256):
+    def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
-        self.tilesize = tile
+        self.tilesize = 256
         self.paths = paths
         self.K = 3
 
@@ -85,7 +85,7 @@ class CropExtractor(threading.Thread):
             for i in range(len(self.paths)):
                 image, label = self.getImageAndLabel(i)
 
-                ntile = 50
+                ntile = 3
                 RC = numpy.random.rand(ntile, 2)
                 flag = numpy.random.randint(0, 2, size=(ntile, 3))
                 for j in range(ntile):
@@ -105,6 +105,7 @@ class FLAIR:
         self.flag = flag
         self.K = 3
         self.run = False
+        self.tilesize = 256
 
         # TODO indiquer la sous distribution en utilisant les metadata
         # pourrait aussi faciliter l'indexation...
@@ -159,7 +160,7 @@ class FLAIR:
         assert self.run
         seed = (torch.rand(batchsize) * len(self.data)).long()
         seed = [self.subdistrib[i] for i in seed]
-        x = torch.zeros(batchsize, self.K, self.tilesize, tilesize)
+        x = torch.zeros(batchsize, self.K, self.tilesize, self.tilesize)
         y = torch.zeros(batchsize, tilesize, tilesize)
         for i in range(batchsize):
             x[i], y[i] = self.data[seed[i]].getCrop()
