@@ -24,7 +24,7 @@ def crossentropy(y, z):
 
 
 def dicelossi(y, z, i):
-    eps = 0.001
+    eps = 0.0001
     z = z.softmax(dim=1)
 
     indexmap = torch.ones(z.shape).cuda()
@@ -35,13 +35,13 @@ def dicelossi(y, z, i):
 
     inter0, inter1 = (y0 * z0).sum(), (y1 * z1).sum()
     union0, union1 = (y0 + z1 * y0).sum(), (y1 + z0 * y1).sum()
+
+    if union0 < eps or union1 < eps or union0 < inter0 or union1 < inter1:
+        return 0
+
     iou0, iou1 = (inter0 + eps) / (union0 + eps), (inter1 + eps) / (union1 + eps)
     iou = 0.5 * (iou0 + iou1)
-
-    if iou < 0 or iou > 1:
-        return 0  # numerical issue
-    else:
-        return 1 - iou
+    return 1 - iou
 
 
 def diceloss(y, z):
