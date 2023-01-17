@@ -18,9 +18,8 @@ print("train")
 
 
 def crossentropy(y, z):
-    tmp = torch.nn.CrossEntropyLoss(reduction="none")
-    rawloss = tmp(z, y.long())
-    return (rawloss).mean()
+    tmp = torch.nn.CrossEntropyLoss()
+    return = tmp(z, y.long())
 
 
 def dicelossi(y, z, i):
