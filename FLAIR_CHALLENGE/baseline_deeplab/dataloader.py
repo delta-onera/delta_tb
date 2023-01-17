@@ -1,6 +1,7 @@
 import os
 import PIL
 from PIL import Image
+import rasterio
 import numpy
 import torch
 import queue
@@ -48,8 +49,10 @@ class CropExtractor(threading.Thread):
         self.K = 3
 
     def getImageAndLabel(self, i, torchformat=False):
-        x = PIL.Image.open(self.paths[i][0]).convert("RGB").copy()
-        x = numpy.uint8(numpy.asarray(x))
+        # x = PIL.Image.open(self.paths[i][0]).convert("RGB").copy()
+        # x = numpy.uint8(numpy.asarray(x))
+        with rasterio.open(self.paths[i][0]) as src_img:
+            x = src_img.read()
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.uint8(numpy.asarray(y) != 0)
