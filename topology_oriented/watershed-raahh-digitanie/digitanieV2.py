@@ -49,9 +49,6 @@ def symetrie(x, y, ijk):
 
 def minmax01(x):
     return numpy.clip(x * 2, 0, 1)
-    xmin = numpy.min(x.flatten())
-    xmax = numpy.max(x.flatten()) + 0.0000000001
-    return (x - xmin) / (xmax - xmin)
 
 
 def smooth(y):
