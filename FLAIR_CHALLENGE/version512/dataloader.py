@@ -81,7 +81,6 @@ class CropExtractor(threading.Thread):
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        tilesize = self.tilesize
         x = torch.zeros(batchsize, self.K, 512, 512)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
@@ -91,7 +90,6 @@ class CropExtractor(threading.Thread):
     def run(self):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
-        tilesize = self.tilesize
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
