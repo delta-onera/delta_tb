@@ -41,4 +41,4 @@ with torch.no_grad():
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
-        z.save("build/" + name)
+        z.save("build/" + name, compression="tiff_lzw")
