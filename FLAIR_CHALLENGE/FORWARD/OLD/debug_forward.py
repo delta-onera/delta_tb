@@ -32,7 +32,7 @@ with torch.no_grad():
                 continue
             i = y.index("msk/MSK_")
             name = y[(i + 7) :]
-            if name in predictions:
+            if name in prednames:
                 y = PIL.Image.open(y).convert("L").copy()
                 y = numpy.asarray(y)
                 y = numpy.clip(numpy.nan_to_num(y), 0, 12)
