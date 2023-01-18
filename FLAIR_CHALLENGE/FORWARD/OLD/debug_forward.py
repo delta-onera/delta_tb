@@ -28,12 +28,13 @@ with torch.no_grad():
     cm = torch.zeros((13, 13)).cuda()
     subdists = dataset.data.keys()
     for subdist in subdists:
-        for x, y, _ in dataset.data[subdists].paths:
+        paths = dataset.data[subdists].paths
+        for x, y, _ in paths:
             if "img/IMG_" not in y:
                 continue
             i = y.index("img/IMG_")
             name = y[(i + 7) :]
-            if name in y:
+            if name in predictions:
                 y = PIL.Image.open(y).convert("L").copy()
                 y = numpy.asarray(y)
                 y = numpy.clip(numpy.nan_to_num(y), 0, 12)
