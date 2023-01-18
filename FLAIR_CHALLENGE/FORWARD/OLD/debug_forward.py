@@ -17,7 +17,7 @@ prednames = os.listdir("../build")
 prednames = set([name for name in prednames if ".tif" in name])
 
 with torch.no_grad():
-    cm = torch.zeros((13, 13))
+    cm = torch.zeros((13, 13)).cuda()
     subdists = dataset.data.keys()
     for subdist in subdists:
         paths = dataset.data[subdist].paths
@@ -31,15 +31,15 @@ with torch.no_grad():
             i = y.index("msk/MSK_")
             name = "PRED" + y[(i + 7) :]
             if name not in prednames:
-                print(name)
-                quit()
                 continue
             y = PIL.Image.open(y).convert("L").copy()
             y = numpy.asarray(y)
             y = numpy.clip(numpy.nan_to_num(y), 0, 12)
+            y = torch.Tensor(y).cuda()
 
             z = PIL.Image.open("../build/" + name).convert("L").copy()
             z = numpy.asarray(z)
+            z = torch.Tensor(z).cuda()
 
             cm += dataloader.confusion(y, z)
 
