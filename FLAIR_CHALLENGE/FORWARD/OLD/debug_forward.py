@@ -13,19 +13,14 @@ dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "all")
 
 print("load prediction")
 prediction = {}
-prednames = os.listdir("build/predictions")
+prednames = os.listdir("../build/predictions")
 for name in prednames:
-    z = PIL.Image.open("build/predictions/" + name).convert("L").copy()
+    z = PIL.Image.open("../build/predictions/" + name).convert("L").copy()
     z = numpy.asarray(z)
     prednames[name[5:]] = z
 
-print("load model")
-with torch.no_grad():
-    net = torch.load("build/model.pth")
-    net = net.cuda()
-    net.eval()
 
-print("test")
+print("compare")
 
 with torch.no_grad():
     cm = torch.zeros((13, 13)).cuda()
