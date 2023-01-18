@@ -15,10 +15,11 @@ print("load prediction")
 prediction = {}
 prednames = os.listdir("../build")
 prednames = [name for name in prednames if ".tif" in name]
+predictions = {}
 for name in prednames:
     z = PIL.Image.open("../build/" + name).convert("L").copy()
     z = numpy.asarray(z)
-    prednames[name[5:]] = z
+    predictions[name[5:]] = z
 
 
 print("compare")
@@ -37,7 +38,7 @@ with torch.no_grad():
                 y = numpy.asarray(y)
                 y = numpy.clip(numpy.nan_to_num(y), 0, 12)
 
-                z = prednames[name]
+                z = predictions[name]
 
                 cm += dataset.confusion(y, z)
 
