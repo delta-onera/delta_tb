@@ -25,11 +25,15 @@ for name in prednames:
 print("compare")
 
 with torch.no_grad():
-    cm = torch.zeros((13, 13)).cuda()
+    cm = torch.zeros((13, 13))
     subdists = dataset.data.keys()
     for subdist in subdists:
         paths = dataset.data[subdists].paths
         for x, y, _ in paths:
+            tmp = torch.rand(1) * 100
+            if int(tmp) == 0:
+                print(cm.flatten().sum() / 512 / 512, cm[:5, :5])
+
             if "img/IMG_" not in y:
                 continue
             i = y.index("img/IMG_")
@@ -42,10 +46,6 @@ with torch.no_grad():
                 z = predictions[name]
 
                 cm += dataset.confusion(y, z)
-
-                tmp = torch.rand(1) * 100
-                if int(tmp) == 0:
-                    print(cm.flatten().sum() / 512 / 512)
 
     print(cm)
     print(dataset.perf(cm))
