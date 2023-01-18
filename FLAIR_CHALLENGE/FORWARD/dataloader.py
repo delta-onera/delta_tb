@@ -19,7 +19,7 @@ class FLAIRTEST:
                 path = root + folder + "/" + subfolder
                 level3 = os.listdir(path + "/img")
                 level3 = [name[4:] for name in level3 if ".aux" not in name]
-                level3 = [names[0:-4] for name in level3]
+                level3 = [name[0:-4] for name in level3]
 
                 for name in level3:
                     x = path + "/img/IMG_" + name + ".tif"
