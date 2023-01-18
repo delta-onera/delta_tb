@@ -6,8 +6,6 @@ import PIL
 from PIL import Image
 import numpy
 
-assert torch.cuda.is_available()
-
 print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "all")
 
