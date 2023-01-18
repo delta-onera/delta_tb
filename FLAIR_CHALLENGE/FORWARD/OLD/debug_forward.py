@@ -27,20 +27,21 @@ with torch.no_grad():
                 print(cm.flatten().sum() / 512 / 512, cm[:5, :5])
 
             if "msk/MSK_" not in y:
-                print(y)
-                quit()
                 continue
             i = y.index("msk/MSK_")
             name = y[(i + 7) :]
-            if name in prednames:
-                y = PIL.Image.open(y).convert("L").copy()
-                y = numpy.asarray(y)
-                y = numpy.clip(numpy.nan_to_num(y), 0, 12)
+            if name not in prednames:
+                print(name)
+                quit()
+                continue
+            y = PIL.Image.open(y).convert("L").copy()
+            y = numpy.asarray(y)
+            y = numpy.clip(numpy.nan_to_num(y), 0, 12)
 
-                z = PIL.Image.open("../build/PRED_" + name).convert("L").copy()
-                z = numpy.asarray(z)
+            z = PIL.Image.open("../build/PRED_" + name).convert("L").copy()
+            z = numpy.asarray(z)
 
-                cm += dataloader.confusion(y, z)
+            cm += dataloader.confusion(y, z)
 
     print(cm)
     print(dataloader.perf(cm))
