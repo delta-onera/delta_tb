@@ -13,9 +13,10 @@ dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "all")
 
 print("load prediction")
 prediction = {}
-prednames = os.listdir("../build/predictions")
+prednames = os.listdir("../build")
+prednames = [name for name in prednames if ".tif" in name]
 for name in prednames:
-    z = PIL.Image.open("../build/predictions/" + name).convert("L").copy()
+    z = PIL.Image.open("../build/" + name).convert("L").copy()
     z = numpy.asarray(z)
     prednames[name[5:]] = z
 
