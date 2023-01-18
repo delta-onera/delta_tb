@@ -26,11 +26,11 @@ with torch.no_grad():
             if int(tmp) == 0:
                 print(cm.flatten().sum() / 512 / 512, cm[:5, :5])
 
-            if "img/IMG_" not in y:
+            if "msk/MSK_" not in y:
                 print(y)
                 quit()
                 continue
-            i = y.index("img/IMG_")
+            i = y.index("msk/MSK_")
             name = y[(i + 7) :]
             if name in predictions:
                 y = PIL.Image.open(y).convert("L").copy()
