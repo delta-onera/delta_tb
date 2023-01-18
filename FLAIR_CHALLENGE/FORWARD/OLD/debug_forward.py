@@ -29,7 +29,7 @@ with torch.no_grad():
             if "msk/MSK_" not in y:
                 continue
             i = y.index("msk/MSK_")
-            name = y[(i + 7) :]
+            name = "PRED" + y[(i + 7) :]
             if name not in prednames:
                 print(name)
                 quit()
@@ -38,7 +38,7 @@ with torch.no_grad():
             y = numpy.asarray(y)
             y = numpy.clip(numpy.nan_to_num(y), 0, 12)
 
-            z = PIL.Image.open("../build/PRED_" + name).convert("L").copy()
+            z = PIL.Image.open("../build/" + name).convert("L").copy()
             z = numpy.asarray(z)
 
             cm += dataloader.confusion(y, z)
