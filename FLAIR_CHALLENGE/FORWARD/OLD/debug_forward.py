@@ -50,7 +50,7 @@ with torch.no_grad():
             z = numpy.asarray(z)
             z = torch.Tensor(z)
 
-            cm += dataloader.confusion(y, z)
+            cm += confusion(y, z)
 
     print(cm)
     print(dataloader.perf(cm))
