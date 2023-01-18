@@ -14,15 +14,7 @@ dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "all")
 print("load prediction")
 prediction = {}
 prednames = os.listdir("../build")
-prednames = [name for name in prednames if ".tif" in name]
-predictions = {}
-for name in prednames:
-    z = PIL.Image.open("../build/" + name).convert("L").copy()
-    z = numpy.asarray(z)
-    predictions[name[5:]] = z
-
-
-print("compare")
+prednames = set([name for name in prednames if ".tif" in name])
 
 with torch.no_grad():
     cm = torch.zeros((13, 13))
@@ -43,7 +35,8 @@ with torch.no_grad():
                 y = numpy.asarray(y)
                 y = numpy.clip(numpy.nan_to_num(y), 0, 12)
 
-                z = predictions[name]
+                z = PIL.Image.open("../build/PRED_" + name).convert("L").copy()
+                z = numpy.asarray(z)
 
                 cm += dataset.confusion(y, z)
 
