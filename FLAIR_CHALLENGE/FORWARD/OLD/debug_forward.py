@@ -20,7 +20,7 @@ with torch.no_grad():
     cm = torch.zeros((13, 13))
     subdists = dataset.data.keys()
     for subdist in subdists:
-        paths = dataset.data[subdists].paths
+        paths = dataset.data[subdist].paths
         for x, y, _ in paths:
             tmp = torch.rand(1) * 100
             if int(tmp) == 0:
