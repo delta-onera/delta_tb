@@ -25,6 +25,8 @@ def confusion(y, z):
     return cm
 
 
+print("compare")
+
 with torch.no_grad():
     cm = torch.zeros((13, 13))
     subdists = dataset.data.keys()
