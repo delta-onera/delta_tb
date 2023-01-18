@@ -42,5 +42,13 @@ with torch.no_grad():
 
                 cm += dataset.confusion(y, z)
 
+                tmp = torch.rand(1) * 100
+                if int(tmp) == 0:
+                    print(
+                        cm.flatten().sum() / 512 / 512,
+                        "/",
+                        len(dataset.data[subdists].paths),
+                    )
+
     print(cm)
     print(dataset.perf(cm))
