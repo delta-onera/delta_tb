@@ -22,7 +22,7 @@ with torch.no_grad():
     for subdist in subdists:
         paths = dataset.data[subdist].paths
         for x, y, _ in paths:
-            tmp = torch.rand(1) * 100
+            tmp = torch.rand(1) * 1000
             if int(tmp) == 0:
                 print(cm.flatten().sum() / 512 / 512, cm[:5, :5])
 
@@ -38,7 +38,7 @@ with torch.no_grad():
                 z = PIL.Image.open("../build/PRED_" + name).convert("L").copy()
                 z = numpy.asarray(z)
 
-                cm += dataset.confusion(y, z)
+                cm += dataloader.confusion(y, z)
 
     print(cm)
-    print(dataset.perf(cm))
+    print(dataloader.perf(cm))
