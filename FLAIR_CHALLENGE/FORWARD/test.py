@@ -9,7 +9,7 @@ import numpy
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.FLAIRTEST("/scratchf/CHALLENGE_IGN/train/")
+dataset = dataloader.FLAIRTEST("/scratchf/CHALLENGE_IGN/test/")
 
 print("load model")
 with torch.no_grad():
