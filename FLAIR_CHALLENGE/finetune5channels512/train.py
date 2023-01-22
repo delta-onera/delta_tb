@@ -112,7 +112,7 @@ for i in range(nbbatchs):
         net.backend.backbone["0"].weight = torch.nn.Parameter(nextw)
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
         if i % 100 == 0:
-            print(current.abs().flatten().sum())
+            print(current.abs().flatten().sum(), delta.abs().flatten().sum())
 
 
 os._exit(0)
