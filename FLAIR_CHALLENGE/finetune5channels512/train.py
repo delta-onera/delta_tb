@@ -106,8 +106,8 @@ for i in range(nbbatchs):
     if i > 2000:
         optimizer.step()
     else:
-        delta = net.backend.backbone["0"].weight.grad.copy()
-        current = net.backend.backbone["0"].weight.copy()
+        delta = net.backend.backbone["0"].weight.grad.clone()
+        current = net.backend.backbone["0"].weight.clone()
         optimizer.zero_grad()
         net.backend.backbone["0"].weight = current + 0.00001 * delta
         net.backend.backbone["0"].weight.requires_grad_(True)
