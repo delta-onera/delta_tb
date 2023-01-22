@@ -58,6 +58,8 @@ batchsize = 8
 nbbatchs = 100000
 dataset.start()
 
+momentum = 0
+
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
@@ -107,8 +109,9 @@ for i in range(nbbatchs):
         optimizer.step()
     else:
         delta = net.backend.backbone["0"].weight.grad.clone()
+        momentum = delta + 0.9 * momentum
         current = net.backend.backbone["0"].weight.clone()
-        nextw = current + 0.0001 * delta
+        nextw = current + 0.00001 * delta
         net.backend.backbone["0"].weight = torch.nn.Parameter(nextw)
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
         if i % 100 == 0:
