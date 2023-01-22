@@ -68,7 +68,7 @@ class CropExtractor(threading.Thread):
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
-        y = numpy.clip(numpy.nan_to_num(y)-1, 0, 12)
+        y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         # self.path[i][2] contient metadata à ajouter à x ?
 

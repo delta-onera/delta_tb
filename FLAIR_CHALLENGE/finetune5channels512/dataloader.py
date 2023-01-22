@@ -62,12 +62,11 @@ class CropExtractor(threading.Thread):
     def getImageAndLabel(self, i, torchformat=False):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            x = x[0:3, :, :]  # pour le moment
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
-        y = numpy.clip(numpy.nan_to_num(y)-1, 0, 12)
+        y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         # self.path[i][2] contient metadata à ajouter à x ?
 
@@ -183,6 +182,19 @@ class Mobilenet(torch.nn.Module):
         self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
         self.backend.classifier.high_classifier = torch.nn.Conv2d(
             128, 13, kernel_size=1
+        )
+
+    def forward(self, x):
+        x = ((x / 255) - 0.5) / 0.25
+        return self.backend(x)["out"]
+
+
+class Mobilenet5(torch.nn.Module):
+    def __init__(self, path):
+        super(Mobilenet5, self).__init__()
+        self.backend = torch.load(path)
+        self.backend.backbone["0"] = torch.nn.Conv2d(
+            5, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
         )
 
     def forward(self, x):
