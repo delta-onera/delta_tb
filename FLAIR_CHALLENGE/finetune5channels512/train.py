@@ -9,7 +9,7 @@ print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even")
 
 print("define model")
-net = dataloader.Mobilenet()
+net = dataloader.Mobilenet5("build/model3ch.pth")
 net = net.cuda()
 net.eval()
 
@@ -51,11 +51,11 @@ def diceloss(y, z):
     return alldice.mean()
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
 batchsize = 8
-nbbatchs = 200000
+nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
@@ -102,6 +102,14 @@ for i in range(nbbatchs):
     optimizer.zero_grad()
     loss.backward()
     torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-    optimizer.step()
+
+    if i > 2000:
+        optimizer.step()
+    else:
+        delta = self.backend.backbone["0"].weight.grad.copy()
+        current = self.backend.backbone["0"].weight.copy()
+        optimizer.zero_grad()
+        self.backend.backbone["0"].weight = current + 0.00001 * delta
+
 
 os._exit(0)
