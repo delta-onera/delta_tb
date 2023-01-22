@@ -108,9 +108,9 @@ for i in range(nbbatchs):
     else:
         delta = net.backend.backbone["0"].weight.grad.clone()
         current = net.backend.backbone["0"].weight.clone()
-        optimizer.zero_grad()
-        net.backend.backbone["0"].weight = current + 0.00001 * delta
-        net.backend.backbone["0"].weight.requires_grad_(True)
+        nextw = current + 0.00001 * delta
+        net.backend.backbone["0"].weight = torch.nn.Parameter(nextw)
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
 
 
 os._exit(0)
