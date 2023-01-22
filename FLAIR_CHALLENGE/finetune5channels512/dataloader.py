@@ -192,7 +192,7 @@ class Mobilenet(torch.nn.Module):
 class Mobilenet5(torch.nn.Module):
     def __init__(self, path):
         super(Mobilenet5, self).__init__()
-        self.backend = torch.load(path)
+        self.backend = torch.load(path).backend
         self.backend.backbone["0"] = torch.nn.Conv2d(
             5, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
         )
