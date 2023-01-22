@@ -103,12 +103,12 @@ for i in range(nbbatchs):
     loss.backward()
     torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
 
-    if i > 2000:
+    if i > 3000:
         optimizer.step()
     else:
         delta = net.backend.backbone["0"].weight.grad.clone()
         current = net.backend.backbone["0"].weight.clone()
-        nextw = current + 0.00001 * delta
+        nextw = current + 0.000001 * delta
         net.backend.backbone["0"].weight = torch.nn.Parameter(nextw)
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
 
