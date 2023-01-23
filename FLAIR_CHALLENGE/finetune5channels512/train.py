@@ -104,7 +104,7 @@ for i in range(nbbatchs):
     optimizer.zero_grad()
     loss.backward()
 
-    if i > 3000:
+    if i > 1000:
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
         optimizer.step()
     else:
