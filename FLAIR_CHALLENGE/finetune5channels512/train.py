@@ -108,11 +108,11 @@ for i in range(nbbatchs):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
         optimizer.step()
     else:
-        delta = net.backend.backbone["0"].weight.grad.clone()
+        delta = net.backend.backbone["0"][0].weight.grad.clone()
         momentum = delta + 0.9 * momentum
-        current = net.backend.backbone["0"].weight.clone()
+        current = net.backend.backbone["0"][0].weight.clone()
         nextw = current - 0.00001 * delta
-        net.backend.backbone["0"].weight = torch.nn.Parameter(nextw)
+        net.backend.backbone["0"][0].weight = torch.nn.Parameter(nextw)
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
         # if i % 100 == 0:
         #    print(current.abs().flatten().sum(), delta.abs().flatten().sum())
