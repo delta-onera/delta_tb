@@ -195,15 +195,15 @@ class Mobilenet5(torch.nn.Module):
         self.backend = torch.load(path).backend
 
         with torch.no_grad():
-            old = self.backend.backbone["0"].weight.data.clone()
-            self.backend.backbone["0"] = torch.nn.Conv2d(
+            old = self.backend.backbone["0"][0].weight.data.clone()
+            self.backend.backbone["0"][0] = torch.nn.Conv2d(
                 5, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
-            neww = self.backend.backbone["0"].weight.data.clone()
+            neww = self.backend.backbone["0"][0].weight.data.clone()
 
             neww[:, 0:3, :, :] = old
             neww[:, 3:, :, :] *= 0.5
-            self.backend.backbone["0"].weight = torch.nn.Parameter(neww)
+            self.backend.backbone["0"][0].weight = torch.nn.Parameter(neww)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
