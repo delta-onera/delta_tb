@@ -212,10 +212,12 @@ class Encodeur(torch.nn.Module):
 
         with torch.no_grad():
             old = self.backend[0][0].weight.data.clone()
+            stdnorm = old.abs().flatten().sum()
             self.backend[0][0] = torch.nn.Conv2d(
                 5, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
             neww = self.backend[0][0].weight.data.clone()
+            neww *= stdnorm / neww.abs().flatten().sum() / 3 * 5
             neww[:, 0:3, :, :] = old
             self.backend[0][0].weight = torch.nn.Parameter(neww)
 

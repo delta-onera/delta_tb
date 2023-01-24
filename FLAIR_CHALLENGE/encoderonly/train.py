@@ -58,6 +58,8 @@ batchsize = 8
 nbbatchs = 200000
 dataset.start()
 
+momentum = 0
+
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
@@ -105,7 +107,7 @@ for i in range(nbbatchs):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
         optimizer.step()
     else:
-        if i > 2000:
+        if i < 2000:
             delta = net.backend[0][0].weight.grad.clone()
             momentum = delta + 0.9 * momentum
             current = net.backend[0][0].weight.clone()
