@@ -9,7 +9,7 @@ print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even")
 
 print("define model")
-net = dataloader.Mobilenet()
+net = dataloader.Encoder()
 net = net.cuda()
 net.eval()
 
@@ -105,7 +105,7 @@ for i in range(nbbatchs):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
         optimizer.step()
     else:
-        if i>2000:
+        if i > 2000:
             delta = net.backend[0][0].weight.grad.clone()
             momentum = delta + 0.9 * momentum
             current = net.backend[0][0].weight.clone()
