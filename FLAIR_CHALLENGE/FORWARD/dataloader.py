@@ -29,7 +29,7 @@ class FLAIRTEST:
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            if onlycolor in flag:
+            if "onlycolor" in flag:
                 x = x[0:3, :, :]  # pour le moment
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
