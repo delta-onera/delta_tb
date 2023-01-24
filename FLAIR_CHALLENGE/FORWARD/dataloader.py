@@ -8,6 +8,7 @@ import torchvision
 class FLAIRTEST:
     def __init__(self, root, flag=""):
         self.root = root
+        self.flag = flag
 
         self.paths = []
         level1 = os.listdir(root)
@@ -29,7 +30,7 @@ class FLAIRTEST:
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            if "onlycolor" in flag:
+            if "onlycolor" in self.flag:
                 x = x[0:3, :, :]  # pour le moment
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
