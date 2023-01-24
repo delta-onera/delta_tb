@@ -6,9 +6,8 @@ import torchvision
 
 
 class FLAIRTEST:
-    def __init__(self, root):
+    def __init__(self, root, flag=""):
         self.root = root
-        self.K = 3
 
         self.paths = []
         level1 = os.listdir(root)
@@ -30,7 +29,8 @@ class FLAIRTEST:
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            x = x[0:3, :, :]  # pour le moment
+            if onlycolor in flag:
+                x = x[0:3, :, :]  # pour le moment
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         # self.path[i][2] contient metadata à ajouter à x ?
