@@ -9,7 +9,7 @@ print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even")
 
 print("define model")
-net = dataloader.Encoder()
+net = dataloader.Encodeur()
 net = net.cuda()
 net.eval()
 
