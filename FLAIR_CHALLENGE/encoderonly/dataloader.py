@@ -209,6 +209,7 @@ class Encodeur(torch.nn.Module):
         tmp = torchvision.models.efficientnet_v2_l(weights="DEFAULT")
         self.backend = tmp.features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
+        self.classif.bias = torch.zeros(13)
 
         with torch.no_grad():
             old = self.backend[0][0].weight.data.clone()
@@ -216,7 +217,6 @@ class Encodeur(torch.nn.Module):
                 5, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
             neww = self.backend[0][0].weight.data.clone()
-
             neww[:, 0:3, :, :] = old
             self.backend[0][0].weight = torch.nn.Parameter(neww)
 

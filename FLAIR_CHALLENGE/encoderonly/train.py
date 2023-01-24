@@ -101,7 +101,24 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-    optimizer.step()
+    if i > 3000:
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+        optimizer.step()
+    else:
+        if i>2000:
+            delta = net.backend[0][0].weight.grad.clone()
+            momentum = delta + 0.9 * momentum
+            current = net.backend[0][0].weight.clone()
+            current = current - 0.00001 * delta
+            net.backend[0][0].weight = torch.nn.Parameter(current)
+
+        delta = net.classif.weight.grad.clone()
+        current = net.classif.weight.clone()
+        current = current - 0.00001 * delta
+        net.classif.weight = torch.nn.Parameter(current)
+
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
+        # if i % 100 == 0:
+        #    print(current.abs().flatten().sum(), delta.abs().flatten().sum())
 
 os._exit(0)
