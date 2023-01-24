@@ -199,7 +199,7 @@ class Mobilenet5(torch.nn.Module):
             stdnorm = old.abs().flatten().sum()
             self.backend.backbone["0"][0] = torch.nn.Conv2d(
                 5, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
-            )
+            ).cuda()
             neww = self.backend.backbone["0"][0].weight.data.clone()
             neww *= stdnorm / neww.abs().flatten().sum() / 3 * 5
             neww[:, 0:3, :, :] = old
