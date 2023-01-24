@@ -57,12 +57,11 @@ class CropExtractor(threading.Thread):
         self.isrunning = False
         self.maxsize = 500
         self.paths = paths
-        self.K = 3
+        self.K = 5
 
     def getImageAndLabel(self, i, torchformat=False):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            x = x[0:3, :, :]  # pour le moment
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
@@ -105,7 +104,7 @@ class FLAIR:
         assert flag in ["odd", "even", "all"]
         self.root = root
         self.flag = flag
-        self.K = 3
+        self.K = 5
         self.run = False
 
         # TODO indiquer la sous distribution en utilisant les metadata
