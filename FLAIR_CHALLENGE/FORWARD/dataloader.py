@@ -54,6 +54,27 @@ class Mobilenet(torch.nn.Module):
         return self.backend(x)["out"]
 
 
+class Mobilenet5(torch.nn.Module):
+    def __init__(self, path):
+        super(Mobilenet5, self).__init__()
+        self.backend = torch.load(path).backend
+
+        with torch.no_grad():
+            old = self.backend.backbone["0"][0].weight.data.clone()
+            self.backend.backbone["0"][0] = torch.nn.Conv2d(
+                5, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            neww = self.backend.backbone["0"][0].weight.data.clone()
+
+            neww[:, 0:3, :, :] = old
+            neww[:, 3:, :, :] *= 0.5
+            self.backend.backbone["0"][0].weight = torch.nn.Parameter(neww)
+
+    def forward(self, x):
+        x = ((x / 255) - 0.5) / 0.25
+        return self.backend(x)["out"]
+
+
 class Deeplab(torch.nn.Module):
     def __init__(self):
         super(Deeplab, self).__init__()
