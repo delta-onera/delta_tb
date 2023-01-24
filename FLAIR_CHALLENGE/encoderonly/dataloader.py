@@ -209,7 +209,7 @@ class Encodeur(torch.nn.Module):
         tmp = torchvision.models.efficientnet_v2_l(weights="DEFAULT")
         self.backend = tmp.features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-        self.classif.bias = torch.zeros(13)
+        self.classif.bias = torch.nn.Parameter(torch.zeros(13))
 
         with torch.no_grad():
             old = self.backend[0][0].weight.data.clone()
