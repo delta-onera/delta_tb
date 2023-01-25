@@ -54,8 +54,8 @@ def diceloss(y, z):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 8
-nbbatchs = 200000
+batchsize = 6
+nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
@@ -101,7 +101,20 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-    optimizer.step()
+    if i > 1000:
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+        optimizer.step()
+    else:
+        delta = net.backend.classifier.low_classifier.weight.grad.clone()
+        current = net.backend.classifier.low_classifier.weight.clone()
+        current = current - 0.00001 * delta
+        net.backend.classifier.low_classifier.weight = torch.nn.Parameter(current)
+
+        delta = net.backend.classifier.high_classifier.weight.grad.clone()
+        current = net.backend.classifier.high_classifier.weight.clone()
+        current = current - 0.00001 * delta
+        net.backend.classifier.high_classifier.weight = torch.nn.Parameter(current)
+
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)  # required ??
 
 os._exit(0)
