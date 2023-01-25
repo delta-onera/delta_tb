@@ -2,12 +2,14 @@ import os
 import torch
 import torchvision
 import dataloader
+import sys
 
 assert torch.cuda.is_available()
-
+assert len(sys.argv) > 1
+argv = sys.argv[1] + "/"
 print("load model")
 with torch.no_grad():
-    net = torch.load("model.pth")
+    net = torch.load(argv + "model.pth")
     net = net.cuda()
     net.eval()
 
@@ -29,11 +31,11 @@ with torch.no_grad():
         cm += dataloader.confusion(y, z)
 
         if False:
-            torchvision.utils.save_image(x / 255, str(i) + "_x.png")
+            torchvision.utils.save_image(x / 255, argv + str(i) + "_x.png")
             debug = torch.stack([y, y, y], dim=0) / 13
-            torchvision.utils.save_image(debug, str(i) + "_y.png")
+            torchvision.utils.save_image(debug, argv + str(i) + "_y.png")
             debug = torch.stack([z, z, z], dim=0).float() / 13
-            torchvision.utils.save_image(debug, str(i) + "_z.png")
+            torchvision.utils.save_image(debug, argv + str(i) + "_z.png")
 
     print(cm)
     print(dataloader.perf(cm))

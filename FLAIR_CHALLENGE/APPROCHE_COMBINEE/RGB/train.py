@@ -1,7 +1,7 @@
 import os
 import torch
 import torchvision
-import dataloader
+from ... import dataloader
 
 assert torch.cuda.is_available()
 
