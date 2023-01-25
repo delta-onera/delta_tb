@@ -199,7 +199,7 @@ class JustEfficientnet(torch.nn.Module):
     def forward(self, x):
         _, _, h, w = x.shape
         x = ((x / 255) - 0.5) / 0.25
-        x = self.backend(x)
+        x = self.f(x)
         x = self.classif(x)
         x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
         return x
