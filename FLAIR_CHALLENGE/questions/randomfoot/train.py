@@ -12,12 +12,12 @@ print("define model")
 net = dataloader.Mobilenet()
 old = net.backend.backbone["0"][0].weight.data.clone()
 stdnorm = old.abs().flatten().sum()
-self.backend.backbone["0"][0] = torch.nn.Conv2d(
+net.backend.backbone["0"][0] = torch.nn.Conv2d(
     3, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
 )
-neww = self.backend.backbone["0"][0].weight.data.clone()
+neww = net.backend.backbone["0"][0].weight.data.clone()
 neww *= stdnorm / neww.abs().flatten().sum()
-self.backend.backbone["0"][0].weight = torch.nn.Parameter(neww)
+net.backend.backbone["0"][0].weight = torch.nn.Parameter(neww)
 net = net.cuda()
 net.eval()
 
