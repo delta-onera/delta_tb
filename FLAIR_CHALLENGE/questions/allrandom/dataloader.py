@@ -177,7 +177,9 @@ class FLAIR:
 class Mobilenet(torch.nn.Module):
     def __init__(self):
         super(Mobilenet, self).__init__()
-        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large()
+        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
+            weights_backbone=None
+        )
         self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
         self.backend.classifier.high_classifier = torch.nn.Conv2d(
             128, 13, kernel_size=1
