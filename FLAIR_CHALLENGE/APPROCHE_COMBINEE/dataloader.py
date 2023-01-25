@@ -182,7 +182,24 @@ class Mobilenet(torch.nn.Module):
         self.backend.classifier.high_classifier = torch.nn.Conv2d(
             128, 13, kernel_size=1
         )
+        self.channels = None
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
         return self.backend(x)["out"]
+
+
+class JustEfficientnet(torch.nn.Module):
+    def __init__(self):
+        super(JustEfficientnet, self).__init__()
+        self.f = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
+        self.channels = None
+
+    def forward(self, x):
+        _, _, h, w = x.shape
+        x = ((x / 255) - 0.5) / 0.25
+        x = self.backend(x)
+        x = self.classif(x)
+        x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
+        return x
