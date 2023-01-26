@@ -5,14 +5,14 @@ import dataloader
 
 assert torch.cuda.is_available()
 
-print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "odd")
-
 print("load model")
 with torch.no_grad():
     net = torch.load("build/model.pth")
     net = net.cuda()
     net.eval()
+
+print("load data")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "odd", net.channels)
 
 print("test")
 

@@ -5,11 +5,15 @@ import dataloader
 
 assert torch.cuda.is_available()
 
+channels = [0, 3, 4]
+print(channels)
+
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even", channels)
 
 print("define model")
-net = dataloader.Encodeur()
+net = dataloader.JustEfficientnet()
+net.channels = channels
 net = net.cuda()
 net.eval()
 
@@ -55,7 +59,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
 batchsize = 5
-nbbatchs = 200000
+nbbatchs = 100000
 dataset.start()
 
 momentum = 0
@@ -103,24 +107,7 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    if i > 3000:
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-        optimizer.step()
-    else:
-        if i < 2000:
-            delta = net.backend[0][0].weight.grad.clone()
-            momentum = delta + 0.9 * momentum
-            current = net.backend[0][0].weight.clone()
-            current = current - 0.00001 * delta
-            net.backend[0][0].weight = torch.nn.Parameter(current)
-
-        delta = net.classif.weight.grad.clone()
-        current = net.classif.weight.clone()
-        current = current - 0.00001 * delta
-        net.classif.weight = torch.nn.Parameter(current)
-
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)  # required ??
-        # if i % 100 == 0:
-        #    print(current.abs().flatten().sum(), delta.abs().flatten().sum())
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+    optimizer.step()
 
 os._exit(0)

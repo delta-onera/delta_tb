@@ -52,23 +52,22 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths):
+    def __init__(self, paths, channels):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
         self.paths = paths
-        self.K = 5
+        self.channels = channels
 
     def getImageAndLabel(self, i, torchformat=False):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
+            x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
-
-        # self.path[i][2] contient metadata à ajouter à x ?
 
         if torchformat:
             return torch.Tensor(x), torch.Tensor(y)
@@ -80,7 +79,7 @@ class CropExtractor(threading.Thread):
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, self.K, 512, 512)
+        x = torch.zeros(batchsize, 3, 512, 512)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
@@ -100,11 +99,11 @@ class CropExtractor(threading.Thread):
 
 
 class FLAIR:
-    def __init__(self, root, flag):
+    def __init__(self, root, flag, channels):
         assert flag in ["odd", "even", "all"]
         self.root = root
         self.flag = flag
-        self.K = 5
+        self.channels = channels
         self.run = False
 
         # TODO indiquer la sous distribution en utilisant les metadata
@@ -150,7 +149,7 @@ class FLAIR:
         self.subdistrib = list(self.pathssubdistrib.keys())
         self.data = {}
         for sousdis in self.pathssubdistrib.keys():
-            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis])
+            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis], channels)
 
     def getImageAndLabel(self, i, torchformat=False):
         sousdistrib, j = self.paths[i]
@@ -160,7 +159,7 @@ class FLAIR:
         assert self.run
         seed = (torch.rand(batchsize) * len(self.data)).long()
         seed = [self.subdistrib[i] for i in seed]
-        x = torch.zeros(batchsize, self.K, 512, 512)
+        x = torch.zeros(batchsize, 3, 512, 512)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.data[seed[i]].getCrop()
@@ -183,48 +182,24 @@ class Mobilenet(torch.nn.Module):
         self.backend.classifier.high_classifier = torch.nn.Conv2d(
             128, 13, kernel_size=1
         )
+        self.channels = None
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
         return self.backend(x)["out"]
 
 
-class Deeplab(torch.nn.Module):
+class JustEfficientnet(torch.nn.Module):
     def __init__(self):
-        super(Deeplab, self).__init__()
-        self.backend = torchvision.models.segmentation.deeplabv3_resnet101(
-            weights="DEFAULT"
-        )
-        self.backend.classifier[4] = torch.nn.Conv2d(256, 13, kernel_size=1)
-
-    def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
-        return self.backend(x)["out"]
-
-
-class Encodeur(torch.nn.Module):
-    def __init__(self):
-        super(Encodeur, self).__init__()
-        tmp = torchvision.models.efficientnet_v2_l(weights="DEFAULT")
-        self.backend = tmp.features
+        super(JustEfficientnet, self).__init__()
+        self.f = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-        self.classif.bias = torch.nn.Parameter(torch.zeros(13))
-
-        with torch.no_grad():
-            old = self.backend[0][0].weight.data.clone()
-            stdnorm = old.abs().flatten().sum()
-            self.backend[0][0] = torch.nn.Conv2d(
-                5, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
-            )
-            neww = self.backend[0][0].weight.data.clone()
-            neww *= stdnorm / neww.abs().flatten().sum() / 3 * 5
-            neww[:, 0:3, :, :] = old
-            self.backend[0][0].weight = torch.nn.Parameter(neww)
+        self.channels = None
 
     def forward(self, x):
         _, _, h, w = x.shape
         x = ((x / 255) - 0.5) / 0.25
-        x = self.backend(x)
+        x = self.f(x)
         x = self.classif(x)
         x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
         return x
