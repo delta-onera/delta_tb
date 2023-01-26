@@ -16,7 +16,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-dataset = dataloader.FLAIRTEST("/scratchf/CHALLENGE_IGN/test/", self.channels)
+dataset = dataloader.FLAIRTEST("/scratchf/CHALLENGE_IGN/test/", net.channels)
 
 
 print("test")
