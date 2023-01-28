@@ -129,7 +129,7 @@ class FLAIR:
                 for name in names:
                     x = path + "/img/IMG_" + name
                     y = path + "/msk/MSK_" + name
-                    self.paths.append(("TODO", x, y, name))
+                    self.paths.append(("TODO", x, y, "PRED_" + name))
 
         # séparer les sous distributions
         self.paths = sorted(self.paths)
