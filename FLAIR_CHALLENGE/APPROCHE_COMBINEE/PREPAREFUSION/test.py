@@ -37,6 +37,7 @@ with torch.no_grad():
         if i == 0:
             print(z.flatten().min())
             print(z.flatten().max())
+            print(z.shape)
 
         z = z.half()
         if i == 0:
