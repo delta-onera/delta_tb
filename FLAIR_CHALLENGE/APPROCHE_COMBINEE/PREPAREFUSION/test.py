@@ -33,7 +33,15 @@ with torch.no_grad():
         x, name = dataset.getImageAndLabel(i)
         x = x.cuda()
 
-        z = net(x.unsqueeze(0))
+        z = net(x.unsqueeze(0))[0]
+        if i == 0:
+            print(z.flatten().min())
+            print(z.flatten().max())
+
+        z = z.half()
+        if i == 0:
+            print(z.flatten().min())
+            print(z.flatten().max())
 
         path = "build/" + sys.argv[1] + "/" + sys.argv[2] + "/" + name
         torch.save(z, path)
