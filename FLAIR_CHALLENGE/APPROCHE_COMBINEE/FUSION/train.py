@@ -5,8 +5,6 @@ import dataloader
 
 assert torch.cuda.is_available()
 
-print(channels)
-
 print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "1/4")
 
