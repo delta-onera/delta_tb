@@ -52,12 +52,11 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths, channels):
+    def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
         self.paths = paths
-        self.channels = channels
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
@@ -104,11 +103,10 @@ class CropExtractor(threading.Thread):
 
 
 class FLAIR:
-    def __init__(self, root, flag, channels):
+    def __init__(self, root, flag):
         assert flag in ["1/4", "3/4"]
         self.root = root
         self.flag = flag
-        self.channels = channels
         self.run = False
 
         # TODO indiquer la sous distribution en utilisant les metadata
@@ -131,8 +129,7 @@ class FLAIR:
                 for name in names:
                     x = path + "/img/IMG_" + name
                     y = path + "/msk/MSK_" + name
-                    meta = None
-                    self.paths.append(("TODO", x, y, meta))
+                    self.paths.append(("TODO", x, y, name))
 
         # séparer les sous distributions
         self.paths = sorted(self.paths)
@@ -155,7 +152,7 @@ class FLAIR:
         self.subdistrib = list(self.pathssubdistrib.keys())
         self.data = {}
         for sousdis in self.pathssubdistrib.keys():
-            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis], channels)
+            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis])
 
     def getImageAndLabel(self, i, torchformat=False):
         sousdistrib, j = self.paths[i]
