@@ -67,5 +67,5 @@ class JustEfficientnet(torch.nn.Module):
         x = ((x / 255) - 0.5) / 0.25
         x = self.f(x)
         x = self.classif(x)
-        x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
+        # x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
         return x
