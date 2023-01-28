@@ -78,7 +78,7 @@ class CropExtractor(threading.Thread):
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
             x.append(tmp[0])
 
-        x = torch.stack(x, dim=0)
+        x = torch.cat(x, dim=0)
         assert x.shape == (57, 512, 512)
         return x, y
 
