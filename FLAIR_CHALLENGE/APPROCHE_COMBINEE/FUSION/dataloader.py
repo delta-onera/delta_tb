@@ -195,4 +195,4 @@ class FusionNet(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.f3(z))
         x = torch.cat([x, z, x * z], dim=1)
         x = torch.nn.functional.leaky_relu(self.f4(x))
-        return torch.f5(x)
+        return self.f5(x)
