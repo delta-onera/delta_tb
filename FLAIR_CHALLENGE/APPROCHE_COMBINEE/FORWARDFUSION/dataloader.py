@@ -10,9 +10,8 @@ import torchvision
 
 
 class FLAIRTEST:
-    def __init__(self, root, channels):
+    def __init__(self, root):
         self.root = root
-        self.channels = channels
 
         self.paths = []
         level1 = os.listdir(root)
