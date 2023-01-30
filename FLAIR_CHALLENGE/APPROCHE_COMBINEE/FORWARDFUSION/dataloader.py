@@ -46,7 +46,9 @@ class FLAIRTEST:
                 tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
                 x.append(tmp[0])
 
-        return torch.Tensor(x), name
+        x = torch.cat(x, dim=0)
+        assert x.shape == (57, 512, 512)
+        return x, name
 
 
 class FusionNet(torch.nn.Module):
