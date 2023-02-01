@@ -39,4 +39,4 @@ with torch.no_grad():
         z = largeforward(net, x.unsqueeze(0))
         _, z = z[0].max(0)
 
-        dataloader.exportresults(i, z)
+        dataset.exportresults(i, z)
