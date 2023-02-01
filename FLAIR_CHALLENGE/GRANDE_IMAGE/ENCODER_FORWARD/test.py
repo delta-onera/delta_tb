@@ -36,6 +36,6 @@ with torch.no_grad():
         x = x.cuda()
 
         z = largeforward(net, x.unsqueeze(0))
-        _, z = z[0].max(0)
+        _, z = z.max(0)
 
         dataset.exportresults(i, z)
