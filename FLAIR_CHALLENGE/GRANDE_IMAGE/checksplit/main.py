@@ -9,4 +9,4 @@ print(a)
 
 path = "/scratchf/CHALLENGE_IGN/test/D012_2019/Z10_UU/img/IMG_062700.tif"
 with rasterio.open(path) as src_img:
-    print(src_img.coords.BoundingBox)
+    print(src_img.bounds)
