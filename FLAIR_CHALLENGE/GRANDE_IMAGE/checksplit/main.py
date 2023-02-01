@@ -34,7 +34,8 @@ for domaine in domaines:
         tmp = "/scratchf/flair_merged/test/" + domaine + "/" + path
         boxesTOcoords(tmp, allboxes)
 
-print(allboxes)
+for key in allboxes:
+    print(key, allboxes[key])
 
 quit()
 
