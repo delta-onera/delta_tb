@@ -28,7 +28,7 @@ def boxesTOcoords(path, allboxes):
 allboxes = {}
 domaines = os.listdir("/scratchf/flair_merged/test/")
 for domaine in domaines:
-    paths = os.listdir("/scratchf/flair_merged/test/" + domain)
+    paths = os.listdir("/scratchf/flair_merged/test/" + domaine)
     paths = [path for paths in paths if ".npy" in path]
     for path in paths:
         tmp = "/scratchf/flair_merged/test/" + domain + "/" + path
