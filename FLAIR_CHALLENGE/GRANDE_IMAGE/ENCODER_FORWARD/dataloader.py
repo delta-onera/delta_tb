@@ -46,10 +46,9 @@ class FLAIRTEST:
         cols, rows = self.rankfromlist(cols), self.rankfromlist(rows)
 
         tmp = [cols[j] for j in cols]
-        print(max(tmp), pred.shape)
-        assert max(tmp) == pred.shape[1]
+        assert max(tmp) + 512 == pred.shape[1]
         tmp = [rows[j] for j in rows]
-        assert max(tmp) == pred.shape[0]
+        assert max(tmp) + 512 == pred.shape[0]
 
         for j in range(boxes.shape[0]):
             name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
