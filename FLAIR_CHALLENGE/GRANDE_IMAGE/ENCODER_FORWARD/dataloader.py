@@ -42,7 +42,7 @@ class FLAIRTEST:
 
         cols = [boxes[i][1].left for i in range(boxes.shape[0])]
         rows = [boxes[i][1].top for i in range(boxes.shape[0])]
-        cols, rows = rankfromlist(cols), rankfromlist(rows)
+        cols, rows = self.rankfromlist(cols), self.rankfromlist(rows)
 
         for j in range(boxes.shape[0]):
             name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
