@@ -14,12 +14,13 @@ class FLAIRTEST:
         self.domaines = os.listdir(root)
         self.paths = []
         for domaine in self.domaines:
-            tmp = os.listdir(root + domaine)
+            names = os.listdir(root + domaine)
             backup = set(tmp)
-            tmp = [name[0:-4] for name in tmp if ".tif" in name]
-            tmp = [name for name in tmp if (name + ".npy") in backup]
+            names = [name[0:-4] for name in names if ".tif" in name]
+            names = [name for name in names if (name + ".npy") in backup]
 
-            self.paths.append((root + domaine + "/" + name, name))
+            for name in names:
+                self.paths.append((root + domaine + "/" + name, name))
 
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0] + ".tif") as src_img:
@@ -27,7 +28,7 @@ class FLAIRTEST:
             x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
-        return torch.Tensor(x), name
+        return torch.Tensor(x), self.paths[i][1]
 
     def rankfromlist(self, l):
         l = list(set(l))
