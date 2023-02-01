@@ -15,7 +15,7 @@ class FLAIRTEST:
         self.paths = []
         for domaine in self.domaines:
             names = os.listdir(root + domaine)
-            backup = set(tmp)
+            backup = set(names)
             names = [name[0:-4] for name in names if ".tif" in name]
             names = [name for name in names if (name + ".npy") in backup]
 
