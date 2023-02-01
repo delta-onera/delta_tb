@@ -36,7 +36,7 @@ with torch.no_grad():
         x, _ = dataset.getImageAndLabel(i)
         x = x.cuda()
 
-        z = largeforward(x.unsqueeze(0))
+        z = largeforward(net, x.unsqueeze(0))
         _, z = z[0].max(0)
 
         dataloader.exportresults(i, z)
