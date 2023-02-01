@@ -31,7 +31,7 @@ for domaine in domaines:
     paths = os.listdir("/scratchf/flair_merged/test/" + domaine)
     paths = [path for path in paths if ".npy" in path]
     for path in paths:
-        tmp = "/scratchf/flair_merged/test/" + domain + "/" + path
+        tmp = "/scratchf/flair_merged/test/" + domaine + "/" + path
         boxesTOcoords(tmp, allboxes)
 
 print(allboxes)
