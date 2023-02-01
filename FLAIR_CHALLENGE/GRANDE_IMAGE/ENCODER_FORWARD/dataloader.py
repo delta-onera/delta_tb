@@ -1,8 +1,9 @@
 import os
 import rasterio
-import numpy
 import torch
 import torchvision
+import numpy
+import PIL
 
 
 class FLAIRTEST:
@@ -10,49 +11,45 @@ class FLAIRTEST:
         self.root = root
         self.channels = channels
 
+        self.domaines = os.listdir(root)
         self.paths = []
-        level1 = os.listdir(root)
-        for folder in level1:
-            level2 = os.listdir(root + folder)
+        for domaine in self.domaines:
+            tmp = os.listdir(root + domaine)
+            backup = set(tmp)
+            tmp = [name[0:-4] for name in tmp if ".tif" in name]
+            tmp = [name for name in tmp if (name + ".npy") in backup]
 
-            for subfolder in level2:
-                path = root + folder + "/" + subfolder
-                level3 = os.listdir(path + "/img")
-                level3 = [name[4:] for name in level3 if ".aux" not in name]
-                level3 = [name[0:-4] for name in level3]
-
-                for name in level3:
-                    x = path + "/img/IMG_" + name + ".tif"
-                    name = "PRED_" + name + ".tif"
-                    meta = None
-                    self.paths.append((x, name, meta))
+            self.paths.append((root + domaine + "/" + name, name))
 
     def getImageAndLabel(self, i):
-        with rasterio.open(self.paths[i][0]) as src_img:
+        with rasterio.open(self.paths[i][0] + ".tif") as src_img:
             x = src_img.read()
             x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
-        # self.path[i][2] contient metadata à ajouter à x ?
+        return torch.Tensor(x), name
 
-        return torch.Tensor(x), self.paths[i][1]
+    def rankfromlist(self, l):
+        l = list(set(l))
+        out = {}
+        for i in range(len(l)):
+            out[l[i]] = i * 512
+        return out
 
+    def exportresults(self, i, pred):
+        boxes = numpy.load(self.paths[i][0] + ".npy", allow_pickle=True)
 
-class Mobilenet(torch.nn.Module):
-    def __init__(self):
-        super(Mobilenet, self).__init__()
-        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
-            weights="DEFAULT"
-        )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(
-            128, 13, kernel_size=1
-        )
-        self.channels = None
+        cols = [boxes[i][1].left for i in range(boxes.shape[0])]
+        rows = [boxes[i][1].top for i in range(boxes.shape[0])]
+        cols, rows = rankfromlist(cols), rankfromlist(rows)
 
-    def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
-        return self.backend(x)["out"]
+        for j in range(boxes.shape[0]):
+            name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
+            top, left = rows[top], cols[left]
+
+            out = numpy.uint8(numpy.clip(pred.cpu().numpy(), 0, 12))
+            out = PIL.Image.fromarray(out)
+            out.save("build/PRED_" + name + ".tif", compression="tiff_lzw")
 
 
 class JustEfficientnet(torch.nn.Module):
