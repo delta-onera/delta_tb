@@ -27,8 +27,6 @@ class FLAIRTEST:
             x = src_img.read()
             x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
-            print(x.shape)
-            quit()
 
         return torch.Tensor(x), self.paths[i][1]
 
