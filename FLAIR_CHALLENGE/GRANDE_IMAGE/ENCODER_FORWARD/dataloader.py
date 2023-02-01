@@ -50,7 +50,7 @@ class FLAIRTEST:
 
             out = numpy.uint8(numpy.clip(pred.cpu().numpy(), 0, 12))
             out = PIL.Image.fromarray(out)
-            out.save("build/PRED_" + name + ".tif", compression="tiff_lzw")
+            out.save("build/PRED_" + str(name) + ".tif", compression="tiff_lzw")
 
 
 class JustEfficientnet(torch.nn.Module):
