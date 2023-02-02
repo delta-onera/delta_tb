@@ -118,7 +118,7 @@ class FLAIR:
         for domaine in self.domaines:
             names = os.listdir(root + domaine)
             backup = set(names)
-            names = [name[0:-4] for name in names if "MSK_" in name]
+            names = [name[4:] for name in names if "MSK_" in name]
             names = [name for name in names if "IMG_" + name in backup]
 
             for name in names:
@@ -127,7 +127,6 @@ class FLAIR:
                 self.paths.append((x, y, name))
 
         self.paths = sorted(self.paths)
-        print(len(self.paths), self.paths[0])
         if flag == "even":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
         else:
