@@ -41,8 +41,8 @@ class FLAIRTEST:
     def exportresults(self, i, pred):
         boxes = numpy.load(self.paths[i][0] + ".npy", allow_pickle=True)
 
-        cols = [boxes[i][1].left for i in range(boxes.shape[0])]
-        rows = [boxes[i][1].top for i in range(boxes.shape[0])]
+        cols = [boxes[j][1].left for j in range(boxes.shape[0])]
+        rows = [boxes[j][1].top for j in range(boxes.shape[0])]
         cols, rows = self.rankfromlist(cols), self.rankfromlist(rows)
 
         tmp = [cols[j] for j in cols]
