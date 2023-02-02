@@ -131,7 +131,7 @@ class FLAIR:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
         else:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = self.paths[tmp]
+        self.paths = [self.paths[i] for i in tmp]
 
         self.data = CropExtractor(self.paths, self.channels)
 
