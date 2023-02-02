@@ -38,4 +38,4 @@ with torch.no_grad():
         z = largeforward(net, x)
         _, z = z.max(0)
 
-        dataset.exportresults(i, z)
+        dataset.exportresults(i, z.cpu().numpy())

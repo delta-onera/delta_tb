@@ -54,7 +54,8 @@ class FLAIRTEST:
             name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
             top, left = rows[top], cols[left]
 
-            out = numpy.uint8(numpy.clip(pred.cpu().numpy(), 0, 12))
+            out = pred[top : top + 512, left : left + 512]
+            out = numpy.uint8(numpy.clip(out, 0, 12))
             out = PIL.Image.fromarray(out)
             out.save("build/PRED_" + str(name) + ".tif", compression="tiff_lzw")
 
