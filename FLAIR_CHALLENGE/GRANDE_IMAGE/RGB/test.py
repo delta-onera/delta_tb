@@ -31,7 +31,7 @@ def largeforward(net, image, tilesize=256, stride=128):
 with torch.no_grad():
     cm = torch.zeros((13, 13)).cuda()
     for i in range(len(dataset.paths)):
-        if i % 100 == 99:
+        if i % 10 == 9:
             print(i, "/", len(dataset.paths))
         x, y, _ = dataset.getImageAndLabel(i)
         x, y = x.cuda(), y.cuda()
