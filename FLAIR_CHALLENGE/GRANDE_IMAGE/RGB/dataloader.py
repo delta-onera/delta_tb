@@ -127,7 +127,6 @@ class FLAIR:
                 self.paths.append((x, y, name))
 
         self.paths = sorted(self.paths)
-        print(self.paths, self.paths[0])
         if flag == "even":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
         else:

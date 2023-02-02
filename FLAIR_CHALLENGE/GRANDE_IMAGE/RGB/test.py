@@ -12,7 +12,7 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "odd", net.channels)
+dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "odd", net.channels)
 
 print("test")
 
