@@ -88,6 +88,7 @@ class CropExtractor(threading.Thread):
     def run(self):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
+        tilesize = 256
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
