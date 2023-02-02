@@ -126,6 +126,13 @@ class FLAIR:
                 x = root + domaine + "/IMG_" + name
                 self.paths.append((x, y, name))
 
+        self.paths = sorted(self.paths)
+        if flag == "even":
+            tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
+        else:
+            tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+        self.paths = self.paths[tmp]
+
         self.data = CropExtractor(self.paths, self.channels)
 
     def getImageAndLabel(self, i):
