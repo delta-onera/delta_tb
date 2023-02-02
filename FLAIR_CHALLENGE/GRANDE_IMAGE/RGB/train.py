@@ -62,8 +62,6 @@ batchsize = 5
 nbbatchs = 100000
 dataset.start()
 
-momentum = 0
-
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
