@@ -33,7 +33,7 @@ with torch.no_grad():
     for i in range(len(dataset.paths)):
         if i % 100 == 99:
             print(i, "/", len(dataset.paths))
-        x, y = dataset.getImageAndLabel(i)
+        x, y, _ = dataset.getImageAndLabel(i)
         x, y = x.cuda(), y.cuda()
 
         z = largeforward(net, x)
