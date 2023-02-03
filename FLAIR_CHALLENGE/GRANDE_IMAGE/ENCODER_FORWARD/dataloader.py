@@ -30,31 +30,25 @@ class FLAIRTEST:
 
         return torch.Tensor(x), self.paths[i][1]
 
-    def rankfromlist(self, l):
-        l = list(set(l))
-        l = sorted(l)
-        out = {}
-        for i in range(len(l)):
-            out[l[i]] = i * 512
-        return out
-
     def exportresults(self, i, pred):
+        proj = rasterio.open(self.paths[i][0] + ".tif")
         boxes = numpy.load(self.paths[i][0] + ".npy", allow_pickle=True)
 
-        cols = [boxes[j][1].left for j in range(boxes.shape[0])]
-        rows = [boxes[j][1].top for j in range(boxes.shape[0])]
-        cols, rows = self.rankfromlist(cols), self.rankfromlist(rows)
-
-        tmp = [cols[j] for j in cols]
-        assert max(tmp) + 512 == pred.shape[1]
-        tmp = [rows[j] for j in rows]
-        assert max(tmp) + 512 == pred.shape[0]
-
         for j in range(boxes.shape[0]):
-            name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
-            top, left = rows[top], cols[left]
+            name = boxes[j][0]
+            left, bottom, right, top = (
+                boxes[j][1].left,
+                boxes[j][1].bottom,
+                boxes[j][1].right,
+                boxes[j][1].top,
+            )
+            window = proj.window(left, bottom, right, top)
+            col, row, w, h = window.col_off, window.row_off, window.width, window.height
+            col, row, w, h = int(col), int(row), int(w), int(h)
 
-            out = pred[top : top + 512, left : left + 512]
+            assert w == 512 and h == 512
+
+            out = pred[row : row + h, left : left + w]
             out = numpy.uint8(numpy.clip(out, 0, 12))
             out = PIL.Image.fromarray(out)
             out.save("build/PRED_0" + str(name) + ".tif", compression="tiff_lzw")
