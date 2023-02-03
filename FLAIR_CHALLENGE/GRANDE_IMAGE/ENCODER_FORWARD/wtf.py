@@ -37,7 +37,7 @@ class FLAIRTEST:
                 for name in level3:
                     x = path + "/img/IMG_" + name + ".tif"
                     name = "PRED_" + name + ".tif"
-                    self.paths[name] = x
+                    self.oldpaths[name] = x
 
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0] + ".tif") as src_img:
