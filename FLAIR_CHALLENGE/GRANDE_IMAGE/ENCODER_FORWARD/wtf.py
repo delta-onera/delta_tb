@@ -45,7 +45,7 @@ class FLAIRTEST:
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
             rahh = src_img.transform
 
-        return torch.Tensor(x), rahh, self.paths[i][1]
+        return torch.Tensor(x), self.paths[i][1], rahh
 
     def rankfromlist(self, l):
         l = list(set(l))
