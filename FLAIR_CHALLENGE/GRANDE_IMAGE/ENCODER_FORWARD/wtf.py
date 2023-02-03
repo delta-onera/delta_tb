@@ -86,7 +86,7 @@ class FLAIRTEST:
                 quit()
 
 
-dataset = FLAIRTEST("/scratchf/flair_merged/test/")
+dataset = FLAIRTEST("/scratchf/flair_merged/test/", "/scratchf/CHALLENGE_IGN/test/")
 for i in range(len(dataset.paths)):
     print(i, "/", len(dataset.paths))
     x, _ = dataset.getImageAndLabel(i)
