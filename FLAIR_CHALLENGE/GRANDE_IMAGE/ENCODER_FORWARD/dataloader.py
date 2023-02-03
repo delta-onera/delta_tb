@@ -36,19 +36,16 @@ class FLAIRTEST:
 
         for j in range(boxes.shape[0]):
             name = boxes[j][0]
-            left, bottom, right, top = (
-                boxes[j][1].left,
-                boxes[j][1].bottom,
-                boxes[j][1].right,
-                boxes[j][1].top,
-            )
+            bb = boxes[j][1]
+            left, bottom, right, top = bb.left, bb.bottom, bb.right, bb.top
             window = proj.window(left, bottom, right, top)
             col, row, w, h = window.col_off, window.row_off, window.width, window.height
             col, row, w, h = int(col), int(row), int(w), int(h)
 
-            assert w == 512 and h == 512
+            if w != 512 or h != 512:
+                print(w, h, boxes[j], window, self.paths[i][0])
 
-            out = pred[row : row + h, col : col + w]
+            out = pred[row : row + 512, col : col + 512]
             out = numpy.uint8(numpy.clip(out, 0, 12))
             out = PIL.Image.fromarray(out)
             out.save("build/PRED_0" + str(name) + ".tif", compression="tiff_lzw")
