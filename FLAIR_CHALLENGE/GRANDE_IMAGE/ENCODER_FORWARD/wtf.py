@@ -24,12 +24,12 @@ class FLAIRTEST:
         self.rootold = rootold
 
         self.oldpaths = {}
-        level1 = os.listdir(root)
+        level1 = os.listdir(rootold)
         for folder in level1:
-            level2 = os.listdir(root + folder)
+            level2 = os.listdir(rootold + folder)
 
             for subfolder in level2:
-                path = root + folder + "/" + subfolder
+                path = rootold + folder + "/" + subfolder
                 level3 = os.listdir(path + "/img")
                 level3 = [name[4:] for name in level3 if ".aux" not in name]
                 level3 = [name[0:-4] for name in level3]
