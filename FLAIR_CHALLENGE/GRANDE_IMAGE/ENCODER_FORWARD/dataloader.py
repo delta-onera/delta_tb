@@ -48,7 +48,7 @@ class FLAIRTEST:
 
             assert w == 512 and h == 512
 
-            out = pred[row : row + h, left : left + w]
+            out = pred[row : row + h, col : col + w]
             out = numpy.uint8(numpy.clip(out, 0, 12))
             out = PIL.Image.fromarray(out)
             out.save("build/PRED_0" + str(name) + ".tif", compression="tiff_lzw")
