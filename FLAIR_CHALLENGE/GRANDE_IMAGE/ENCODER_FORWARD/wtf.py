@@ -73,8 +73,8 @@ class FLAIRTEST:
             name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
             top, left = rows[top], cols[left]
 
-            imageInOld = self.oldpaths["PRED_0" + str(name)]
-            with rasterio.open(self.paths[i][0] + ".tif") as src_img:
+            imageInOld = self.oldpaths["PRED_0" + str(name) + ".tif"]
+            with rasterio.open(self.oldpaths["PRED_0" + str(name) + ".tif"]) as src_img:
                 lol = src_img.bounds
                 west = boxes[j][1].left
                 south = boxes[j][1].bottom
