@@ -40,7 +40,7 @@ class FLAIRTEST:
             left, bottom, right, top = bb.left, bb.bottom, bb.right, bb.top
             window = proj.window(left, bottom, right, top)
             col, row, w, h = window.col_off, window.row_off, window.width, window.height
-            col, row, w, h = int(col), int(row), int(w), int(h)
+            col, row, w, h = round(col), round(row), round(w), round(h)
 
             if w != 512 or h != 512:
                 print(w, h, boxes[j], window, self.paths[i][0])
