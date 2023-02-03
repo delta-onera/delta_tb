@@ -70,17 +70,17 @@ class CropExtractor(threading.Thread):
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
+            return torch.Tensor(x), torch.Tensor(y), self.paths[i][2]
         else:
-            return x, y
+            return x, y, self.paths[i][2]
 
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, 3, 512, 512)
-        y = torch.zeros(batchsize, 512, 512)
+        x = torch.zeros(batchsize, 3, 256, 256)
+        y = torch.zeros(batchsize, 256, 256)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
         return x, y
@@ -88,105 +88,64 @@ class CropExtractor(threading.Thread):
     def run(self):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
+        tilesize = 256
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            flag = numpy.random.randint(0, 2, size=3)
-            x, y = self.getImageAndLabel(i)
-            x, y = symetrie(x, y, flag)
-            x, y = torch.Tensor(x), torch.Tensor(y)
-            self.q.put((x, y), block=True)
+            image, label, _ = self.getImageAndLabel(i)
+
+            ntile = 50
+            RC = numpy.random.rand(ntile, 2)
+            flag = numpy.random.randint(0, 2, size=(ntile, 3))
+            for j in range(ntile):
+                r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
+                c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
+                im = image[:, r : r + tilesize, c : c + tilesize]
+                mask = label[r : r + tilesize, c : c + tilesize]
+                x, y = symetrie(im.copy(), mask.copy(), flag[j])
+                x, y = torch.Tensor(x), torch.Tensor(y)
+                self.q.put((x, y), block=True)
 
 
 class FLAIR:
     def __init__(self, root, flag, channels):
-        assert flag in ["odd", "even", "all"]
+        assert flag in ["odd", "even"]
         self.root = root
         self.flag = flag
         self.channels = channels
         self.run = False
-
-        # TODO indiquer la sous distribution en utilisant les metadata
-        # pourrait aussi faciliter l'indexation...
+        self.domaines = os.listdir(root)
         self.paths = []
-        level1 = os.listdir(root)
-        for folder in level1:
-            level2 = os.listdir(root + folder)
+        for domaine in self.domaines:
+            names = os.listdir(root + domaine)
+            backup = set(names)
+            names = [name[4:] for name in names if "MSK_" in name]
+            names = [name for name in names if "IMG_" + name in backup]
 
-            for subfolder in level2:
-                path = root + folder + "/" + subfolder
-                level3 = os.listdir(path + "/img")
-                level3 = set([name[4:] for name in level3 if ".aux" not in name])
+            for name in names:
+                y = root + domaine + "/MSK_" + name
+                x = root + domaine + "/IMG_" + name
+                self.paths.append((x, y, name))
 
-                level3bis = os.listdir(path + "/msk")
-                level3bis = [name[4:] for name in level3bis if ".aux" not in name]
-
-                names = [name for name in level3bis if name in level3]
-
-                for name in names:
-                    x = path + "/img/IMG_" + name
-                    y = path + "/msk/MSK_" + name
-                    meta = None
-                    self.paths.append(("TODO", x, y, meta))
-
-        # séparer les sous distributions
         self.paths = sorted(self.paths)
-        if flag != "all":
-            if flag == "even":
-                tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
-            else:
-                tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-            self.paths = [self.paths[i] for i in tmp]
+        if flag == "even":
+            tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
+        else:
+            tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+        self.paths = [self.paths[i] for i in tmp]
 
-        self.pathssubdistrib = {}
-        for i in range(len(self.paths)):
-            sousdis, x, y, meta = self.paths[i]
-            if sousdis not in self.pathssubdistrib:
-                self.pathssubdistrib[sousdis] = []
-            self.pathssubdistrib[sousdis].append((x, y, meta))
-            self.paths[i] = (sousdis, len(self.pathssubdistrib[sousdis]) - 1)
+        self.data = CropExtractor(self.paths, self.channels)
 
-        self.subdistrib = list(self.pathssubdistrib.keys())
-        self.data = {}
-        for sousdis in self.pathssubdistrib.keys():
-            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis], channels)
-
-    def getImageAndLabel(self, i, torchformat=False):
-        sousdistrib, j = self.paths[i]
-        return self.data[sousdistrib].getImageAndLabel(j, torchformat=torchformat)
+    def getImageAndLabel(self, i):
+        return self.data.getImageAndLabel(i, torchformat=True)
 
     def getBatch(self, batchsize):
-        assert self.run
-        seed = (torch.rand(batchsize) * len(self.data)).long()
-        seed = [self.subdistrib[i] for i in seed]
-        x = torch.zeros(batchsize, 3, 512, 512)
-        y = torch.zeros(batchsize, 512, 512)
-        for i in range(batchsize):
-            x[i], y[i] = self.data[seed[i]].getCrop()
-        return x, y
+        return self.data.getBatch(batchsize)
 
     def start(self):
         if not self.run:
             self.run = True
-            for sousdis in self.subdistrib:
-                self.data[sousdis].start()
-
-
-class Mobilenet(torch.nn.Module):
-    def __init__(self):
-        super(Mobilenet, self).__init__()
-        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
-            weights="DEFAULT"
-        )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(
-            128, 13, kernel_size=1
-        )
-        self.channels = None
-
-    def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
-        return self.backend(x)["out"]
+            self.data.start()
 
 
 class JustEfficientnet(torch.nn.Module):

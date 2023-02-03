@@ -9,7 +9,7 @@ channels = [0, 3, 4]
 print(channels)
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even", channels)
+dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "even", channels)
 
 print("define model")
 net = dataloader.JustEfficientnet()
@@ -61,8 +61,6 @@ stats = torch.zeros((13, 13)).cuda()
 batchsize = 5
 nbbatchs = 100000
 dataset.start()
-
-momentum = 0
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
