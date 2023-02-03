@@ -64,11 +64,11 @@ class FLAIRTEST:
 
         tmp = [cols[j] for j in cols]
         if max(tmp) + 512 != pred.shape[1]:
-            print(max(tmp) + 512, pred.shape[1])
+            print(max(tmp) + 512, pred.shape)
             quit()
         tmp = [rows[j] for j in rows]
         if max(tmp) + 512 != pred.shape[0]:
-            print(max(tmp) + 512, pred.shape[0])
+            print(max(tmp) + 512, pred.shape)
             quit()
 
         for j in range(boxes.shape[0]):
