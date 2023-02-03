@@ -89,4 +89,4 @@ dataset = FLAIRTEST("/scratchf/flair_merged/test/", "/scratchf/CHALLENGE_IGN/tes
 for i in range(len(dataset.paths)):
     print(i, "/", len(dataset.paths))
     x, _, projection = dataset.getImageAndLabel(i)
-    dataset.exportresults(i, numpy.zeros(x.shape)),projection)
+    dataset.exportresults(i, numpy.zeros(x.shape), projection)
