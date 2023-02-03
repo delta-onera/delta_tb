@@ -63,9 +63,13 @@ class FLAIRTEST:
         cols, rows = self.rankfromlist(cols), self.rankfromlist(rows)
 
         tmp = [cols[j] for j in cols]
-        assert max(tmp) + 512 == pred.shape[1]
+        if max(tmp) + 512 != pred.shape[1]:
+            print(max(tmp) + 512, pred.shape[1])
+            quit()
         tmp = [rows[j] for j in rows]
-        assert max(tmp) + 512 == pred.shape[0]
+        if max(tmp) + 512 != pred.shape[0]:
+            print(max(tmp) + 512, pred.shape[0])
+            quit()
 
         for j in range(boxes.shape[0]):
             name, top, left = boxes[j][0], boxes[j][1].top, boxes[j][1].left
