@@ -9,7 +9,6 @@ import PIL
 class FLAIRTEST:
     def __init__(self, root, rootold):
         self.root = root
-        self.channels = channels
 
         self.domaines = os.listdir(root)
         self.paths = []
