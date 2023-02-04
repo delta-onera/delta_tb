@@ -1,6 +1,5 @@
 import os
 import sys
-import torch
 
 os.system("rm -rf __pycache__")
 os.system("rm -rf build")
