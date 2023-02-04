@@ -32,8 +32,8 @@ def largeforward(net, image, tilesize=256, stride=128):
     pred = torch.zeros(13, image.shape[1] // 32, image.shape[2] // 32).cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
-            tmp = image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0)
-            tmp = net(tmp)[0]
+            tmp = image[:, row : row + tilesize, col : col + tilesize]
+            tmp = net(tmp.unsqueeze(0))[0]
             assert tmp.shape[1] == tilesize // 32
             R32, C32, T32 = row // 32, col // 32, tilesize // 32
             pred[:, R32 : R32 + T32, C32 : C32 + T32] += tmp
@@ -47,6 +47,6 @@ with torch.no_grad():
         x = x.cuda()
 
         z = largeforward(net, x)
-        z = z[0].half()
+        z = z.half()
 
         torch.save(z, "build/" + sys.argv[1] + "/" + name)
