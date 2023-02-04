@@ -1,58 +1,34 @@
 import os
 import rasterio
-import numpy
 import torch
 import torchvision
+import numpy
+import PIL
 
 
-class FLAIRTEST:
+class ALLFLAIR:
     def __init__(self, root, channels):
         self.root = root
         self.channels = channels
 
+        self.domaines = os.listdir(root)
         self.paths = []
-        level1 = os.listdir(root)
-        for folder in level1:
-            level2 = os.listdir(root + folder)
+        for domaine in self.domaines:
+            names = os.listdir(root + domaine)
+            backup = set(names)
+            names = [name[0:-4] for name in names if ".tif" in name]
+            names = [name for name in names if (name + ".npy") in backup]
 
-            for subfolder in level2:
-                path = root + folder + "/" + subfolder
-                level3 = os.listdir(path + "/img")
-                level3 = [name[4:] for name in level3 if ".aux" not in name]
-                level3 = [name[0:-4] for name in level3]
-
-                for name in level3:
-                    x = path + "/img/IMG_" + name + ".tif"
-                    name = "PRED_" + name + ".tif"
-                    meta = None
-                    self.paths.append((x, name, meta))
+            for name in names:
+                self.paths.append((root + domaine + "/" + name, name))
 
     def getImageAndLabel(self, i):
-        with rasterio.open(self.paths[i][0]) as src_img:
+        with rasterio.open(self.paths[i][0] + ".tif") as src_img:
             x = src_img.read()
             x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
-        # self.path[i][2] contient metadata à ajouter à x ?
-
         return torch.Tensor(x), self.paths[i][1]
-
-
-class Mobilenet(torch.nn.Module):
-    def __init__(self):
-        super(Mobilenet, self).__init__()
-        self.backend = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
-            weights="DEFAULT"
-        )
-        self.backend.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
-        self.backend.classifier.high_classifier = torch.nn.Conv2d(
-            128, 13, kernel_size=1
-        )
-        self.channels = None
-
-    def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
-        return self.backend(x)["out"]
 
 
 class JustEfficientnet(torch.nn.Module):
