@@ -19,9 +19,8 @@ with torch.no_grad():
     net.eval()
 
 print("load data")
-dataset = dataloader.ALLFLAIR(
-    "/scratchf/flair_merged/" + sys.argv[2] + "/", net.channels
-)
+path = "/scratchf/flair_merged/" + sys.argv[2] + "/"
+dataset = dataloader.ALLFLAIR(path, net.channels)
 
 
 print("test")
@@ -30,11 +29,14 @@ print("test")
 def largeforward(net, image, tilesize=256, stride=128):
     assert 512 % tilesize == 0 and tilesize % stride == 0
 
-    pred = torch.zeros(13, image.shape[1], image.shape[2]).cuda()
+    pred = torch.zeros(13, image.shape[1] // 32, image.shape[2] // 32).cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
-            tmp = net(image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0))
-            pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
+            tmp = image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0)
+            tmp = net(tmp)[0]
+            assert tmp.shape[1] == tilesize // 32
+            R32, C32, T32 = row // 32, col // 32, tilesize // 32
+            pred[:, R32 : R32 + T32, C32 : C32 + T32] += tmp
     return pred
 
 
