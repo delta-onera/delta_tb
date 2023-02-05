@@ -19,7 +19,7 @@ class ALLFLAIR:
             names = [name for name in names if (name + ".npy") in backup]
 
             for name in names:
-                self.paths.append((root + domaine + "/" + name, name))
+                self.paths.append((root + domaine + "/" + name, domaine + "_" + name))
 
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0] + ".tif") as src_img:
