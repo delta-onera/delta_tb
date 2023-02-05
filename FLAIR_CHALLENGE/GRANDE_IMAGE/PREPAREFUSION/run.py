@@ -1,7 +1,3 @@
-
-quit()
-#pour eviter une erreur de lancement XD
-
 import os
 import sys
 
