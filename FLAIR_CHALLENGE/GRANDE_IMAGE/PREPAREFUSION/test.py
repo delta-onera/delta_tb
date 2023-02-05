@@ -49,4 +49,4 @@ with torch.no_grad():
         z = largeforward(net, x)
         z = z.half()
 
-        torch.save(z, "build/" + sys.argv[1] + "/" + name)
+        torch.save(z, "build/" + sys.argv[1] + "/" + name + ".tif")
