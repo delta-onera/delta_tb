@@ -6,7 +6,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "1/4")
+dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "oddeven")
 
 print("define model")
 net = dataloader.FusionNet()

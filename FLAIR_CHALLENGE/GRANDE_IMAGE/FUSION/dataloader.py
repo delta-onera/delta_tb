@@ -52,7 +52,7 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths):
+    def __init__(self, paths, channels):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
@@ -62,34 +62,37 @@ class CropExtractor(threading.Thread):
         x, y, name = self.paths[i]
         with rasterio.open(x) as src_img:
             x = src_img.read()
-            x = numpy.clip(numpy.nan_to_num(x), 0, 255)
+            x = numpy.clip(numpy.nan_to_num(x), 0, 255) / 255.0
 
         y = PIL.Image.open(y).convert("L").copy()
         y = numpy.asarray(y)
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         x, y = torch.Tensor(x), torch.Tensor(y)
-        h, w = 512, 512
+        h, w = y.shape[0], y.shape[1]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/APPROCHE_COMBINEE/PREPAREFUSION/build/"
-            tmp = path + mode + "/train/" + name
+            path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
+            tmp = path + mode + name
             tmp = torch.load(tmp, map_location=torch.device("cpu"))
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
             x.append(tmp[0])
 
         x = torch.cat(x, dim=0)
-        assert x.shape == (57, 512, 512)
-        return x, y
+        assert x.shape == (57, y.shape[0], y.shape[1])
+        if torchformat:
+            return x, y, self.paths[i][2]
+        else:
+            return x.numpy(), y.numpy()
 
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, 57, 512, 512)
-        y = torch.zeros(batchsize, 512, 512)
+        x = torch.zeros(batchsize, 57, 256, 256)
+        y = torch.zeros(batchsize, 256, 256)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
         return x, y
@@ -97,84 +100,67 @@ class CropExtractor(threading.Thread):
     def run(self):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
+        tilesize = 256
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            x, y = self.getImageAndLabel(i)
-            self.q.put((x, y), block=True)
+            image, label, _ = self.getImageAndLabel(i)
+
+            ntile = 50
+            RC = numpy.random.rand(ntile, 2)
+            flag = numpy.random.randint(0, 2, size=(ntile, 3))
+            for j in range(ntile):
+                r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
+                c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
+                im = image[:, r : r + tilesize, c : c + tilesize]
+                mask = label[r : r + tilesize, c : c + tilesize]
+                x, y = symetrie(im.copy(), mask.copy(), flag[j])
+                x, y = torch.Tensor(x), torch.Tensor(y)
+                self.q.put((x, y), block=True)
 
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["1/4", "3/4"]
+        assert flag in ["oddeven", "oddodd"]
         self.root = root
         self.flag = flag
+        self.channels = channels
         self.run = False
-
-        # TODO indiquer la sous distribution en utilisant les metadata
-        # pourrait aussi faciliter l'indexation...
+        self.domaines = os.listdir(root)
         self.paths = []
-        level1 = os.listdir(root)
-        for folder in level1:
-            level2 = os.listdir(root + folder)
+        for domaine in self.domaines:
+            names = os.listdir(root + domaine)
+            backup = set(names)
+            names = [name[4:] for name in names if "MSK_" in name]
+            names = [name for name in names if "IMG_" + name in backup]
 
-            for subfolder in level2:
-                path = root + folder + "/" + subfolder
-                level3 = os.listdir(path + "/img")
-                level3 = set([name[4:] for name in level3 if ".aux" not in name])
+            for name in names:
+                y = root + domaine + "/MSK_" + name
+                x = root + domaine + "/IMG_" + name
+                self.paths.append((x, y, domaine + "_" + name))
 
-                level3bis = os.listdir(path + "/msk")
-                level3bis = [name[4:] for name in level3bis if ".aux" not in name]
-
-                names = [name for name in level3bis if name in level3]
-
-                for name in names:
-                    x = path + "/img/IMG_" + name
-                    y = path + "/msk/MSK_" + name
-                    self.paths.append(("TODO", x, y, "PRED_" + name))
-
-        # séparer les sous distributions
         self.paths = sorted(self.paths)
         tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = [self.paths[i] for i in tmp]
-        if flag == "1/4":
+        self.paths = self.paths[tmp]
+
+        if flag == "oddeven":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
         else:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = [self.paths[i] for i in tmp]
+        self.paths = self.paths[tmp]
 
-        self.pathssubdistrib = {}
-        for i in range(len(self.paths)):
-            sousdis, x, y, meta = self.paths[i]
-            if sousdis not in self.pathssubdistrib:
-                self.pathssubdistrib[sousdis] = []
-            self.pathssubdistrib[sousdis].append((x, y, meta))
-            self.paths[i] = (sousdis, len(self.pathssubdistrib[sousdis]) - 1)
+        self.data = CropExtractor(self.paths, self.channels)
 
-        self.subdistrib = list(self.pathssubdistrib.keys())
-        self.data = {}
-        for sousdis in self.pathssubdistrib.keys():
-            self.data[sousdis] = CropExtractor(self.pathssubdistrib[sousdis])
-
-    def getImageAndLabel(self, i, torchformat=False):
-        sousdistrib, j = self.paths[i]
-        return self.data[sousdistrib].getImageAndLabel(j, torchformat=torchformat)
+    def getImageAndLabel(self, i):
+        return self.data.getImageAndLabel(i, torchformat=True)
 
     def getBatch(self, batchsize):
-        assert self.run
-        seed = (torch.rand(batchsize) * len(self.data)).long()
-        seed = [self.subdistrib[i] for i in seed]
-        x = torch.zeros(batchsize, 57, 512, 512)
-        y = torch.zeros(batchsize, 512, 512)
-        for i in range(batchsize):
-            x[i], y[i] = self.data[seed[i]].getCrop()
-        return x, y
+        return self.data.getBatch(batchsize)
 
     def start(self):
         if not self.run:
             self.run = True
-            for sousdis in self.subdistrib:
-                self.data[sousdis].start()
+            self.data.start()
 
 
 class FusionNet(torch.nn.Module):
@@ -187,12 +173,12 @@ class FusionNet(torch.nn.Module):
         self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
-        z = x / 255
+        z = x.clone()
         z = torch.nn.functional.leaky_relu(self.f1(z))
-        z = torch.cat([x, z, x * z * 0.1], dim=1)
+        z = torch.cat([x, z, x * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f2(z))
-        z = torch.cat([x, z, x * z * 0.1], dim=1)
+        z = torch.cat([x, z, x * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f3(z))
-        x = torch.cat([x, z, x * z * 0.1], dim=1)
-        x = torch.nn.functional.leaky_relu(self.f4(x))
-        return self.f5(x)
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f4(z))
+        return self.f5(z)
