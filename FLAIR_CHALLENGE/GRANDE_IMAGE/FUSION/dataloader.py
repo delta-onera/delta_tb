@@ -52,7 +52,7 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths, channels):
+    def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
@@ -104,7 +104,7 @@ class CropExtractor(threading.Thread):
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            image, label, _ = self.getImageAndLabel(i)
+            image, label = self.getImageAndLabel(i)
 
             ntile = 50
             RC = numpy.random.rand(ntile, 2)
