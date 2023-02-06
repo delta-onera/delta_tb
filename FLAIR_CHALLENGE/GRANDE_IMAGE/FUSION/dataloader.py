@@ -72,7 +72,7 @@ class CropExtractor(threading.Thread):
                 localmax = tmp.flatten().max()
                 if xmax < localmax:
                     xmax = localmax
-            self.minmax[mode] = (float(xmin),float( xmax))
+            self.minmax[mode] = (float(xmin), float(xmax))
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
@@ -88,7 +88,7 @@ class CropExtractor(threading.Thread):
         h, w = y.shape[0], y.shape[1]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            tmp = self.prepa + mode + "/" + name 
+            tmp = self.prepa + mode + "/" + name
             tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
