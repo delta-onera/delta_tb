@@ -65,18 +65,18 @@ class CropExtractor(threading.Thread):
             l = os.listdir(self.prepa + mode)
             l = [name for name in l if ".tif" in name]
             for name in l:
-                tmp = torch.load(self.prepa + mode + "/" + name)
+                tmp = torch.load(self.prepa + mode + "/" + name).float()
                 localmin = tmp.flatten().min()
                 if localmin < xmin:
                     xmin = localmin
                 localmax = tmp.flatten().max()
                 if xmax < localmax:
                     xmax = localmax
-            self.minmax[mode] = (xmin, xmax)
+            self.minmax[mode] = (float(xmin),float( xmax))
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
-        with rasterio.open(x + ".tif") as src_img:
+        with rasterio.open(x) as src_img:
             x = src_img.read()
             x = numpy.clip(numpy.nan_to_num(x), 0, 255) / 255.0
 
@@ -88,8 +88,8 @@ class CropExtractor(threading.Thread):
         h, w = y.shape[0], y.shape[1]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            tmp = self.prepa + mode + name + ".tif"
-            tmp = torch.load(tmp, map_location=torch.device("cpu"))
+            tmp = self.prepa + mode + "/" + name 
+            tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
             tmp = (tmp - self.minmax[mode][0]) / (
@@ -142,7 +142,6 @@ class FLAIR:
         assert flag in ["oddeven", "oddodd"]
         self.root = root
         self.flag = flag
-        self.channels = channels
         self.run = False
         self.domaines = os.listdir(root)
         self.paths = []
@@ -155,19 +154,19 @@ class FLAIR:
             for name in names:
                 y = root + domaine + "/MSK_" + name
                 x = root + domaine + "/IMG_" + name
-                self.paths.append((x, y, domaine + "_" + name))
+                self.paths.append((x, y, domaine + "_IMG_" + name))
 
         self.paths = sorted(self.paths)
         tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = self.paths[tmp]
+        self.paths = [self.paths[i] for i in tmp]
 
         if flag == "oddeven":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
         else:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = self.paths[tmp]
+        self.paths = [self.paths[i] for i in tmp]
 
-        self.data = CropExtractor(self.paths, self.channels)
+        self.data = CropExtractor(self.paths)
 
     def getImageAndLabel(self, i):
         return self.data.getImageAndLabel(i, torchformat=True)
