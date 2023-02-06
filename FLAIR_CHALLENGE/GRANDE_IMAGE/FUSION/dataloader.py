@@ -57,10 +57,26 @@ class CropExtractor(threading.Thread):
         self.isrunning = False
         self.maxsize = 500
         self.paths = paths
+        self.prepa = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
+
+        self.minmax = {}
+        for mode in ["RGB", "RIE", "IGE", "IEB"]:
+            xmin, xmax = 100000, -100000
+            l = os.listdir(self.prepa + mode)
+            l = [name for name in l if ".tif" in name]
+            for name in l:
+                tmp = torch.load(self.prepa + mode + "/" + name)
+                localmin = tmp.flatten().min()
+                if localmin < xmin:
+                    xmin = localmin
+                localmax = tmp.flatten().max()
+                if xmax < localmax:
+                    xmax = localmax
+            self.minmax[mode] = (xmin, xmax)
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
-        with rasterio.open(x) as src_img:
+        with rasterio.open(x + ".tif") as src_img:
             x = src_img.read()
             x = numpy.clip(numpy.nan_to_num(x), 0, 255) / 255.0
 
@@ -72,11 +88,13 @@ class CropExtractor(threading.Thread):
         h, w = y.shape[0], y.shape[1]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
-            tmp = path + mode + name
+            tmp = self.prepa + mode + name + ".tif"
             tmp = torch.load(tmp, map_location=torch.device("cpu"))
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
+            tmp = (tmp - self.minmax[mode][0]) / (
+                self.minmax[mode][1] - self.minmax[mode][0]
+            )
             x.append(tmp[0])
 
         x = torch.cat(x, dim=0)
