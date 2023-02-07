@@ -86,8 +86,8 @@ class CropExtractor(threading.Thread):
                 float(xmax),
                 moyennemoyenne,
                 variancemoyenne,
-                moyennemoyenne - 2*variancemoyenne,
-                moyennemoyenne + 2*variancemoyenne,
+                moyennemoyenne - 2 * variancemoyenne,
+                moyennemoyenne + 2 * variancemoyenne,
             )
 
         self.wtf = torch.zeros(100).cuda()

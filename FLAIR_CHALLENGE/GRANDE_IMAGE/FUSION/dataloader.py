@@ -59,20 +59,18 @@ class CropExtractor(threading.Thread):
         self.paths = paths
         self.prepa = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
 
-        self.minmax = {}
+        self.normalize = {}
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            xmin, xmax = 100000, -100000
+            moyenne, variance = 0, 0
             l = os.listdir(self.prepa + mode)
             l = [name for name in l if ".tif" in name]
             for name in l:
                 tmp = torch.load(self.prepa + mode + "/" + name).float()
-                localmin = tmp.flatten().min()
-                if localmin < xmin:
-                    xmin = localmin
-                localmax = tmp.flatten().max()
-                if xmax < localmax:
-                    xmax = localmax
-            self.minmax[mode] = (float(xmin), float(xmax))
+                moyenne += float(tmp.mean())
+                variance += float(torch.sqrt(tmp.var()))
+
+            moyenne, variance = (moyenne / len(l), variance / len(l))
+            self.normalize[mode] = (moyenne - 2 * variance, moyenne + 2 * variance)
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
@@ -92,9 +90,11 @@ class CropExtractor(threading.Thread):
             tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
-            tmp = (tmp - self.minmax[mode][0]) / (
-                self.minmax[mode][1] - self.minmax[mode][0]
+            tmp = torch.clip(
+                tmp, min=self.normalize[mode][0], max=self.normalize[mode][1]
             )
+            tmp = tmp - self.normalize[mode][0]
+            tmp = tmp / (self.normalize[mode][1] - self.normalize[mode][0])
             x.append(tmp[0])
 
         x = torch.cat(x, dim=0)
