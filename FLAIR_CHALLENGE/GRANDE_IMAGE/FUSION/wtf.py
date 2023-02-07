@@ -74,8 +74,8 @@ class CropExtractor(threading.Thread):
                 if xmax < localmax:
                     xmax = localmax
 
-                moyennemoyenne += tmp.mean()
-                variancemoyenne += tmp.var()
+                moyennemoyenne += float(tmp.mean())
+                variancemoyenne += float(torch.sqrt(tmp.var()))
 
             moyennemoyenne, variancemoyenne = (
                 moyennemoyenne / len(l),
@@ -86,6 +86,8 @@ class CropExtractor(threading.Thread):
                 float(xmax),
                 moyennemoyenne,
                 variancemoyenne,
+                moyennemoyenne - variancemoyenne,
+                moyennemoyenne + variancemoyenne,
             )
 
 
@@ -132,5 +134,5 @@ class FLAIR:
             self.data.start()
 
 
-flair = FLAIR("/scratchf/flair_merged/train/")
-print(flair.minmax)
+flair = FLAIR("/scratchf/flair_merged/train/","oddodd")
+print(flair.data.minmax)
