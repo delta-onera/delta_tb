@@ -86,11 +86,11 @@ class CropExtractor(threading.Thread):
                 float(xmax),
                 moyennemoyenne,
                 variancemoyenne,
-                moyennemoyenne - variancemoyenne,
-                moyennemoyenne + variancemoyenne,
+                moyennemoyenne - 2*variancemoyenne,
+                moyennemoyenne + 2*variancemoyenne,
             )
 
-        self.wtf = torch.zeros(100)
+        self.wtf = torch.zeros(100).cuda()
         for mode in ["RGB"]:
             l = os.listdir(self.prepa + mode)
             l = [name for name in l if ".tif" in name]
@@ -104,7 +104,7 @@ class CropExtractor(threading.Thread):
                 for lol in range(100):
                     self.wtf[lol] += (tmp == lol).float().sum()
         for lol in range(100):
-            print(lol, self.wtf[lol])
+            print(lol, float(self.wtf[lol]))
 
 
 class FLAIR:
