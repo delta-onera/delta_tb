@@ -130,3 +130,7 @@ class FLAIR:
         if not self.run:
             self.run = True
             self.data.start()
+
+
+flair = FLAIR("/scratchf/flair_merged/train/")
+print(flair.minmax)
