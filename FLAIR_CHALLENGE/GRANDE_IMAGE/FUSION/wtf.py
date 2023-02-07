@@ -90,6 +90,22 @@ class CropExtractor(threading.Thread):
                 moyennemoyenne + variancemoyenne,
             )
 
+        self.wtf = torch.zeros(100)
+        for mode in ["RGB"]:
+            l = os.listdir(self.prepa + mode)
+            l = [name for name in l if ".tif" in name]
+            for name in l:
+                tmp = torch.load(self.prepa + mode + "/" + name).float()
+                tmp = (tmp - self.minmax["RGB"][0]) / (
+                    self.minmax["RGB"][1] - self.minmax["RGB"][0]
+                )
+                tmp = (tmp * 100).long()
+
+                for lol in range(100):
+                    self.wtf[lol] += (tmp == lol).float().sum()
+        for lol in range(100):
+            print(lol, self.wtf[lol])
+
 
 class FLAIR:
     def __init__(self, root, flag):
@@ -134,5 +150,5 @@ class FLAIR:
             self.data.start()
 
 
-flair = FLAIR("/scratchf/flair_merged/train/","oddodd")
+flair = FLAIR("/scratchf/flair_merged/train/", "oddodd")
 print(flair.data.minmax)
