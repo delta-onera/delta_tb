@@ -35,7 +35,7 @@ with torch.no_grad():
     for i in range(len(dataset.paths)):
         if i % 10 == 9:
             print(i, "/", len(dataset.paths))
-        x, y, _ = dataset.getImageAndLabel(i)
+        x, _ = dataset.getImageAndLabel(i)
         x = x.half().cuda()
 
         z = largeforward(net, x)

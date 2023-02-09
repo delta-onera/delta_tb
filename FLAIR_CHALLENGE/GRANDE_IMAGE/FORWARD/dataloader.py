@@ -42,11 +42,10 @@ class FLAIRTEST:
             x = numpy.clip(numpy.nan_to_num(x), 0, 255) / 255.0
 
         x = torch.Tensor(x)
-        h, w = y.shape[1], y.shape[2]
-        x = [x]
+        h, w = x.shape[1], x.shape[2]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            tmp = self.prepa + mode + "/" + name
+            tmp = self.prepa + mode + "/" + name+".tif"
             tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
