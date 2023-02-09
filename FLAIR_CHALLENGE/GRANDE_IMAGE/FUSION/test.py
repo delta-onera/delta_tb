@@ -20,11 +20,11 @@ print("test")
 def largeforward(net, image, tilesize=256, stride=128):
     assert 512 % tilesize == 0 and tilesize % stride == 0
 
-    pred = torch.zeros(13, image.shape[1], image.shape[2]).cuda()
+    pred = torch.zeros(13, image.shape[1], image.shape[2]).half().cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
             tmp = net(image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0))
-            pred[:, row : row + tilesize, col : col + tilesize] += tmp[0]
+            pred[:, row : row + tilesize, col : col + tilesize] += tmp[0].half()
     return pred
 
 
@@ -34,10 +34,11 @@ with torch.no_grad():
         if i % 10 == 9:
             print(i, "/", len(dataset.paths))
         x, y, _ = dataset.getImageAndLabel(i)
-        x, y = x.cuda(), y.cuda()
+        x = x.cuda()
 
         z = largeforward(net, x)
-        _, z = z.max(0)
+        del x
+        _, z = z.max(0).cpu()
         cm += dataloader.confusion(y, z)
 
     print(cm)
