@@ -23,9 +23,9 @@ def largeforward(net, image, tilesize=256, stride=128):
     pred = torch.zeros(13, image.shape[1], image.shape[2]).half().cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
-            tmp = net(image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0))
+            tmp = net(image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0).float())
             pred[:, row : row + tilesize, col : col + tilesize] += tmp[0].half()
-    return pred
+    return pred.cpu()
 
 
 with torch.no_grad():
@@ -34,11 +34,11 @@ with torch.no_grad():
         if i % 10 == 9:
             print(i, "/", len(dataset.paths))
         x, y, _ = dataset.getImageAndLabel(i)
-        x = x.cuda()
+        x = x.half().cuda()
 
         z = largeforward(net, x)
         del x
-        _, z = z.cpu().max(0)
+        _, z = z.max(0)
         cm += dataloader.confusion(y, z)
 
     print(cm)
