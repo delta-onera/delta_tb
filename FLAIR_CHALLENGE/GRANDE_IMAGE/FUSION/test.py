@@ -38,7 +38,7 @@ with torch.no_grad():
 
         z = largeforward(net, x)
         del x
-        _, z = z.max(0).cpu()
+        _, z = z.cpu().max(0)
         cm += dataloader.confusion(y, z)
 
     print(cm)
