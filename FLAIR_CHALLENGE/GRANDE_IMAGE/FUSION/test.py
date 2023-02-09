@@ -23,7 +23,8 @@ def largeforward(net, image, tilesize=256, stride=128):
     pred = torch.zeros(13, image.shape[1], image.shape[2]).half().cuda()
     for row in range(0, image.shape[1] - tilesize + 1, stride):
         for col in range(0, image.shape[2] - tilesize + 1, stride):
-            tmp = net(image[:, row : row + tilesize, col : col + tilesize].unsqueeze(0).float())
+            tmp = image[:, row : row + tilesize, col : col + tilesize]
+            tmp = net(tmp.unsqueeze(0).float())
             pred[:, row : row + tilesize, col : col + tilesize] += tmp[0].half()
     return pred.cpu()
 
