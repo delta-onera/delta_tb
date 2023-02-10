@@ -60,6 +60,7 @@ class CropExtractor(threading.Thread):
         self.prepa = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
 
         wtf = 0
+        maxmax = 0
         self.normalize = {}
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
             moyenne, variance = 0, 0
@@ -67,15 +68,22 @@ class CropExtractor(threading.Thread):
             l = [name for name in l if ".tif" in name]
             for name in l:
                 tmp = torch.load(self.prepa + mode + "/" + name).float()
-                wtfmax,_ = tmp.max(0)
-                wtf = (wtfmax<0).float().sum()
+                tmp = torch.nn.functional.leaky_relu(tmp)
+                maxmax = max(maxmax, tmp.flatten().max())
+
+                _, lol = tmp.max(0)
+                for ii in range(lol.shape[0]):
+                    for jj in range(lol.shape[1]):
+                        tmp[lol[ii][jj], ii, jj] = 0
+                wtf = max(wtf, tmp.flatten().max())
+
                 moyenne += float(tmp.mean())
                 variance += float(torch.sqrt(tmp.var()))
 
             moyenne, variance = (moyenne / len(l), variance / len(l))
             self.normalize[mode] = (moyenne - 2 * variance, moyenne + 2 * variance)
-        
-        print(wtf)
+
+        print(maxmax, wtf)
 
     def getImageAndLabel(self, i, torchformat=False):
         x, y, name = self.paths[i]
