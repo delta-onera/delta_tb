@@ -22,18 +22,6 @@ class FLAIRTEST:
                 self.paths.append((root + domaine + "/" + name, domaine + "_" + name))
 
         self.prepa = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
-        self.normalize = {}
-        for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            moyenne, variance = 0, 0
-            l = os.listdir(self.prepa + mode)
-            l = [name for name in l if ".tif" in name]
-            for name in l:
-                tmp = torch.load(self.prepa + mode + "/" + name).float()
-                moyenne += float(tmp.mean())
-                variance += float(torch.sqrt(tmp.var()))
-
-            moyenne, variance = (moyenne / len(l), variance / len(l))
-            self.normalize[mode] = (moyenne - 2 * variance, moyenne + 2 * variance)
 
     def getImageAndLabel(self, i):
         x, name = self.paths[i]
@@ -48,12 +36,8 @@ class FLAIRTEST:
             tmp = self.prepa + mode + "/" + name + ".tif"
             tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
+            tmp = torch.nn.functional.leaky_relu(tmp) / 50
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
-            tmp = torch.clip(
-                tmp, min=self.normalize[mode][0], max=self.normalize[mode][1]
-            )
-            tmp = tmp - self.normalize[mode][0]
-            tmp = tmp / (self.normalize[mode][1] - self.normalize[mode][0])
             x.append(tmp[0])
 
         x = torch.cat(x, dim=0)
