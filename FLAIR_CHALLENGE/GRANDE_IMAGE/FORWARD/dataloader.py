@@ -45,7 +45,7 @@ class FLAIRTEST:
         h, w = x.shape[1], x.shape[2]
         x = [x]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
-            tmp = self.prepa + mode + "/" + name+".tif"
+            tmp = self.prepa + mode + "/" + name + ".tif"
             tmp = torch.load(tmp, map_location=torch.device("cpu")).float()
             tmp = tmp.unsqueeze(0).float()
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
