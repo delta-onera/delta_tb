@@ -206,4 +206,4 @@ class FusionNet(torch.nn.Module):
         return self.f5(z)
 
 
-dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "oddodd")
+dataset = FLAIR("/scratchf/flair_merged/train/", "oddodd")
