@@ -21,6 +21,11 @@ class ALLFLAIR:
             for name in names:
                 self.paths.append((root + domaine + "/" + name, domaine + "_" + name))
 
+        self.paths = sorted(self.paths)
+        if "/train/" in root:
+            tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+        self.paths = [self.paths[i] for i in tmp]
+
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0] + ".tif") as src_img:
             x = src_img.read()
@@ -33,7 +38,7 @@ class ALLFLAIR:
 class JustEfficientnet(torch.nn.Module):
     def __init__(self):
         super(JustEfficientnet, self).__init__()
-        self.f = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
         self.channels = None
 
