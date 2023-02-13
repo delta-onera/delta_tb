@@ -24,7 +24,7 @@ class ALLFLAIR:
         self.paths = sorted(self.paths)
         if "/train/" in root:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
-        self.paths = [self.paths[i] for i in tmp]
+            self.paths = [self.paths[i] for i in tmp]
 
     def getImageAndLabel(self, i):
         with rasterio.open(self.paths[i][0] + ".tif") as src_img:
