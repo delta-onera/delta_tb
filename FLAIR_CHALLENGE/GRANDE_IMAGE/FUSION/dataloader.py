@@ -169,9 +169,9 @@ class FusionNet(torch.nn.Module):
         self.f1 = torch.nn.Conv2d(57, 57, kernel_size=17, padding=8)
         self.f2 = torch.nn.Conv2d(171, 57, kernel_size=9, padding=4)
         self.f3 = torch.nn.Conv2d(171, 57, kernel_size=5, padding=2)
-        self.f31 = torch.nn.Conv2d(171, 57, kernel_size=3, padding=1)
-        self.f32 = torch.nn.Conv2d(171, 57, kernel_size=3, padding=1)
-        self.f33 = torch.nn.Conv2d(171, 57, kernel_size=3, padding=1)
+        self.f31 = torch.nn.Conv2d(171, 57, kernel_size=5, padding=2)
+        self.f32 = torch.nn.Conv2d(171, 57, kernel_size=5, padding=2)
+        self.f33 = torch.nn.Conv2d(171, 57, kernel_size=5, padding=2)
         self.f4 = torch.nn.Conv2d(171, 256, kernel_size=1)
         self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
