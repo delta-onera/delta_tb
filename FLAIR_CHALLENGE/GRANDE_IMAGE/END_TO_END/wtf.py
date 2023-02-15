@@ -18,4 +18,5 @@ with torch.no_grad():
     print(a.abs().flatten().sum())
     print(f1.abs().flatten().sum())
     print((f2 - f1).abs().flatten().sum())
+    print(net1(a).abs().flatten().sum())
     print((net1(a) - net2(b)).abs().flatten().sum())
