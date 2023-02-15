@@ -152,11 +152,11 @@ class JustEfficientnet(torch.nn.Module):
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
         with torch.no_grad():
-            tmp = torch.cat([f[0][0].weight.clone()] * 2, dim=1)
-            f[0][0] = torch.nn.Conv2d(
+            tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
+            self.f[0][0] = torch.nn.Conv2d(
                 6, 32, kernel_size=3, stride=2, padding=1, bias=False
             )
-            f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
+            self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
