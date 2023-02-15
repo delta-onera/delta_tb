@@ -52,17 +52,15 @@ def symetrie(x, y, ijk):
 
 
 class CropExtractor(threading.Thread):
-    def __init__(self, paths, channels):
+    def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
         self.maxsize = 500
         self.paths = paths
-        self.channels = channels
 
     def getImageAndLabel(self, i, torchformat=False):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
-            x = x[self.channels]
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
@@ -79,7 +77,7 @@ class CropExtractor(threading.Thread):
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, 3, 256, 256)
+        x = torch.zeros(batchsize, 5, 256, 256)
         y = torch.zeros(batchsize, 256, 256)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
@@ -108,11 +106,10 @@ class CropExtractor(threading.Thread):
 
 
 class FLAIR:
-    def __init__(self, root, flag, channels):
+    def __init__(self, root, flag):
         assert flag in ["odd", "even"]
         self.root = root
         self.flag = flag
-        self.channels = channels
         self.run = False
         self.domaines = os.listdir(root)
         self.paths = []
@@ -134,7 +131,7 @@ class FLAIR:
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
         self.paths = [self.paths[i] for i in tmp]
 
-        self.data = CropExtractor(self.paths, self.channels)
+        self.data = CropExtractor(self.paths)
 
     def getImageAndLabel(self, i):
         return self.data.getImageAndLabel(i, torchformat=True)
@@ -153,11 +150,22 @@ class JustEfficientnet(torch.nn.Module):
         super(JustEfficientnet, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-        self.channels = None
+
+        with torch.no_grad():
+            tmp = torch.cat([f[0][0].weight.clone()] * 2, dim=1)
+            f[0][0] = torch.nn.Conv2d(
+                6, 32, kernel_size=3, stride=2, padding=1, bias=False
+            )
+            f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
     def forward(self, x):
-        _, _, h, w = x.shape
         x = ((x / 255) - 0.5) / 0.25
+
+        b, ch, h, w = x.shape
+        assert ch == 5
+        padding = torch.ones(b, 1, h, w).cuda()
+        x = torch.cat([x, padding], dim=1)
+
         x = self.f(x)
         x = self.classif(x)
         x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")

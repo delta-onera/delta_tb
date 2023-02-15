@@ -5,15 +5,12 @@ import dataloader
 
 assert torch.cuda.is_available()
 
-channels = [0, 1, 2]
-print(channels)
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "even", channels)
+dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "even")
 
 print("define model")
 net = dataloader.JustEfficientnet()
-net.channels = channels
 net = net.cuda()
 net.eval()
 
