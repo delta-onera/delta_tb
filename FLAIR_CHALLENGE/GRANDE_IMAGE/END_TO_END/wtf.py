@@ -4,7 +4,9 @@ import torchvision
 with torch.no_grad():
     a = torch.rand(2, 3, 256, 256)
     net1 = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
+    net1.eval()
     net2 = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
+    net2.eval()
 
     print((net1(a) - net2(a)).abs().flatten().sum())
 
