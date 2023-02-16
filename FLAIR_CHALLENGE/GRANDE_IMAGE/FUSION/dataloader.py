@@ -34,23 +34,6 @@ def perf(cm):
     return (iou / 12 * 100, accu * 100)
 
 
-def symetrie(x, y, ijk):
-    i, j, k = ijk[0], ijk[1], ijk[2]
-    if i == 1:
-        y = numpy.transpose(y, axes=(1, 0))
-        for u in range(x.shape[0]):
-            x[u] = numpy.transpose(x[u], axes=(1, 0))
-    if j == 1:
-        y = numpy.flip(y, axis=0)
-        for u in range(x.shape[0]):
-            x[u] = numpy.flip(x[u], axis=0)
-    if k == 1:
-        y = numpy.flip(y, axis=1)
-        for u in range(x.shape[0]):
-            x[u] = numpy.flip(x[u], axis=1)
-    return x.copy(), y.copy()
-
-
 class CropExtractor(threading.Thread):
     def __init__(self, paths):
         threading.Thread.__init__(self)
@@ -85,7 +68,7 @@ class CropExtractor(threading.Thread):
         if torchformat:
             return x, y, self.paths[i][2]
         else:
-            return x.numpy(), y.numpy()
+            return x, y
 
     def getCrop(self):
         assert self.isrunning
@@ -108,15 +91,12 @@ class CropExtractor(threading.Thread):
             image, label = self.getImageAndLabel(i)
 
             ntile = 50
-            RC = numpy.random.rand(ntile, 2)
-            flag = numpy.random.randint(0, 2, size=(ntile, 3))
+            RC = torch.rand(ntile, 2)
             for j in range(ntile):
                 r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
                 c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
                 im = image[:, r : r + tilesize, c : c + tilesize]
                 mask = label[r : r + tilesize, c : c + tilesize]
-                x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                x, y = torch.Tensor(x), torch.Tensor(y)
                 self.q.put((x, y), block=True)
 
 
