@@ -38,7 +38,7 @@ class CropExtractor(threading.Thread):
     def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
-        self.maxsize = 500
+        self.maxsize = 100
         self.paths = paths
         self.prepa = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/GRANDE_IMAGE/PREPAREFUSION/build/"
 
@@ -95,8 +95,8 @@ class CropExtractor(threading.Thread):
             for j in range(ntile):
                 r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
                 c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
-                im = image[:, r : r + tilesize, c : c + tilesize]
-                mask = label[r : r + tilesize, c : c + tilesize]
+                im = image[:, r : r + tilesize, c : c + tilesize].clone()
+                mask = label[r : r + tilesize, c : c + tilesize].clone()
                 self.q.put((im, mask), block=True)
 
 
