@@ -150,6 +150,7 @@ class JustEfficientnet(torch.nn.Module):
         super(JustEfficientnet, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
+        self.compression = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
         with torch.no_grad():
             tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
@@ -157,6 +158,15 @@ class JustEfficientnet(torch.nn.Module):
                 6, 32, kernel_size=3, stride=2, padding=1, bias=False
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
+
+        self.f1 = torch.nn.Conv2d(32, 32, kernel_size=17, padding=8, bias=False)
+        self.f2 = torch.nn.Conv2d(96, 32, kernel_size=9, padding=4, bias=False)
+        self.f3 = torch.nn.Conv2d(96, 32, kernel_size=5, padding=2, bias=False)
+        self.f31 = torch.nn.Conv2d(96, 32, kernel_size=5, padding=2, bias=False)
+        self.f32 = torch.nn.Conv2d(96, 32, kernel_size=5, padding=2, bias=False)
+        self.f33 = torch.nn.Conv2d(96, 32, kernel_size=5, padding=2, bias=False)
+        self.f4 = torch.nn.Conv2d(96, 256, kernel_size=1, bias=False)
+        self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
@@ -166,7 +176,26 @@ class JustEfficientnet(torch.nn.Module):
         padding = torch.ones(b, 1, h, w).cuda()
         x = torch.cat([x, padding], dim=1)
 
-        x = self.f(x)
-        x = self.classif(x)
-        x = torch.nn.functional.interpolate(x, size=(h, w), mode="bilinear")
-        return x
+        z = self.f(x)
+        p = self.classif(z)
+        p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
+        z = self.compression(z)
+        z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
+
+        x = torch.cat([x, p, z], dim=1)
+
+        z = torch.nn.functional.leaky_relu(self.f1(x))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f2(z))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f3(z))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f31(z))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f32(z))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f33(z))
+        z = torch.cat([x, z, x * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f4(z))
+
+        return self.f5(z) + 0.1 * p
