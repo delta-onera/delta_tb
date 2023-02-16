@@ -97,7 +97,7 @@ class CropExtractor(threading.Thread):
                 c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
                 im = image[:, r : r + tilesize, c : c + tilesize]
                 mask = label[r : r + tilesize, c : c + tilesize]
-                self.q.put((x, y), block=True)
+                self.q.put((im, mask), block=True)
 
 
 class FLAIR:
