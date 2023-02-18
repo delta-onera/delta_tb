@@ -177,9 +177,7 @@ class JustEfficientnet(torch.nn.Module):
         assert ch == 5
         padding = torch.ones(b, 1, h, w).cuda()
         x = torch.cat([x, padding], dim=1)
-        x4 = torch.nn.functional.adaptive_avg_pool2d(
-            x, size=(h // 4, w // 4), mode="bilinear"
-        )
+        x4 = torch.nn.functional.adaptive_avg_pool2d(x, (h // 4, w // 4))
 
         z = self.f(x)
         p = self.classif(z)
