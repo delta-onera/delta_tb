@@ -150,7 +150,7 @@ class JustEfficientnet(torch.nn.Module):
         super(JustEfficientnet, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-        self.compression = torch.nn.Conv2d(1280, 115, kernel_size=1)
+        self.compression = torch.nn.Conv2d(1280, 122, kernel_size=1)
         with torch.no_grad():
             tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
             self.f[0][0] = torch.nn.Conv2d(
