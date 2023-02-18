@@ -163,7 +163,7 @@ class JustEfficientnet(torch.nn.Module):
         self.f3 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.f4 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.classif2 = torch.nn.Conv2d(128, 13, kernel_size=1)
-        seff.compression2 = torch.nn.Conv2d(128, 51, kernel_size=1)
+        self.compression2 = torch.nn.Conv2d(128, 51, kernel_size=1)
 
         self.f5 = torch.nn.Conv2d(64, 51, kernel_size=3, padding=1, bias=False)
         self.f6 = torch.nn.Conv2d(64, 51, kernel_size=3, padding=1, bias=False)
