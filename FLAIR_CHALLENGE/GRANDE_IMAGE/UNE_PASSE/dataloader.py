@@ -25,9 +25,9 @@ class FLAIRTEST:
         x, name = self.paths[i]
         with rasterio.open(x + ".tif") as src_img:
             x = src_img.read()
-            x = numpy.clip(numpy.nan_to_num(x), 0, 255) / 255.0
+            x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
-        return x, self.paths[i][1]
+        return torch.Tensor(x), self.paths[i][1]
 
     def exportresults(self, i, pred):
         proj = rasterio.open(self.paths[i][0] + ".tif")
