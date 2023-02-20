@@ -149,8 +149,6 @@ class JustEfficientnet(torch.nn.Module):
     def __init__(self):
         super(JustEfficientnet, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
-        self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-        self.compression = torch.nn.Conv2d(1280, 122, kernel_size=1)
         with torch.no_grad():
             tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
             self.f[0][0] = torch.nn.Conv2d(
@@ -158,17 +156,31 @@ class JustEfficientnet(torch.nn.Module):
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
+        self.g = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
+            weights="DEFAULT"
+        )
+
+        with torch.no_grad():
+            tmp = torch.cat([self.g.backbone["0"][0].weight.clone()] * 2, dim=1)
+            self.g.backbone["0"][0] = torch.nn.Conv2d(
+                6, 16, kernel_size=3, stride=2, padding=1, bias=False
+            )
+            self.g.backbone["0"][0].weight = torch.nn.Parameter(tmp * 0.5)
+
+        self.g.classifier.low_classifier = torch.nn.Conv2d(40, 13, kernel_size=1)
+        self.g.classifier.high_classifier = torch.nn.Conv2d(128, 13, kernel_size=1)
+
+        self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
+        self.compression = torch.nn.Conv2d(1280, 122, kernel_size=1)
+
         self.f1 = torch.nn.Conv2d(128, 128, kernel_size=3, padding=1, bias=False)
         self.f2 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.f3 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.f4 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
+        self.f5 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
+        self.f6 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
+        self.f7 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.classif2 = torch.nn.Conv2d(128, 13, kernel_size=1)
-        self.compression2 = torch.nn.Conv2d(128, 58, kernel_size=1)
-
-        self.f5 = torch.nn.Conv2d(64, 58, kernel_size=3, padding=1, bias=False)
-        self.f6 = torch.nn.Conv2d(64, 58, kernel_size=3, padding=1, bias=False)
-        self.f7 = torch.nn.Conv2d(64, 58, kernel_size=3, padding=1, bias=False)
-        self.classif3 = torch.nn.Conv2d(64, 13, kernel_size=1, bias=False)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
@@ -194,21 +206,16 @@ class JustEfficientnet(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.f3(z))
         z = torch.cat([z0, z, z0 * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f4(z))
+        z = torch.cat([z0, z, z0 * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f5(z))
+        z = torch.cat([z0, z, z0 * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f6(z))
+        z = torch.cat([z0, z, z0 * z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f7(z))
 
         p2 = self.classif2(z)
         p2 = torch.nn.functional.interpolate(p2, size=(h, w), mode="bilinear")
 
-        z = self.compression2(z)
-        z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
-
-        z = torch.cat([x, z], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f5(z))
-        z = torch.cat([x, z], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f6(z))
-        z = torch.cat([x, z], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f7(z))
-        z = torch.cat([x, z], dim=1)
-
-        p3 = self.classif3(z)
+        p3 = self.g(x)["out"]
 
         return p2 + 0.3 * p + 0.3 * p3
