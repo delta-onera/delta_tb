@@ -173,14 +173,14 @@ class JustEfficientnet(torch.nn.Module):
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
         self.compression = torch.nn.Conv2d(1280, 122, kernel_size=1)
 
-        self.f1 = torch.nn.Conv2d(128, 128, kernel_size=3, padding=1, bias=False)
-        self.f2 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
+        self.f1 = torch.nn.Conv2d(128, 128, kernel_size=5, padding=2, bias=False)
+        self.f2 = torch.nn.Conv2d(384, 128, kernel_size=5, padding=2, bias=False)
         self.f3 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.f4 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
         self.f5 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
-        self.f6 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
-        self.f7 = torch.nn.Conv2d(384, 128, kernel_size=3, padding=1, bias=False)
-        self.classif2 = torch.nn.Conv2d(128, 13, kernel_size=1)
+        self.f6 = torch.nn.Conv2d(384, 384, kernel_size=3, padding=1, bias=False)
+        self.f7 = torch.nn.Conv2d(384, 512, kernel_size=1)
+        self.classif2 = torch.nn.Conv2d(512, 13, kernel_size=1)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
@@ -209,8 +209,7 @@ class JustEfficientnet(torch.nn.Module):
         z = torch.cat([z0, z, z0 * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f5(z))
         z = torch.cat([z0, z, z0 * z], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f6(z))
-        z = torch.cat([z0, z, z0 * z], dim=1)
+        z = z + torch.nn.functional.leaky_relu(self.f6(z))
         z = torch.nn.functional.leaky_relu(self.f7(z))
 
         p2 = self.classif2(z)
