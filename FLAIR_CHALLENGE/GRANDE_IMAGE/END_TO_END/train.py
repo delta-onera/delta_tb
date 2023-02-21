@@ -63,10 +63,15 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
+    y2 = torch.nn.functional.max_pool2d(y, kernel_size=3, stride=1, padding=1)
+    y3 = torch.nn.functional.avg_pool2d(y, kernel_size=3, stride=1, padding=1)
+    yy = (y == y2).float() * (y == y3).float()
+    yy = y * yy + 12 * (yy == 0).float()
+
     z = net(x)
 
-    ce = crossentropy(y, z)
-    dice = diceloss(y, z)
+    ce = crossentropy(yy, z)
+    dice = diceloss(yy, z)
     loss = ce + dice
 
     with torch.no_grad():
