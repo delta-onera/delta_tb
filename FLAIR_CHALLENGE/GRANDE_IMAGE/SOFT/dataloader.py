@@ -158,46 +158,58 @@ class JustEfficientnet(torch.nn.Module):
 
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
-        self.compression = torch.nn.Conv2d(1280, 238, kernel_size=1)
-        self.f1 = torch.nn.Conv2d(256, 256, kernel_size=5, padding=2, bias=False)
-        self.f2 = torch.nn.Conv2d(256, 256, kernel_size=5, padding=2, bias=False)
-        self.f3 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False)
-        self.f4 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False)
-        self.f5 = torch.nn.Conv2d(256, 256, kernel_size=1)
-        self.f6 = torch.nn.Conv2d(768, 1024, kernel_size=1)
-        self.f7 = torch.nn.Conv2d(1024, 13, kernel_size=3, padding=1)
+        self.compression = torch.nn.Conv2d(1280, 256, kernel_size=1)
+        self.compression2 = torch.nn.Conv2d(5, 112, kernel_size=4, stride=4)
+
+        self.f1 = torch.nn.Conv2d(384, 256, kernel_size=5, padding=2, bias=False)
+        self.f2 = torch.nn.Conv2d(384, 256, kernel_size=5, padding=2, bias=False)
+        self.f3 = torch.nn.Conv2d(384, 256, kernel_size=3, padding=1, bias=False)
+        self.f4 = torch.nn.Conv2d(384, 256, kernel_size=3, padding=1, bias=False)
+        self.f5 = torch.nn.Conv2d(384, 384, kernel_size=3, padding=1, bias=False)
+        self.f6 = torch.nn.Conv2d(1152, 1152, kernel_size=1)
+        self.f7 = torch.nn.Conv2d(1152, 1152, kernel_size=1)
+        self.f8 = torch.nn.Conv2d(1152 + 384, 13, kernel_size=3, padding=1)
 
     def forward(self, x):
         x = ((x / 255) - 0.5) / 0.25
+
+        x4 = torch.nn.functional.adaptive_avg_pool2d(x, (h // 4, w // 4))
+        xx4 = torch.nn.functional.adaptive_max_pool2d(x, (h // 4, w // 4))
+        xxx4 = 1 - torch.nn.functional.adaptive_max_pool2d(1 - x, (h // 4, w // 4))
 
         b, ch, h, w = x.shape
         assert ch == 5
         padding = torch.ones(b, 1, h, w).cuda()
         x = torch.cat([x, padding], dim=1)
-        x4 = torch.nn.functional.adaptive_avg_pool2d(x, (h // 4, w // 4))
-        xx4 = torch.nn.functional.adaptive_max_pool2d(x, (h // 4, w // 4))
-        xxx4 = 1 - torch.nn.functional.adaptive_max_pool2d(1 - x, (h // 4, w // 4))
 
         z = self.f(x)
         p = self.classif(z)
+        p = torch.nn.functional.interpolate(p, size=(h // 4, w // 4), mode="bilinear")
 
         z = self.compression(z)
         z = torch.nn.functional.interpolate(z, size=(h // 4, w // 4), mode="bilinear")
-        p = torch.nn.functional.interpolate(p, size=(h // 4, w // 4), mode="bilinear")
-        z = torch.cat([x4, xx4, xxx4, z], dim=1)
 
-        z = z + torch.nn.functional.leaky_relu(self.f1(z))
-        zz = torch.nn.functional.leaky_relu(self.f2(z))
-        zz = torch.nn.functional.max_pool2d(zz, kernel_size=3, padding=1, stride=1)
-        z = z + zz
-        z = z + torch.nn.functional.leaky_relu(self.f3(z))
-        z = z + torch.nn.functional.leaky_relu(self.f4(z))
+        x0 = torch.nn.functional.leaky_relu(self.compression2(x))
+        x0 = torch.cat([x4, xx4, xxx4, xxxx4, padding], dim=1)
 
+        z = torch.cat([x0, z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f1(z))
+        z = torch.cat([x0, z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f2(z))
+        z = torch.nn.functional.max_pool2d(z, kernel_size=3, padding=1, stride=1)
+        z = torch.cat([x0, z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f3(z))
+        z = torch.cat([x0, z], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f4(z))
+        z = torch.cat([x0, z], dim=1)
         zz = torch.nn.functional.leaky_relu(self.f5(z))
+
         z = torch.cat([z, zz, zz * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f6(z))
-        pp = self.f7(z)
-       
+        z = torch.nn.functional.leaky_relu(self.f7(z))
+        z = torch.cat([z, zz], dim=1)
+        pp = self.f8(z)
+
         p = 0.1 * p + pp
         p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
         return p

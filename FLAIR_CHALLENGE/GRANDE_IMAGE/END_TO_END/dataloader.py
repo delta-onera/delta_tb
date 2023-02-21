@@ -197,7 +197,7 @@ class JustEfficientnet(torch.nn.Module):
         z = torch.cat([z, zz, zz * z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f6(z))
         pp = self.f7(z)
-       
+
         p = 0.1 * p + pp
         p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
         return p
