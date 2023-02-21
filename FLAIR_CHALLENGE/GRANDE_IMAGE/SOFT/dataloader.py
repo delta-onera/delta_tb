@@ -180,6 +180,7 @@ class JustEfficientnet(torch.nn.Module):
         xxx4 = 1 - torch.nn.functional.adaptive_max_pool2d(1 - x, (h // 4, w // 4))
 
         padding = torch.ones(b, 1, h, w).cuda()
+        padding4 = torch.ones(b, 1, h // 4, w // 4).cuda()
         x = torch.cat([x, padding], dim=1)
 
         z = self.f(x)
@@ -190,7 +191,7 @@ class JustEfficientnet(torch.nn.Module):
         z = torch.nn.functional.interpolate(z, size=(h // 4, w // 4), mode="bilinear")
 
         x0 = torch.nn.functional.leaky_relu(self.compression2(x))
-        x0 = torch.cat([x4, xx4, xxx4, x0, padding], dim=1)
+        x0 = torch.cat([x4, xx4, xxx4, x0, padding4], dim=1)
 
         z = torch.cat([x0, z], dim=1)
         z = torch.nn.functional.leaky_relu(self.f1(z))
