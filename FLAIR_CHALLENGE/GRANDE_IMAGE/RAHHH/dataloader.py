@@ -160,10 +160,10 @@ class JustEfficientnet(torch.nn.Module):
         self.compression = torch.nn.Conv2d(1280, 512, kernel_size=1)
         self.encodagebis = torch.nn.Conv2d(6, 512, kernel_size=4, stride=4, bias=False)
 
-        self.f1 = torch.nn.Conv2d(1040, 1024, kernel_size=3, padding=1, bias=False)
-        self.f2 = torch.nn.Conv2d(3072, 1024, kernel_size=1, bias=False)
-        self.f3 = torch.nn.Conv2d(1040, 1024, kernel_size=3, padding=1, bias=False)
-        self.f4 = torch.nn.Conv2d(3072, 1024, kernel_size=1, bias=False)
+        self.f1 = torch.nn.Conv2d(1040, 1040, kernel_size=3, padding=1, bias=False)
+        self.f2 = torch.nn.Conv2d(3120, 1024, kernel_size=1, bias=False)
+        self.f3 = torch.nn.Conv2d(1040, 1040, kernel_size=3, padding=1, bias=False)
+        self.f4 = torch.nn.Conv2d(3120, 1024, kernel_size=1, bias=False)
         self.f5 = torch.nn.Conv2d(1040, 1024, kernel_size=3, padding=1, bias=False)
         self.f6 = torch.nn.Conv2d(1040, 13, kernel_size=1, bias=False)
 
