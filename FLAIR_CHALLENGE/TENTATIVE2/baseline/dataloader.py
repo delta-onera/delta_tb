@@ -189,6 +189,7 @@ class SlowFast(torch.nn.Module):
 
         zf = self.f(xf)
         p = self.gradientbackdoor(zf)
+        p = torch.nn.functional.interpolate(p, size=size4, mode="bilinear")
 
         zf = torch.nn.functional.interpolate(zf, size=size4, mode="bilinear")
 
