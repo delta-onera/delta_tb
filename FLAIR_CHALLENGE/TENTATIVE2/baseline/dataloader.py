@@ -185,7 +185,7 @@ class SlowFast(torch.nn.Module):
         xf = ((x / 255) - 0.5) / 0.5
         xg = ((x / 255) - 0.5) / 0.25
 
-        zg = self.g.stage3(self.g.stage2(self.g.conv1(a)))
+        zg = self.g.stage3(self.g.stage2(self.g.conv1(xg)))
 
         zf = self.f(xf)
         p = self.gradientbackdoor(zf)
