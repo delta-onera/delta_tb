@@ -71,9 +71,9 @@ class CropExtractor(threading.Thread):
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
+            return torch.Tensor(x), torch.Tensor(y), None
         else:
-            return x, y
+            return x, y, None
 
     def getCrop(self):
         assert self.isrunning
@@ -205,82 +205,3 @@ class SlowFast(torch.nn.Module):
         z = z + 0.1 * p
         z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
         return z
-
-
-class Net(torch.nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
-        with torch.no_grad():
-            tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
-            self.f[0][0] = torch.nn.Conv2d(
-                6, 32, kernel_size=3, stride=2, padding=1, bias=False
-            )
-            self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
-
-        self.classif1 = torch.nn.Conv2d(1280, 13, kernel_size=1)
-
-        self.g = torchvision.models.segmentation.lraspp_mobilenet_v3_large(
-            weights="DEFAULT"
-        ).backbone
-        with torch.no_grad():
-            tmp = torch.cat([self.g["0"][0].weight.clone()] * 2, dim=1)
-            self.g["0"][0] = torch.nn.Conv2d(
-                6, 16, kernel_size=3, stride=2, padding=1, bias=False
-            )
-            self.g["0"][0].weight = torch.nn.Parameter(tmp * 0.5)
-
-        self.classif2 = torch.nn.Conv2d(960, 13, kernel_size=1)
-        self.classif3 = torch.nn.Conv2d(40, 13, kernel_size=1)
-
-        self.plongement = torch.nn.Conv2d(6, 256, kernel_size=4, stride=4)
-
-        self.f1 = torch.nn.Conv2d(2280, 256, kernel_size=1)
-        self.f2 = torch.nn.Conv2d(807, 512, kernel_size=3, padding=1)
-        self.f3 = torch.nn.Conv2d(551, 512, kernel_size=3, padding=1)
-        self.f4 = torch.nn.Conv2d(551, 512, kernel_size=3, padding=1)
-        self.f5 = torch.nn.Conv2d(551, 13, kernel_size=1)
-
-    def forward(self, x):
-        b, ch, h, w = x.shape
-        assert ch == 5
-        size4 = (h // 4, w // 4)
-        size8 = (h // 8, w // 8)
-        padding = torch.ones(b, 1, h, w).cuda()
-        x = torch.cat([x, padding], dim=1)
-
-        xf = ((x / 255) - 0.5) / 0.5
-        xg = ((x / 255) - 0.5) / 0.25
-
-        zf = self.f(xf)
-        zg = selg.g(xg)
-        zgl, zgh = zg["high"], zg["low"]
-
-        pf = self.classif(zf)
-        pgh = self.classif2(zgh)
-        pgl = self.classif3(zgl)
-
-        pf = torch.nn.functional.interpolate(pf, size=size4, mode="bilinear")
-        pgh = torch.nn.functional.interpolate(pgh, size=size4, mode="bilinear")
-        pgl = torch.nn.functional.interpolate(pgl, size=size4, mode="bilinear")
-
-        zf = torch.nn.functional.interpolate(zf, size=size8, mode="bilinear")
-        zgh = torch.nn.functional.interpolate(zgh, size=size8, mode="bilinear")
-        z = torch.cat([zf, zgl, zgh], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f1(z))
-
-        z = torch.nn.functional.interpolate(z, size=size4, mode="bilinear")
-        x = torch.nn.functional.leaky_rely(self.plongement(x))
-
-        z = torch.cat([z, x, z * x, pf, pgh, pgl])
-        z = torch.nn.functional.leaky_relu(self.f2(z))
-        z = torch.cat([z, pf, pgh, pgl], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f3(z))
-        z = torch.cat([z, pf, pgh, pgl], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f4(z))
-        z = torch.cat([z, pf, pgh, pgl], dim=1)
-        p = self.f5(z)
-
-        p = p + 0.3 * pf + 0.1 * pgh + 0.1 * pgl
-        p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
-        return p
