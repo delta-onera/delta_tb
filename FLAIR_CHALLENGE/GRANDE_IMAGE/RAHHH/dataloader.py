@@ -168,7 +168,7 @@ class JustEfficientnet(torch.nn.Module):
         self.f6 = torch.nn.Conv2d(1040, 13, kernel_size=1, bias=False)
 
     def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
+        x = ((x / 255) - 0.5) / 0.5
 
         b, ch, h, w = x.shape
         assert ch == 5
