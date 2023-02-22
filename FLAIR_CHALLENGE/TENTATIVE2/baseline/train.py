@@ -10,7 +10,7 @@ print("load data")
 dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "even")
 
 print("define model")
-net = dataloader.JustEfficientnet()
+net = dataloader.SlowFast()
 net = net.cuda()
 net.eval()
 
