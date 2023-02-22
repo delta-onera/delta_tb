@@ -173,7 +173,7 @@ class SlowFast(torch.nn.Module):
         self.f2 = torch.nn.Conv2d(1568, 96, kernel_size=1)
         self.f3 = torch.nn.Conv2d(1568, 512, kernel_size=3, padding=1)
         self.f4 = torch.nn.Conv2d(608, 512, kernel_size=3, padding=1)
-        self.f5 = torch.nn.Conv2d(608, 13, kernel_size=1)
+        self.f5 = torch.nn.Conv2d(512, 13, kernel_size=1)
 
     def forward(self, x):
         b, ch, h, w = x.shape
@@ -200,7 +200,6 @@ class SlowFast(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.f3(z))
         z = torch.cat([z, zg], dim=1)
         z = torch.nn.functional.leaky_relu(self.f4(z))
-        z = torch.cat([z, zg], dim=1)
         z = self.f5(z)
 
         z = z + 0.1 * p
