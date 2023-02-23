@@ -156,23 +156,17 @@ class UNET_EFFICIENTNET(torch.nn.Module):
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
-
-
-
-        self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
-
-        self.compression = torch.nn.Conv2d(1280, 238, kernel_size=1)
-        self.f1 = torch.nn.Conv2d(256, 256, kernel_size=5, padding=2, bias=False)
-        self.f2 = torch.nn.Conv2d(256, 256, kernel_size=5, padding=2, bias=False)
-        self.f3 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False)
-        self.f4 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False)
-        self.f5 = torch.nn.Conv2d(256, 256, kernel_size=1)
-        self.f6 = torch.nn.Conv2d(768, 1024, kernel_size=1)
-        self.f7 = torch.nn.Conv2d(1024, 13, kernel_size=3, padding=1)
+        self.g1 = torch.nn.Conv2d(1440, 256, kernel_size=5, padding=2)
+        self.g2 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
+        self.g3 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.g4 = torch.nn.Conv2d(1982, 256, kernel_size=5, padding=2)
+        self.g5 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
+        self.g6 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(1982, 13, kernel_size=1)
 
     def forward(self, x):
         b, ch, h, w = x.shape
-        assert ch == 5
+        assert ch == 5 and w==256 and h==256
         padding = torch.ones(b, 1, h, w).cuda()
         
         x = ((x / 255) - 0.5) / 0.5
@@ -180,28 +174,23 @@ class UNET_EFFICIENTNET(torch.nn.Module):
     
         z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))  #64, 1/8, 1/8
         z4 = self.f[5](self.f[4](z3))  #160, 1/16, 1/16
-        z5 = self.f[7](self.f[6](z3))  #1280, 1/32, 1/32
+        z5 = self.f[7](self.f[6](z4))  #1280, 1/32, 1/32
         
+        z5 = torch.nn.functional.interpolate(z5, size=(16,16), mode="bilinear")
+        z = torch.cat([z4,z5],dim=1)
+        z = torch.nn.functional.leaky_relu(self.g1(z))
+        z = torch.nn.functional.leaky_relu(self.g2(z))
+        z = torch.nn.functional.leaky_relu(self.g3(z))
         
-
-
-        z = self.compression(z)
-        z = torch.nn.functional.interpolate(z, size=(h // 4, w // 4), mode="bilinear")
-        p = torch.nn.functional.interpolate(p, size=(h // 4, w // 4), mode="bilinear")
-        z = torch.cat([x4, xx4, xxx4, z], dim=1)
-
-        z = z + torch.nn.functional.leaky_relu(self.f1(z))
-        zz = torch.nn.functional.leaky_relu(self.f2(z))
-        zz = torch.nn.functional.max_pool2d(zz, kernel_size=3, padding=1, stride=1)
-        z = z + zz
-        z = z + torch.nn.functional.leaky_relu(self.f3(z))
-        z = z + torch.nn.functional.leaky_relu(self.f4(z))
-
-        zz = torch.nn.functional.leaky_relu(self.f5(z))
-        z = torch.cat([z, zz, zz * z], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f6(z))
-        pp = self.f7(z)
-
-        p = 0.1 * p + pp
+        z = torch.cat([z,z4,z5],dim=1)
+        z = torch.nn.functional.interpolate(z, size=(32,32), mode="bilinear")
+        z = torch.cat([z,z3],dim=1)
+        z = torch.nn.functional.leaky_relu(self.g4(z))
+        z = torch.nn.functional.leaky_relu(self.g5(z))
+        z = torch.nn.functional.leaky_relu(self.g6(z))
+        
+        z = torch.cat([z,z3,z4,z5],dim=1)
+        z = self.classif(z)
+        
         p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
         return p
