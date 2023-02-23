@@ -149,9 +149,9 @@ class FLAIR:
             self.data.start()
 
 
-class SlowFast(torch.nn.Module):
+class UNET_EFFICIENTNET(torch.nn.Module):
     def __init__(self):
-        super(SlowFast, self).__init__()
+        super(UNET_EFFICIENTNET, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         with torch.no_grad():
             tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
@@ -160,50 +160,42 @@ class SlowFast(torch.nn.Module):
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
-        self.gradientbackdoor = torch.nn.Conv2d(1280, 13, kernel_size=1)
-
-        self.g = torchvision.models.shufflenet_v2_x0_5(weights="DEFAULT")
-        with torch.no_grad():
-            tmp = torch.cat([self.g.conv1[0].weight.clone()] * 2, dim=1)
-            self.g.conv1[0] = torch.nn.Conv2d(
-                6, 24, kernel_size=3, stride=1, padding=1, bias=False
-            )
-            self.g.conv1[0].weight = torch.nn.Parameter(tmp * 0.5)
-
-        self.f1 = torch.nn.Conv2d(1376, 96, kernel_size=1)
-        self.f2 = torch.nn.Conv2d(1568, 96, kernel_size=1)
-        self.f3 = torch.nn.Conv2d(1568, 512, kernel_size=3, padding=1)
-        self.f4 = torch.nn.Conv2d(608, 512, kernel_size=3, padding=1)
-        self.f5 = torch.nn.Conv2d(512, 13, kernel_size=1)
+        self.g1 = torch.nn.Conv2d(1504, 256, kernel_size=5, padding=2)
+        self.g2 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
+        self.g3 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.g4 = torch.nn.Conv2d(2112, 256, kernel_size=5, padding=2)
+        self.g5 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
+        self.g6 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(2112, 13, kernel_size=1)
 
     def forward(self, x):
         b, ch, h, w = x.shape
+        assert ch == 5 and w == 512 and h == 512
         padding = torch.ones(b, 1, h, w).cuda()
+
+        x = ((x / 255) - 0.5) / 0.5
         x = torch.cat([x, padding], dim=1)
 
-        size4 = (h // 4, w // 4)
+        z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))
+        z4 = self.f[5](self.f[4](z3))
+        z5 = self.f[8](self.f[7](self.f[6](z4)))
 
-        xf = ((x / 255) - 0.5) / 0.5
-        xg = ((x / 255) - 0.5) / 0.25
+        z5 = torch.nn.functional.interpolate(z5, size=(32, 32), mode="bilinear")
+        z = torch.cat([z4, z5], dim=1)
+        z = torch.nn.functional.leaky_relu(self.g1(z))
+        z = torch.nn.functional.leaky_relu(self.g2(z))
+        z = torch.nn.functional.leaky_relu(self.g3(z))
 
-        zg = self.g.stage3(self.g.stage2(self.g.conv1(xg)))
+        z4 = torch.nn.functional.interpolate(z4, size=(64, 64), mode="bilinear")
+        z5 = torch.nn.functional.interpolate(z5, size=(64, 64), mode="bilinear")
+        z = torch.nn.functional.interpolate(z, size=(64, 64), mode="bilinear")
+        z = torch.cat([z, z3, z4, z5], dim=1)
+        z = torch.nn.functional.leaky_relu(self.g4(z))
+        z = torch.nn.functional.leaky_relu(self.g5(z))
+        z = torch.nn.functional.leaky_relu(self.g6(z))
 
-        zf = self.f(xf)
-        p = self.gradientbackdoor(zf)
-        p = torch.nn.functional.interpolate(p, size=size4, mode="bilinear")
+        z = torch.cat([z, z3, z4, z5], dim=1)
+        z = self.classif(z)
 
-        zf = torch.nn.functional.interpolate(zf, size=size4, mode="bilinear")
-
-        z = torch.cat([zf, zg], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f1(z))
-        z = torch.cat([zf, z, zg, z * zg], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f2(z))
-        z = torch.cat([zf, z, zg, z * zg], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f3(z))
-        z = torch.cat([z, zg], dim=1)
-        z = torch.nn.functional.leaky_relu(self.f4(z))
-        z = self.f5(z)
-
-        z = z + 0.1 * p
         z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
         return z

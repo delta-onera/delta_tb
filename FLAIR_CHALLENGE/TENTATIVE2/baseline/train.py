@@ -7,10 +7,10 @@ assert torch.cuda.is_available()
 
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/flair_merged/train/", "even")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "even")
 
 print("define model")
-net = dataloader.SlowFast()
+net = dataloader.UNET_EFFICIENTNET()
 net = net.cuda()
 net.eval()
 
@@ -55,7 +55,7 @@ def diceloss(y, z):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 8
+batchsize = 6
 nbbatchs = 100000
 dataset.start()
 
@@ -63,8 +63,8 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
-    y2 = torch.nn.functional.max_pool2d(y, kernel_size=3, stride=1, padding=1)
-    y3 = torch.nn.functional.avg_pool2d(y, kernel_size=3, stride=1, padding=1)
+    y2 = torch.nn.functional.max_pool2d(y, kernel_size=5, stride=1, padding=2)
+    y3 = torch.nn.functional.avg_pool2d(y, kernel_size=5, stride=1, padding=2)
     yy = (y == y2).float() * (y == y3).float()
     yy = y * yy + 12 * (yy == 0).float()
 
