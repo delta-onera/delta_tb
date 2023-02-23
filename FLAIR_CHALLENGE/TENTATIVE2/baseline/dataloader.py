@@ -55,7 +55,7 @@ class CropExtractor(threading.Thread):
     def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
-        self.maxsize = 100
+        self.maxsize = 161
         self.paths = paths
 
     def getName(self, i):
@@ -71,17 +71,17 @@ class CropExtractor(threading.Thread):
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
 
         if torchformat:
-            return torch.Tensor(x), torch.Tensor(y), None
+            return torch.Tensor(x), torch.Tensor(y)
         else:
-            return x, y, None
+            return x, y
 
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, 5, 256, 256)
-        y = torch.zeros(batchsize, 256, 256)
+        x = torch.zeros(batchsize, 5, 512, 512)
+        y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
         return x, y
@@ -89,49 +89,49 @@ class CropExtractor(threading.Thread):
     def run(self):
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
-        tilesize = 256
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            image, label, _ = self.getImageAndLabel(i)
-
-            ntile = 50
-            RC = numpy.random.rand(ntile, 2)
-            flag = numpy.random.randint(0, 2, size=(ntile, 3))
-            for j in range(ntile):
-                r = int(RC[j][0] * (image.shape[1] - tilesize - 2))
-                c = int(RC[j][1] * (image.shape[2] - tilesize - 2))
-                im = image[:, r : r + tilesize, c : c + tilesize]
-                mask = label[r : r + tilesize, c : c + tilesize]
-                x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                x, y = torch.Tensor(x), torch.Tensor(y)
-                self.q.put((x, y), block=True)
+            image, label = self.getImageAndLabel(i)
+            flag = numpy.random.randint(0, 2, size=3)
+            x, y = symetrie(image.copy(), label.copy(), flag)
+            x, y = torch.Tensor(x), torch.Tensor(y)
+            self.q.put((x, y), block=True)
 
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["odd", "even"]
+        assert flag in ["odd", "even", "all", "2/3", "1/3"]
         self.root = root
         self.flag = flag
         self.run = False
-        self.domaines = os.listdir(root)
         self.paths = []
-        for domaine in self.domaines:
-            names = os.listdir(root + domaine)
-            backup = set(names)
-            names = [name[4:] for name in names if "MSK_" in name]
-            names = [name for name in names if "IMG_" + name in backup]
 
-            for name in names:
-                y = root + domaine + "/MSK_" + name
-                x = root + domaine + "/IMG_" + name
-                self.paths.append((x, y, name))
+        domaines = os.listdir(root)
+        for domaine in domaines:
+            sousdomaines = os.listdir(root + domaine)
+            for sousdomaines in sousdomaines:
+                prefix = root + domain + "/" + sousdomaines
+                names = os.listdir(prefix + "/img")
+                names = [
+                    name for name in names if ".tif" in name and ".aux" not in name
+                ]
+                names = [name[4:] for name in names if "MSK_" in name]
+
+                for name in names:
+                    x = prefix + "/img/IMG_" + name
+                    y = prefix + "/msk/MSK_" + name
+                    self.paths.append((domain, x, y, name))
 
         self.paths = sorted(self.paths)
         if flag == "even":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
-        else:
+        if flag == "odd":
             tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+        if flag == "2/3":
+            tmp = [i for i in range(len(self.paths)) if i % 3 != 0]
+        if flag == "1/3":
+            tmp = [i for i in range(len(self.paths)) if i % 3 == 0]
         self.paths = [self.paths[i] for i in tmp]
 
         self.data = CropExtractor(self.paths)
@@ -140,6 +140,7 @@ class FLAIR:
         return self.data.getImageAndLabel(i, torchformat=True)
 
     def getBatch(self, batchsize):
+        assert self.run
         return self.data.getBatch(batchsize)
 
     def start(self):
