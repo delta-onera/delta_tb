@@ -182,9 +182,10 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.g2(z))
         z = torch.nn.functional.leaky_relu(self.g3(z))
 
-        z = torch.cat([z, z4, z5], dim=1)
+        z4 = torch.nn.functional.interpolate(z4, size=(32, 32), mode="bilinear")
+        z5 = torch.nn.functional.interpolate(z5, size=(32, 32), mode="bilinear")
         z = torch.nn.functional.interpolate(z, size=(32, 32), mode="bilinear")
-        z = torch.cat([z, z3], dim=1)
+        z = torch.cat([z, z3, z4, z5], dim=1)
         z = torch.nn.functional.leaky_relu(self.g4(z))
         z = torch.nn.functional.leaky_relu(self.g5(z))
         z = torch.nn.functional.leaky_relu(self.g6(z))
