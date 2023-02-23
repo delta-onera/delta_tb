@@ -101,7 +101,7 @@ class CropExtractor(threading.Thread):
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["odd", "even", "all", "2/3", "1/3"]
+        assert flag in ["1/2", "2/2", "1", "2/3", "3/3"]
         self.root = root
         self.flag = flag
         self.run = False
@@ -113,9 +113,7 @@ class FLAIR:
             for sousdomaines in sousdomaines:
                 prefix = root + domaine + "/" + sousdomaines
                 names = os.listdir(prefix + "/img")
-                names = [
-                    name for name in names if ".tif" in name and ".aux" not in name
-                ]
+                names = [name for name in names if ".aux" not in name]
                 names = [name[4:] for name in names if "MSK_" in name]
 
                 for name in names:
@@ -125,14 +123,14 @@ class FLAIR:
 
         self.paths = sorted(self.paths)
         N = len(self.paths)
-        if flag == "even":
-            self.paths = self.paths[0 : N // 2]
-        if flag == "odd":
-            self.paths = self.paths[N // 2 :]
+        if flag == "1/2":
+            self.paths = [self.paths[i] for i in range(N // 2)]
+        if flag == "2/2":
+            self.paths = [self.paths[i] for i in range(N // 2, N)]
         if flag == "2/3":
-            self.paths = self.paths[0 : (2 * N // 3)]
-        if flag == "1/3":
-            self.paths = self.paths[(2 * N // 3) :]
+            self.paths = [self.paths[i] for i in range(2 * N // 3)]
+        if flag == "3/3":
+            self.paths = [self.paths[i] for i in range(2 * N // 3, N)]
 
         self.data = CropExtractor(self.paths)
 
