@@ -121,7 +121,7 @@ class FLAIR:
                 for name in names:
                     x = prefix + "/img/IMG_" + name
                     y = prefix + "/msk/MSK_" + name
-                    self.paths.append((domaine, x, y, name))
+                    self.paths.append((x, y, name))
 
         self.paths = sorted(self.paths)
         N = len(self.paths)
