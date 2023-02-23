@@ -178,12 +178,11 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         x = ((x / 255) - 0.5) / 0.5
         x = torch.cat([x, padding], dim=1)
     
-        z0 = self.f[1](self.f[0](x))  #24, 1/2, 1/2
-        z1 = self.f[2](z0) #48, 1/4, 1/4
-        z2 = self.f[2](z1) #32, 1/8, 1/8
-        z3 = self.f[3](z2)
-        z4 = self.f[4](z3)
-        z4 = self.f[4](z3)
+        z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))  #64, 1/8, 1/8
+        z4 = self.f[5](self.f[4](z3))  #160, 1/16, 1/16
+        z5 = self.f[7](self.f[6](z3))  #1280, 1/32, 1/32
+        
+        
 
 
         z = self.compression(z)
