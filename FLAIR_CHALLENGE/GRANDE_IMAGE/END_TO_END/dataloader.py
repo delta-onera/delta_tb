@@ -175,6 +175,8 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))  #64, 1/8, 1/8
         z4 = self.f[5](self.f[4](z3))  #160, 1/16, 1/16
         z5 = self.f[7](self.f[6](z4))  #1280, 1/32, 1/32
+
+        print(z5.shape,z4.shape,z3.shape)
         
         z5 = torch.nn.functional.interpolate(z5, size=(16,16), mode="bilinear")
         z = torch.cat([z4,z5],dim=1)
