@@ -145,9 +145,9 @@ class FLAIR:
             self.data.start()
 
 
-class JustEfficientnet(torch.nn.Module):
+class UNET_EFFICIENTNET(torch.nn.Module):
     def __init__(self):
-        super(JustEfficientnet, self).__init__()
+        super(UNET_EFFICIENTNET, self).__init__()
         self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         with torch.no_grad():
             tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
@@ -155,6 +155,9 @@ class JustEfficientnet(torch.nn.Module):
                 6, 32, kernel_size=3, stride=2, padding=1, bias=False
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
+
+
+
 
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
@@ -168,18 +171,20 @@ class JustEfficientnet(torch.nn.Module):
         self.f7 = torch.nn.Conv2d(1024, 13, kernel_size=3, padding=1)
 
     def forward(self, x):
-        x = ((x / 255) - 0.5) / 0.25
-
         b, ch, h, w = x.shape
         assert ch == 5
         padding = torch.ones(b, 1, h, w).cuda()
+        
+        x = ((x / 255) - 0.5) / 0.5
         x = torch.cat([x, padding], dim=1)
-        x4 = torch.nn.functional.adaptive_avg_pool2d(x, (h // 4, w // 4))
-        xx4 = torch.nn.functional.adaptive_max_pool2d(x, (h // 4, w // 4))
-        xxx4 = 1 - torch.nn.functional.adaptive_max_pool2d(1 - x, (h // 4, w // 4))
+    
+        z0 = self.f[1](self.f[0](x))  #24, 1/2, 1/2
+        z1 = self.f[2](z0) #48, 1/4, 1/4
+        z2 = self.f[2](z1) #32, 1/8, 1/8
+        z3 = self.f[3](z2)
+        z4 = self.f[4](z3)
+        z4 = self.f[4](z3)
 
-        z = self.f(x)
-        p = self.classif(z)
 
         z = self.compression(z)
         z = torch.nn.functional.interpolate(z, size=(h // 4, w // 4), mode="bilinear")
