@@ -103,7 +103,6 @@ class FLAIR:
     def __init__(self, root, flag):
         assert flag in ["1/2", "2/2", "1", "2/3", "3/3"]
         self.root = root
-        self.flag = flag
         self.run = False
         self.paths = []
 
@@ -131,6 +130,8 @@ class FLAIR:
             self.paths = [self.paths[i] for i in range(2 * N // 3)]
         if flag == "3/3":
             self.paths = [self.paths[i] for i in range(2 * N // 3, N)]
+            
+        print(self.paths[0,10])
 
         self.data = CropExtractor(self.paths)
 
