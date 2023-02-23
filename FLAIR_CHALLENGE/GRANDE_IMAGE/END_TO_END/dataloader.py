@@ -156,13 +156,13 @@ class UNET_EFFICIENTNET(torch.nn.Module):
             )
             self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
 
-        self.g1 = torch.nn.Conv2d(1440, 256, kernel_size=5, padding=2)
+        self.g1 = torch.nn.Conv2d(1504, 256, kernel_size=5, padding=2)
         self.g2 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
         self.g3 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
-        self.g4 = torch.nn.Conv2d(1982, 256, kernel_size=5, padding=2)
+        self.g4 = torch.nn.Conv2d(2112, 256, kernel_size=5, padding=2)
         self.g5 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
         self.g6 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
-        self.classif = torch.nn.Conv2d(1982, 13, kernel_size=1)
+        self.classif = torch.nn.Conv2d(2112, 13, kernel_size=1)
 
     def forward(self, x):
         b, ch, h, w = x.shape
@@ -172,11 +172,9 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         x = ((x / 255) - 0.5) / 0.5
         x = torch.cat([x, padding], dim=1)
     
-        z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))  #64, 1/8, 1/8
-        z4 = self.f[5](self.f[4](z3))  #160, 1/16, 1/16
-        z5 = self.f[7](self.f[6](z4))  #1280, 1/32, 1/32
-
-        print(z5.shape,z4.shape,z3.shape)
+        z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))  #96, 1/8, 1/8
+        z4 = self.f[5](self.f[4](z3))  #224, 1/16, 1/16
+        z5 = self.f[8](self.f[7](self.f[6](z4)))  #1280, 1/32, 1/32
         
         z5 = torch.nn.functional.interpolate(z5, size=(16,16), mode="bilinear")
         z = torch.cat([z4,z5],dim=1)
