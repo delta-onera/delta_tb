@@ -111,7 +111,7 @@ class FLAIR:
             sousdomaines = os.listdir(root + domaine)
             for sousdomaines in sousdomaines:
                 prefix = root + domaine + "/" + sousdomaines
-                names = os.listdir(prefix + "/img")
+                names = os.listdir(prefix + "/msk")
                 names = [name for name in names if ".aux" not in name]
                 names = [name[4:] for name in names if "MSK_" in name]
 
@@ -131,7 +131,6 @@ class FLAIR:
         if flag == "3/3":
             self.paths = [self.paths[i] for i in range(2 * N // 3, N)]
             
-        print(self.paths[0,10])
 
         self.data = CropExtractor(self.paths)
 
