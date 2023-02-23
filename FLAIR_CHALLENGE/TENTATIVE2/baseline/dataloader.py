@@ -111,7 +111,7 @@ class FLAIR:
         for domaine in domaines:
             sousdomaines = os.listdir(root + domaine)
             for sousdomaines in sousdomaines:
-                prefix = root + domain + "/" + sousdomaines
+                prefix = root + domaine + "/" + sousdomaines
                 names = os.listdir(prefix + "/img")
                 names = [
                     name for name in names if ".tif" in name and ".aux" not in name
@@ -121,18 +121,18 @@ class FLAIR:
                 for name in names:
                     x = prefix + "/img/IMG_" + name
                     y = prefix + "/msk/MSK_" + name
-                    self.paths.append((domain, x, y, name))
+                    self.paths.append((domaine, x, y, name))
 
         self.paths = sorted(self.paths)
+        N = len(self.paths)
         if flag == "even":
-            tmp = [i for i in range(len(self.paths)) if i % 2 == 0]
+            self.paths = self.paths[0 : N // 2]
         if flag == "odd":
-            tmp = [i for i in range(len(self.paths)) if i % 2 == 1]
+            self.paths = self.paths[N // 2 :]
         if flag == "2/3":
-            tmp = [i for i in range(len(self.paths)) if i % 3 != 0]
+            self.paths = self.paths[0 : (2 * N // 3)]
         if flag == "1/3":
-            tmp = [i for i in range(len(self.paths)) if i % 3 == 0]
-        self.paths = [self.paths[i] for i in tmp]
+            self.paths = self.paths[(2 * N // 3) :]
 
         self.data = CropExtractor(self.paths)
 
