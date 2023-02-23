@@ -193,5 +193,5 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z = torch.cat([z, z3, z4, z5], dim=1)
         z = self.classif(z)
 
-        p = torch.nn.functional.interpolate(p, size=(h, w), mode="bilinear")
-        return p
+        z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
+        return z
