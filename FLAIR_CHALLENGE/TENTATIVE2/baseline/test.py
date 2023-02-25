@@ -21,11 +21,11 @@ with torch.no_grad():
     for i in range(len(dataset.paths)):
         if i % 100 == 99:
             print(i, "/", len(dataset.paths))
-        x, y, _ = dataset.getImageAndLabel(i)
+        x, y = dataset.getImageAndLabel(i)
         x, y = x.cuda(), y.cuda()
 
-        z = net(x)
-        _, z = z.max(0)
+        z = net(x.unsqueeze(0))
+        _, z = z[0].max(0)
         cm += dataloader.confusion(y, z)
 
         if False:
