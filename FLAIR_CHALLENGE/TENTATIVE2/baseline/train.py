@@ -7,7 +7,7 @@ assert torch.cuda.is_available()
 
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "2/2")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "1")
 
 print("define model")
 net = dataloader.UNET_EFFICIENTNET()
