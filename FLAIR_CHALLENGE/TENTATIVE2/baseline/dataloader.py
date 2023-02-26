@@ -111,9 +111,9 @@ class FLAIR:
             sousdomaines = os.listdir(root + domaine)
             for sousdomaines in sousdomaines:
                 prefix = root + domaine + "/" + sousdomaines
-                names = os.listdir(prefix + "/msk")
+                names = os.listdir(prefix + "/img")
                 names = [name for name in names if ".aux" not in name]
-                names = [name[4:] for name in names if "MSK_" in name]
+                names = [name[4:] for name in names if "IMG_" in name]
 
                 for name in names:
                     x = prefix + "/img/IMG_" + name
