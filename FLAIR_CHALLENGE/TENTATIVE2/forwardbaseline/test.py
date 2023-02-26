@@ -4,6 +4,7 @@ import torchvision
 import dataloader
 import PIL
 import PIL.Image
+import numpy
 
 assert torch.cuda.is_available()
 
