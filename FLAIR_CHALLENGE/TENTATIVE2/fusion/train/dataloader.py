@@ -65,22 +65,32 @@ class CropExtractor(threading.Thread):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
+            x = torch.Tensor(x) / 255
 
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
         y = numpy.asarray(y)
         y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
+        y = torch.Tensor(y)
 
-        if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
-        else:
-            return x, y
+        x = [x]
+        for mode in ["model1", "model2", "model3", "model4"]:
+            path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/TENTATIVE2/fusion/prepare/build/"
+            tmp = path + mode + self.getName(i) + ".pth"
+            tmp = torch.load(tmp, map_location=torch.device("cpu"))
+            tmp = tmp.unsqueeze(0).float()
+            tmp = torch.nn.functional.interpolate(tmp, size=(512, 512), mode="bilinear")
+            x.append(tmp[0] / 15)
+
+        x = torch.cat(x, dim=0)
+        assert x.shape == (57, 512, 512)
+        return x, y
 
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
 
     def getBatch(self, batchsize):
-        x = torch.zeros(batchsize, 5, 512, 512)
+        x = torch.zeros(batchsize, 57, 512, 512)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], y[i] = self.getCrop()
@@ -92,16 +102,16 @@ class CropExtractor(threading.Thread):
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            image, label = self.getImageAndLabel(i)
-            flag = numpy.random.randint(0, 2, size=3)
-            x, y = symetrie(image.copy(), label.copy(), flag)
-            x, y = torch.Tensor(x), torch.Tensor(y)
+            x, y = self.getImageAndLabel(i)
+            # flag = numpy.random.randint(0, 2, size=3)
+            # x, y = symetrie(image.copy(), label.copy(), flag)
+            # x, y = torch.Tensor(x), torch.Tensor(y)
             self.q.put((x, y), block=True)
 
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["1/4", "3/4", "1"]
+        assert flag in ["1/4"]
         self.root = root
         self.run = False
         self.paths = []
@@ -145,53 +155,21 @@ class FLAIR:
             self.data.start()
 
 
-class UNET_EFFICIENTNET(torch.nn.Module):
+class FUSION(torch.nn.Module):
     def __init__(self):
-        super(UNET_EFFICIENTNET, self).__init__()
-        self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
-        with torch.no_grad():
-            tmp = torch.cat([self.f[0][0].weight.clone()] * 2, dim=1)
-            self.f[0][0] = torch.nn.Conv2d(
-                6, 32, kernel_size=3, stride=2, padding=1, bias=False
-            )
-            self.f[0][0].weight = torch.nn.Parameter(tmp * 0.5)
-
-        self.g1 = torch.nn.Conv2d(1504, 256, kernel_size=5, padding=2)
-        self.g2 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
-        self.g3 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
-        self.g4 = torch.nn.Conv2d(2112, 256, kernel_size=5, padding=2)
-        self.g5 = torch.nn.Conv2d(256, 512, kernel_size=5, padding=2)
-        self.g6 = torch.nn.Conv2d(512, 512, kernel_size=3, padding=1)
-        self.classif = torch.nn.Conv2d(2112, 13, kernel_size=1)
+        super(FUSION, self).__init__()
+        self.f1 = torch.nn.Conv2d(57, 57, kernel_size=17, padding=8)
+        self.f2 = torch.nn.Conv2d(171, 57, kernel_size=9, padding=4)
+        self.f3 = torch.nn.Conv2d(171, 57, kernel_size=5, padding=2)
+        self.f4 = torch.nn.Conv2d(171, 256, kernel_size=1)
+        self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
-        b, ch, h, w = x.shape
-        assert ch == 5 and w == 512 and h == 512
-        padding = torch.ones(b, 1, h, w).cuda()
-
-        x = ((x / 255) - 0.5) / 0.5
-        x = torch.cat([x, padding], dim=1)
-
-        z3 = self.f[3](self.f[2](self.f[1](self.f[0](x))))
-        z4 = self.f[5](self.f[4](z3))
-        z5 = self.f[8](self.f[7](self.f[6](z4)))
-
-        z5 = torch.nn.functional.interpolate(z5, size=(32, 32), mode="bilinear")
-        z = torch.cat([z4, z5], dim=1)
-        z = torch.nn.functional.leaky_relu(self.g1(z))
-        z = torch.nn.functional.leaky_relu(self.g2(z))
-        z = torch.nn.functional.leaky_relu(self.g3(z))
-
-        z4 = torch.nn.functional.interpolate(z4, size=(64, 64), mode="bilinear")
-        z5 = torch.nn.functional.interpolate(z5, size=(64, 64), mode="bilinear")
-        z = torch.nn.functional.interpolate(z, size=(64, 64), mode="bilinear")
-        z = torch.cat([z, z3, z4, z5], dim=1)
-        z = torch.nn.functional.leaky_relu(self.g4(z))
-        z = torch.nn.functional.leaky_relu(self.g5(z))
-        z = torch.nn.functional.leaky_relu(self.g6(z))
-
-        z = torch.cat([z, z3, z4, z5], dim=1)
-        z = self.classif(z)
-
-        # z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
-        return z
+        z = torch.nn.functional.leaky_relu(self.f1(x))
+        z = torch.cat([x, z, x * z * 0.1], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f2(z))
+        z = torch.cat([x, z, x * z * 0.1], dim=1)
+        z = torch.nn.functional.leaky_relu(self.f3(z))
+        x = torch.cat([x, z, x * z * 0.1], dim=1)
+        x = torch.nn.functional.leaky_relu(self.f4(x))
+        return self.f5(x)

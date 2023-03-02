@@ -7,10 +7,10 @@ assert torch.cuda.is_available()
 
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "3/4")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/", "1/4")
 
 print("define model")
-net = dataloader.UNET_EFFICIENTNET()
+net = dataloader.FUSION()
 net = net.cuda()
 net.eval()
 
@@ -96,13 +96,6 @@ for i in range(nbbatchs):
             if perf[0] > 95:
                 os._exit(0)
 
-        if i == 100000 // 2:
-            torch.save(net, "build/model1.pth")
-        if i == 100000 * 3 // 4:
-            torch.save(net, "build/model2.pth")
-        if i == 100000 * 5 // 6:
-            torch.save(net, "build/model3.pth")
-
     if i > nbbatchs * 0.1:
         loss = loss * 0.7
     if i > nbbatchs * 0.2:
@@ -117,5 +110,4 @@ for i in range(nbbatchs):
     torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     optimizer.step()
 
-torch.save(net, "build/model4.pth")
 os._exit(0)
