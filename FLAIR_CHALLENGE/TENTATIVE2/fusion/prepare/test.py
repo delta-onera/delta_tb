@@ -41,7 +41,7 @@ with torch.no_grad():
         V, _ = z.max(0)
         max2 = max(max2, V.flatten().max())
 
-        torch.save("build/" + model + "/" + dataset.getName(i), z)
+        torch.save(z, "build/" + model + "/" + dataset.getName(i) + ".pth")
 
 print("##############################")
 print(max1, max2, nblower0, tot)
