@@ -73,7 +73,7 @@ class CropExtractor(threading.Thread):
         y = torch.Tensor(y)
 
         x = [x]
-        for mode in ["model1", "model2", "model3", "model4"]:
+        for mode in ["model1/", "model2/", "model3/", "model4/"]:
             path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/TENTATIVE2/fusion/prepare/build/"
             tmp = path + mode + self.getName(i) + ".pth"
             tmp = torch.load(tmp, map_location=torch.device("cpu"))
