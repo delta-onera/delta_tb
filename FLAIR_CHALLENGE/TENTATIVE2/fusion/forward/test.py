@@ -23,7 +23,7 @@ with torch.no_grad():
     for i in range(len(dataset.paths)):
         if i % 100 == 99:
             print(i, "/", len(dataset.paths))
-        x, name = dataset.getImageAndLabel(i)
+        x = dataset.getImageAndLabel(i)
         x = x.cuda()
 
         z = net(x.unsqueeze(0))
@@ -31,4 +31,4 @@ with torch.no_grad():
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
-        z.save("build/PRED_" + name, compression="tiff_lzw")
+        z.save("build/PRED_" + dataset.getName(i), compression="tiff_lzw")
