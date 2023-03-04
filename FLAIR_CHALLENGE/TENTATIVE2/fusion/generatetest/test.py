@@ -24,7 +24,7 @@ with torch.no_grad():
     for i in range(len(dataset.paths)):
         if i % 100 == 99:
             print(i, "/", len(dataset.paths))
-        x, _ = dataset.getImageAndLabel(i)
+        x = dataset.getImageAndLabel(i)
         x = x.cuda()
 
         z = net(x.unsqueeze(0))[0]
