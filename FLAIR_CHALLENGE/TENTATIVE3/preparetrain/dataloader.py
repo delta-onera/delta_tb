@@ -101,7 +101,7 @@ class CropExtractor(threading.Thread):
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["1/4", "3/4", "1"]
+        assert flag in ["1/4", "3/4"]
         self.root = root
         self.run = False
         self.paths = []
@@ -123,9 +123,9 @@ class FLAIR:
         self.paths = sorted(self.paths)
         N = len(self.paths)
         if flag == "3/4":
-            self.paths = [self.paths[i] for i in range(3 * N // 4)]
+            self.paths = [self.paths[i] for i in range(N) if i % 4 != 0]
         if flag == "1/4":
-            self.paths = [self.paths[i] for i in range(3 * N // 4, N)]
+            self.paths = [self.paths[i] for i in range(N) if i % 4 == 0]
 
         self.data = CropExtractor(self.paths)
 
