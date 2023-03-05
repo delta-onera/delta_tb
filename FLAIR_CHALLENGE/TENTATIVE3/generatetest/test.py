@@ -11,7 +11,7 @@ model = sys.argv[1]
 
 print("load model")
 with torch.no_grad():
-    net = torch.load("../../multiple/build/" + model + ".pth")
+    net = torch.load("../featuretrain/build/" + model + ".pth")
     net = net.cuda()
     net.eval()
 

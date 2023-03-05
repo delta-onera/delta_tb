@@ -101,7 +101,7 @@ class CropExtractor(threading.Thread):
 
 class FLAIR:
     def __init__(self, root, flag):
-        assert flag in ["1/4", "3/4"]
+        assert flag in ["3/4"]
         self.root = root
         self.run = False
         self.paths = []
