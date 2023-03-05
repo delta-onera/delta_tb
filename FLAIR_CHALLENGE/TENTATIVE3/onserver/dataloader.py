@@ -35,7 +35,7 @@ class FLAIR:
 
         x = [x]
         for mode in ["model1/", "model2/", "model3/", "model4/"]:
-            path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/TENTATIVE2/fusion/generatetest/build/"
+            path = "../generatetest/build/"
             tmp = path + mode + self.getName(i) + ".pth"
             tmp = torch.load(tmp, map_location=torch.device("cpu"))
             tmp = tmp.unsqueeze(0).float()
