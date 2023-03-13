@@ -53,7 +53,7 @@ class CropExtractor(threading.Thread):
     def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
-        self.maxsize = 161
+        self.maxsize = 81
         self.paths = paths
 
     def getName(self, i):
