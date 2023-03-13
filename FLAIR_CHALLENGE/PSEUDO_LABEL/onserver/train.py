@@ -57,10 +57,14 @@ def diceloss(y, z):
 
 
 params = [
-    net.final1.parameters(),
-    net.final2.parameters(),
-    net.final3.parameters(),
-    net.classif.parameters(),
+    net.final1.weight,
+    net.final1.bias,
+    net.final2.weight,
+    net.final2.bias,
+    net.final3.weight,
+    net.final3.bias,
+    net.classif.weight,
+    net.classif.bias,
 ]
 optimizer = torch.optim.Adam(params, lr=0.000005)
 printloss = torch.zeros(1).cuda()
