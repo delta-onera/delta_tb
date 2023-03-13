@@ -186,7 +186,7 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.g6(z))
 
         z = torch.cat([z, z3, z4, z5], dim=1)
-        
+
         zz = torch.nn.functional.leaky_relu(self.final1(z))
         z = torch.nn.functional.leaky_relu(self.final2(zz))
         z = torch.nn.functional.leaky_relu(self.final3(z))

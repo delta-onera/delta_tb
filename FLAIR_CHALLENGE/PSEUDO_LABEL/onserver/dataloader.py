@@ -1,6 +1,4 @@
 import os
-import PIL
-from PIL import Image
 import rasterio
 import numpy
 import torch
@@ -59,21 +57,17 @@ class CropExtractor(threading.Thread):
         self.paths = paths
 
     def getName(self, i):
-        return self.paths[i][2]
+        return self.paths[i][1]
 
     def getImageAndLabel(self, i, torchformat=False):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
 
-        y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
-        y = numpy.asarray(y)
-        y = numpy.clip(numpy.nan_to_num(y) - 1, 0, 12)
-
         if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
+            return torch.Tensor(x)
         else:
-            return x, y
+            return x
 
     def getCrop(self):
         assert self.isrunning
@@ -81,10 +75,9 @@ class CropExtractor(threading.Thread):
 
     def getBatch(self, batchsize):
         x = torch.zeros(batchsize, 5, 512, 512)
-        y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
-            x[i], y[i] = self.getCrop()
-        return x, y
+            x[i] = self.getCrop()
+        return x
 
     def run(self):
         self.isrunning = True
@@ -93,10 +86,10 @@ class CropExtractor(threading.Thread):
         while True:
             i = int(torch.rand(1) * len(self.paths))
             image, label = self.getImageAndLabel(i)
-            flag = numpy.random.randint(0, 2, size=3)
-            x, y = symetrie(image.copy(), label.copy(), flag)
-            x, y = torch.Tensor(x), torch.Tensor(y)
-            self.q.put((x, y), block=True)
+            # flag = numpy.random.randint(0, 2, size=3)
+            # x, y = symetrie(image.copy(), label.copy(), flag)
+            # x, y = torch.Tensor(x), torch.Tensor(y)
+            self.q.put(image, block=True)
 
 
 class FLAIR:
@@ -116,8 +109,7 @@ class FLAIR:
 
                 for name in names:
                     x = prefix + "/img/IMG_" + name
-                    y = prefix + "/msk/MSK_" + name
-                    self.paths.append((x, y, name))
+                    self.paths.append((x, name))
 
         self.data = CropExtractor(self.paths)
 
@@ -159,7 +151,7 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         self.final3 = torch.nn.Conv2d(128, 128, kernel_size=1)
         self.classif = torch.nn.Conv2d(256, 13, kernel_size=1)
 
-    def forwardbackbone(self,x):
+    def forwardbackbone(self, x):
         b, ch, h, w = x.shape
         assert ch == 5 and w == 512 and h == 512
         padding = torch.ones(b, 1, h, w).cuda()
@@ -192,7 +184,7 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         assert ch == 5 and w == 512 and h == 512
         with torch.no_grad():
             z = self.forwardbackbone(x)
-        
+
         zz = torch.nn.functional.leaky_relu(self.final1(z))
         z = torch.nn.functional.leaky_relu(self.final2(zz))
         z = torch.nn.functional.leaky_relu(self.final3(z))

@@ -10,9 +10,13 @@ print("load data")
 dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/")
 
 print("define model")
-net = dataloader.UNET_EFFICIENTNET()
+net = torch.load("../baseline/build/model.pth")
 net = net.cuda()
 net.eval()
+
+net0 = torch.load("../baseline/build/model.pth")
+net0 = net0.cuda()
+net0.eval()
 
 
 print("train")
@@ -52,26 +56,36 @@ def diceloss(y, z):
     return alldice.mean()
 
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+params = [net.final1, net.final2, net.final3, net.classif]
+optimizer = torch.optim.Adam(params, lr=0.000005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 6
-nbbatchs = 200000
+batchsize = 8
+nbbatchs = 10000
 dataset.start()
 
-for i in range(nbbatchs):
-    x, y = dataset.getBatch(batchsize)
-    x, y = x.cuda(), y.cuda()
+K = 16
 
-    y2 = torch.nn.functional.max_pool2d(y, kernel_size=5, stride=1, padding=2)
-    y3 = torch.nn.functional.avg_pool2d(y, kernel_size=5, stride=1, padding=2)
-    yy = (y == y2).float() * (y == y3).float()
-    yy = y * yy + 12 * (yy == 0).float()
+for i in range(nbbatchs):
+    x = dataset.getBatch(batchsize)
+    x = x.cuda()
+
+    with torch.no_grad():
+        z = net1(x)
+        v, py = z.max(1)
+        for j in range(12):
+            l = list((v * (py == j).float()).flatten())
+            l = sorted(l)
+            if len(l) > K:
+                l = l[len(l) - K : len(l)]
+
+            v = v * (py != j).float() + (py == j).float() * (v > l[0]).float()
+
+        py = py * (v > 0).float() + 12 * (v <= 0).float()
 
     z = net(x)
-
-    ce = crossentropy(yy, z)
-    dice = diceloss(yy, z)
+    ce = crossentropy(py, z)
+    dice = diceloss(py, z)
     loss = ce + dice
 
     with torch.no_grad():
@@ -95,13 +109,6 @@ for i in range(nbbatchs):
             print(i, "perf", perf)
             if perf[0] > 95:
                 os._exit(0)
-
-        if i == 100000 // 2:
-            torch.save(net, "build/model1.pth")
-        if i == 100000 * 3 // 4:
-            torch.save(net, "build/model2.pth")
-        if i == 100000 * 5 // 6:
-            torch.save(net, "build/model3.pth")
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.7
