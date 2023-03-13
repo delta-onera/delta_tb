@@ -83,16 +83,15 @@ for i in range(nbbatchs):
         z = net0(x)
         v, py = z.max(1)
         for j in range(12):
-            l = list((v * (py == j).float()).flatten())
-            l = [u for u in l if u > 0]
-            if l != []:
-                l = sorted(l)
-            if len(l) > K:
-                l = l[len(l) - K : len(l)]
-            if l == []:
-                l = [100]
+            l = (v * (py == j).float()).flatten()
+            l,_=l.sort()
+            if l[-K]<=0:
+                seuil = 100
+            else:
+                seuil = l[-K]
+            
 
-            v = v * (py != j).float() + (py == j).float() * (v > l[0]).float()
+            v = v * (py != j).float() + (py == j).float() * (v > seuil).float()
 
         py = py * (v > 0).float() + 12 * (v <= 0).float()
 
