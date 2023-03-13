@@ -7,7 +7,7 @@ assert torch.cuda.is_available()
 
 
 print("load data")
-dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/train/")
+dataset = dataloader.FLAIR("/scratchf/CHALLENGE_IGN/test/")
 
 print("define model")
 net = torch.load("../baseline/build/model.pth")
@@ -56,7 +56,12 @@ def diceloss(y, z):
     return alldice.mean()
 
 
-params = [net.final1, net.final2, net.final3, net.classif]
+params = [
+    net.final1.parameters(),
+    net.final2.parameters(),
+    net.final3.parameters(),
+    net.classif.parameters(),
+]
 optimizer = torch.optim.Adam(params, lr=0.000005)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
