@@ -84,9 +84,13 @@ for i in range(nbbatchs):
         v, py = z.max(1)
         for j in range(12):
             l = list((v * (py == j).float()).flatten())
-            l = sorted(l)
+            l = [u for u in l if u > 0]
+            if l != []:
+                l = sorted(l)
             if len(l) > K:
                 l = l[len(l) - K : len(l)]
+            if l == []:
+                l = [100]
 
             v = v * (py != j).float() + (py == j).float() * (v > l[0]).float()
 
