@@ -58,7 +58,7 @@ class Mobilenet(torch.nn.Module):
 class JustEfficientnet(torch.nn.Module):
     def __init__(self):
         super(JustEfficientnet, self).__init__()
-        self.f = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        self.f = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
         self.classif = torch.nn.Conv2d(1280, 13, kernel_size=1)
         self.channels = None
 
