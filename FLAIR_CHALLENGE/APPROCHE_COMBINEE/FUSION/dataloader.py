@@ -55,7 +55,7 @@ class CropExtractor(threading.Thread):
     def __init__(self, paths):
         threading.Thread.__init__(self)
         self.isrunning = False
-        self.maxsize = 500
+        self.maxsize = 80
         self.paths = paths
 
     def getImageAndLabel(self, i, torchformat=False):
