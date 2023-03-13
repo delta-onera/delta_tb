@@ -85,7 +85,7 @@ class CropExtractor(threading.Thread):
 
         while True:
             i = int(torch.rand(1) * len(self.paths))
-            image, label = self.getImageAndLabel(i)
+            image = torch.Tensor(self.getImageAndLabel(i))
             # flag = numpy.random.randint(0, 2, size=3)
             # x, y = symetrie(image.copy(), label.copy(), flag)
             # x, y = torch.Tensor(x), torch.Tensor(y)

@@ -80,7 +80,7 @@ for i in range(nbbatchs):
     x = x.cuda()
 
     with torch.no_grad():
-        z = net1(x)
+        z = net0(x)
         v, py = z.max(1)
         for j in range(12):
             l = list((v * (py == j).float()).flatten())
