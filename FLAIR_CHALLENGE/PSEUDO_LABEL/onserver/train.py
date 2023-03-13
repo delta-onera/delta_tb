@@ -66,10 +66,10 @@ params = [
     net.classif.weight,
     net.classif.bias,
 ]
-optimizer = torch.optim.Adam(params, lr=0.000005)
+optimizer = torch.optim.Adam(params, lr=0.00000001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 8
+batchsize = 16
 nbbatchs = 10000
 dataset.start()
 
@@ -102,8 +102,6 @@ for i in range(nbbatchs):
 
     with torch.no_grad():
         printloss += loss.clone().detach()
-        _, z = z.max(1)
-        stats += dataloader.confusion(y, z)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -116,11 +114,6 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = dataloader.perf(stats)
-            stats = torch.zeros((13, 13)).cuda()
-            print(i, "perf", perf)
-            if perf[0] > 95:
-                os._exit(0)
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.7
