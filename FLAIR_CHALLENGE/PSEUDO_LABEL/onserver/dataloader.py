@@ -179,12 +179,7 @@ class UNET_EFFICIENTNET(torch.nn.Module):
 
         return torch.cat([z, z3, z4, z5], dim=1)
 
-    def forward(self, x):
-        b, ch, h, w = x.shape
-        assert ch == 5 and w == 512 and h == 512
-        with torch.no_grad():
-            z = self.forwardbackbone(x)
-
+    def forwardhead(self, z):
         zz = torch.nn.functional.leaky_relu(self.final1(z))
         z = torch.nn.functional.leaky_relu(self.final2(zz))
         z = torch.nn.functional.leaky_relu(self.final3(z))
@@ -193,3 +188,11 @@ class UNET_EFFICIENTNET(torch.nn.Module):
 
         z = torch.nn.functional.interpolate(z, size=(h, w), mode="bilinear")
         return z
+
+    def forward(self, x):
+        b, ch, h, w = x.shape
+        assert ch == 5 and w == 512 and h == 512
+        with torch.no_grad():
+            z = self.forwardbackbone(x)
+
+        return self.forwardhead(z)
