@@ -62,7 +62,7 @@ class FusionNet(torch.nn.Module):
         self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
-        z = torch.nn.functional.leaky_relu(self.f1(z))
+        z = torch.nn.functional.leaky_relu(self.f1(x))
         z = torch.cat([x, z, x * z * 0.1], dim=1)
         z = torch.nn.functional.leaky_relu(self.f2(z))
         z = torch.cat([x, z, x * z * 0.1], dim=1)

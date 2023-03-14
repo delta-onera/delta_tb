@@ -59,13 +59,13 @@ for i in range(len(dataset.paths)):
     net = torch.load("../baseline/build/model.pth")
     net = net.cuda()
     net.eval()
-
-    feature = net.forwardbackbone(x.unsqueeze(0))
+    with torch.no_grad():
+        feature = net.forwardbackbone(x.unsqueeze(0))
 
     with torch.no_grad():
         z = net.forwardhead(feature)
-        v, py = z[0].max(0)
-        py = py * (v >= v.flatten().median()) + 12 * (v < v.flatten().median())
+        v, py = z.max(1)
+        py = py * (v >= float(v.flatten().median())).float() + 12 * (v < float(v.flatten().median())).float()
 
         # seuil = torch.zeros(12)
         # for
@@ -85,6 +85,7 @@ for i in range(len(dataset.paths)):
     ]
     optimizer = torch.optim.Adam(params, lr=0.00000001)
     for j in range(10):
+        feature.requires_grad_()
         z = net.forwardhead(feature)
         ce = crossentropy(py, z)
         dice = diceloss(py, z)
@@ -98,6 +99,7 @@ for i in range(len(dataset.paths)):
 
     with torch.no_grad():
         z = net.forwardhead(feature)
+        _,z =z[0].max(0) 
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
