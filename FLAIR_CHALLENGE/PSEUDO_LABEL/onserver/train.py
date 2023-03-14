@@ -84,12 +84,11 @@ for i in range(nbbatchs):
         v, py = z.max(1)
         for j in range(12):
             l = (v * (py == j).float()).flatten()
-            l,_=l.sort()
-            if l[-K]<=0:
+            l, _ = l.sort()
+            if l[-K] <= 0:
                 seuil = 100
             else:
                 seuil = l[-K]
-            
 
             v = v * (py != j).float() + (py == j).float() * (v > seuil).float()
 

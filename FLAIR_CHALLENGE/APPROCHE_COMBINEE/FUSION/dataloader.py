@@ -70,13 +70,13 @@ class CropExtractor(threading.Thread):
 
         x, y = torch.Tensor(x), torch.Tensor(y)
         h, w = 512, 512
-        x = [x/125]
+        x = [x / 125]
         for mode in ["RGB", "RIE", "IGE", "IEB"]:
             path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/APPROCHE_COMBINEE/PREPAREFUSION/build/"
             tmp = path + mode + "/train/" + name
             tmp = torch.load(tmp, map_location=torch.device("cpu"))
             tmp = tmp.unsqueeze(0).float()
-            tmp = tmp*(tmp>0).float()/30
+            tmp = tmp * (tmp > 0).float() / 30
             tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
             x.append(tmp[0])
 

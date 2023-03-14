@@ -37,12 +37,13 @@ class FLAIRTEST:
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
             x = torch.Tensor(x)
             h, w = 512, 512
-            x = [x]
+            x = [x / 125]
             for mode in ["RGB", "RIE", "IGE", "IEB"]:
                 path = "/d/achanhon/github/delta_tb/FLAIR_CHALLENGE/APPROCHE_COMBINEE/PREPAREFUSION/build/"
                 tmp = path + mode + "/test/" + name
                 tmp = torch.load(tmp, map_location=torch.device("cpu"))
                 tmp = tmp.unsqueeze(0).float()
+                tmp = tmp * (tmp > 0).float() / 30
                 tmp = torch.nn.functional.interpolate(tmp, size=(h, w), mode="bilinear")
                 x.append(tmp[0])
 
@@ -61,7 +62,6 @@ class FusionNet(torch.nn.Module):
         self.f5 = torch.nn.Conv2d(256, 13, kernel_size=1)
 
     def forward(self, x):
-        z = x / 255
         z = torch.nn.functional.leaky_relu(self.f1(z))
         z = torch.cat([x, z, x * z * 0.1], dim=1)
         z = torch.nn.functional.leaky_relu(self.f2(z))
