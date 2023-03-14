@@ -69,11 +69,11 @@ params = [
 optimizer = torch.optim.Adam(params, lr=0.00000001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 16
-nbbatchs = 10000
+batchsize = 32
+nbbatchs = 5000
 dataset.start()
 
-K = 16
+K = 64
 
 for i in range(nbbatchs):
     x = dataset.getBatch(batchsize)
