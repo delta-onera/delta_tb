@@ -83,14 +83,17 @@ for i in range(len(dataset.paths)):
         net.classif.weight,
         net.classif.bias,
     ]
-    optimizer = torch.optim.Adam(params, lr=0.00000001)
-    for j in range(10):
+    optimizer = torch.optim.Adam(params, lr=0.000001)
+    for j in range(90):
         feature.requires_grad_()
         z = net.forwardhead(feature)
         ce = crossentropy(py, z)
         dice = diceloss(py, z)
 
         loss = ce + dice
+
+        if j%10==0:
+            print(loss)
 
         optimizer.zero_grad()
         loss.backward()
