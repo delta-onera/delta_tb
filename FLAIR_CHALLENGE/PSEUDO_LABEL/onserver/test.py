@@ -93,7 +93,7 @@ for i in range(len(dataset.paths)):
         loss = ce + dice
 
         if j%10==0:
-            print(loss)
+            print(j,loss)
 
         optimizer.zero_grad()
         loss.backward()
