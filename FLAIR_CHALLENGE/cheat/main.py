@@ -1,7 +1,7 @@
 import os
 import PIL
 from PIL import Image
-import array
+import numpy
 
 l = os.listdir("build")
 assert len(l) == 6
@@ -24,7 +24,7 @@ def bestvotes(votes):
     assert votes.shape[0] == 5
 
     merged = dict()
-    for i in range(votes):
+    for i in range(5):
         if votes[i] in merged:
             merged[votes[i]] += 1
         else:
@@ -54,11 +54,11 @@ def bestvotes(votes):
 
 
 for name in ll:
-    output = numpy.uint8(numpy.array((512 * 512)))
-    votes = numpy.array(len(l), 512 * 512)
+    output = numpy.uint8(numpy.zeros((512 * 512)))
+    votes = numpy.zeros((len(l), 512 * 512))
     for k in range(5):
-        tmp = PIL.Image.open(l[k] + "/" + name).convert("L").copy()
-        votes[k] = numpy.asarray(tmp).flatten()
+        tmp = PIL.Image.open("build/" + l[k] + "/" + name).convert("L").copy()
+        votes[k,:] = (numpy.asarray(tmp)).flatten()
     votes = numpy.uint8(numpy.transpose(votes))
 
     # parallel for :-(
@@ -66,7 +66,7 @@ for name in ll:
         output[i] = bestvotes(votes[i])
 
     output = output.reshape(512, 512)
-    output = PIL.Image.fromarray(ouput)
+    output = PIL.Image.fromarray(output)
     output.save("build/predictions/" + name)
 
 
