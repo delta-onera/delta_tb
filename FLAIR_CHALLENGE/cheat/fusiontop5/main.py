@@ -58,7 +58,7 @@ for name in ll:
     votes = numpy.zeros((len(l), 512 * 512))
     for k in range(5):
         tmp = PIL.Image.open("build/" + l[k] + "/" + name).convert("L").copy()
-        votes[k,:] = (numpy.asarray(tmp)).flatten()
+        votes[k, :] = (numpy.asarray(tmp)).flatten()
     votes = numpy.uint8(numpy.transpose(votes))
 
     # parallel for :-(
