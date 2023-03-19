@@ -30,4 +30,4 @@ with torch.no_grad():
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
-        z.save("build/output/PRED_" + dataset.getName(i), compression="tiff_lzw")
+        z.save("build/PRED_" + dataset.getName(i), compression="tiff_lzw")

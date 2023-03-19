@@ -85,7 +85,9 @@ class CropExtractor(threading.Thread):
             x = (x - 0.5) / (0.5)
 
         if len(self.paths[i]) == 1:
-            xx = PIL.Image.open("build/input/PRED_" + self.getName(i))
+            xx = PIL.Image.open(
+                "../../cheat/orientedfusion/predictions/PRED_" + self.getName(i)
+            )
             xx = numpy.asarray(xx.convert("L").copy())
             with torch.no_grad():
                 xx = torch.Tensor(x).long()
