@@ -90,7 +90,7 @@ class CropExtractor(threading.Thread):
             )
             xx = numpy.asarray(xx.convert("L").copy())
             with torch.no_grad():
-                xx = torch.Tensor(x).long()
+                xx = torch.Tensor(xx).long()
                 xx = torch.nn.functional.one_hot(xx, num_classes=12)
         else:
             xx = torch.Tensor(self.getLabel(i)).long()
