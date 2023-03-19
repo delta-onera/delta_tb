@@ -96,7 +96,7 @@ class CropExtractor(threading.Thread):
 
             for jj in range(12):
                 zz[:, :, jj] *= erreur[jj]
-            zz = zz.sum(2)
+            zz = zz.sum(2) * 0.8
 
             seuil = torch.rand(xx.shape)
             randval = (torch.rand(xx.shape) * 12).long()
@@ -110,7 +110,7 @@ class CropExtractor(threading.Thread):
         xxx = numpy.zeros((1, 512, 512))
         x = numpy.concat([x, xx, xxx], axis=0)
 
-        assert x.shape == (16, 512, 512)
+        assert x.shape == (18, 512, 512)
         return x
 
     def getLabel(self, i):
