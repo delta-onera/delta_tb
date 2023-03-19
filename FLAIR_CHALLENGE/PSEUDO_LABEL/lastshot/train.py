@@ -55,23 +55,18 @@ def diceloss(y, z):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 6
-nbbatchs = 200000
+batchsize = 8
+nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
     x, y = dataset.getBatch(batchsize)
     x, y = x.cuda(), y.cuda()
 
-    y2 = torch.nn.functional.max_pool2d(y, kernel_size=5, stride=1, padding=2)
-    y3 = torch.nn.functional.avg_pool2d(y, kernel_size=5, stride=1, padding=2)
-    yy = (y == y2).float() * (y == y3).float()
-    yy = y * yy + 12 * (yy == 0).float()
-
     z = net(x)
 
-    ce = crossentropy(yy, z)
-    dice = diceloss(yy, z)
+    ce = crossentropy(y, z)
+    dice = diceloss(y, z)
     loss = ce + dice
 
     with torch.no_grad():
@@ -93,15 +88,6 @@ for i in range(nbbatchs):
             perf = dataloader.perf(stats)
             stats = torch.zeros((13, 13)).cuda()
             print(i, "perf", perf)
-            if perf[0] > 95:
-                os._exit(0)
-
-        if i == 100000 // 2:
-            torch.save(net, "build/model1.pth")
-        if i == 100000 * 3 // 4:
-            torch.save(net, "build/model2.pth")
-        if i == 100000 * 5 // 6:
-            torch.save(net, "build/model3.pth")
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.7
@@ -117,5 +103,5 @@ for i in range(nbbatchs):
     torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     optimizer.step()
 
-torch.save(net, "build/model4.pth")
+torch.save(net, "build/model.pth")
 os._exit(0)
