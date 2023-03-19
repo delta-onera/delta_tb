@@ -55,7 +55,7 @@ def diceloss(y, z):
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(1).cuda()
 stats = torch.zeros((13, 13)).cuda()
-batchsize = 8
+batchsize = 5
 nbbatchs = 100000
 dataset.start()
 
