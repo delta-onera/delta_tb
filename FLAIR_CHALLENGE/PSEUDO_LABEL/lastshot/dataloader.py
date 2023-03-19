@@ -58,6 +58,22 @@ class CropExtractor(threading.Thread):
         self.maxsize = 161
         self.paths = paths
 
+        erreur = [
+            0.835,
+            0.569,
+            0.756,
+            0.627,
+            0.896,
+            0.371,
+            0.671,
+            0.398,
+            0.844,
+            0.559,
+            0.519,
+            0.439,
+        ]
+        erreur = torch.Tensor(erreur)
+
     def getName(self, i):
         return self.paths[i][-1]
 
@@ -74,9 +90,22 @@ class CropExtractor(threading.Thread):
             with torch.no_grad():
                 xx = torch.Tensor(x).long()
                 xx = torch.nn.functional.one_hot(xx, num_classes=12)
-            xx = xx.cpu()
-            xx = numpy.transpose(xx, axes=(1, 2))
-            xx = numpy.transpose(xx, axes=(0, 1))
+        else:
+            xx = torch.Tensor(self.getLabel(i)).long()
+            zz = torch.nn.functional.one_hot(xx, num_classes=12)
+
+            for jj in range(12):
+                zz[:, :, jj] *= erreur[jj]
+            zz = zz.sum(2)
+
+            seuil = torch.rand(xx.shape)
+            randval = (torch.rand(xx.shape) * 12).long()
+            xx = xx * (zz <= seuil).float() + randval * (zz > seuil).float()
+            xx = torch.nn.functional.one_hot(xx.long(), num_classes=12)
+
+        xx = xx.numpy()
+        xx = numpy.transpose(xx, axes=(1, 2))
+        xx = numpy.transpose(xx, axes=(0, 1))
 
         xxx = numpy.zeros((1, 512, 512))
         x = numpy.concat([x, xx, xxx], axis=0)
