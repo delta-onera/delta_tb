@@ -106,6 +106,7 @@ class CropExtractor(threading.Thread):
             xx = torch.nn.functional.one_hot(xx.long(), num_classes=12)
 
         xx = xx.numpy()
+        assert xx.shape==(12,512,512)
         xx = numpy.transpose(xx, axes=(1, 2))
         xx = numpy.transpose(xx, axes=(0, 1))
 
