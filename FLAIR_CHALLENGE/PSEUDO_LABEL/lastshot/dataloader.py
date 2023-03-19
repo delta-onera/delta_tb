@@ -95,7 +95,7 @@ class CropExtractor(threading.Thread):
         else:
             xx = torch.Tensor(self.getLabel(i)).long()
             xx = xx * (xx < 12).float() + 11 * (x == 12)
-            zz = torch.nn.functional.one_hot(xx, num_classes=12).float()
+            zz = torch.nn.functional.one_hot(xx.long(), num_classes=12).float()
 
             for jj in range(12):
                 zz[:, :, jj] *= self.erreur[jj]
