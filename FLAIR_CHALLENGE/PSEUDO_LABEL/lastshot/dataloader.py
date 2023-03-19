@@ -113,7 +113,7 @@ class CropExtractor(threading.Thread):
         xx = numpy.swapaxes(xx, 0, 1)
 
         xxx = numpy.zeros((1, 512, 512))
-        x = numpy.concat([x, xx, xxx], axis=0)
+        x = numpy.concatenate([x, xx, xxx], axis=0)
 
         assert x.shape == (18, 512, 512)
         return x
