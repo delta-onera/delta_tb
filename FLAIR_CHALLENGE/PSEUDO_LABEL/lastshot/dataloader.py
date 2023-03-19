@@ -100,6 +100,7 @@ class CropExtractor(threading.Thread):
             for jj in range(12):
                 zz[:, :, jj] *= self.erreur[jj]
             zz = zz.sum(2) * 0.8
+            assert zz.shape == xx.shape
 
             seuil = torch.rand(xx.shape)
             randval = (torch.rand(xx.shape) * 12).long()
