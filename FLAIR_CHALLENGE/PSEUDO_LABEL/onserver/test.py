@@ -65,7 +65,10 @@ for i in range(len(dataset.paths)):
     with torch.no_grad():
         z = net.forwardhead(feature)
         v, py = z.max(1)
-        py = py * (v >= float(v.flatten().median())).float() + 12 * (v < float(v.flatten().median())).float()
+        py = (
+            py * (v >= float(v.flatten().median())).float()
+            + 12 * (v < float(v.flatten().median())).float()
+        )
 
         # seuil = torch.zeros(12)
         # for
@@ -92,8 +95,8 @@ for i in range(len(dataset.paths)):
 
         loss = ce + dice
 
-        if j%40==0:
-            print(j,loss)
+        if j % 40 == 0:
+            print(j, loss)
 
         optimizer.zero_grad()
         loss.backward()
@@ -102,7 +105,7 @@ for i in range(len(dataset.paths)):
 
     with torch.no_grad():
         z = net.forwardhead(feature)
-        _,z =z[0].max(0) 
+        _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
