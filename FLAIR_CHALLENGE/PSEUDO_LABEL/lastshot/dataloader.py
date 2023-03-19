@@ -65,11 +65,24 @@ class CropExtractor(threading.Thread):
         with rasterio.open(self.paths[i][0]) as src_img:
             x = src_img.read()
             x = numpy.clip(numpy.nan_to_num(x), 0, 255)
+            x = x / 255
+            x = (x - 0.5) / (0.5)
 
-        if torchformat:
-            return torch.Tensor(x), torch.Tensor(y)
-        else:
-            return x, y
+        if len(self.paths[i]) == 1:
+            xx = PIL.Image.open("build/input/PRED_" + self.getName(i))
+            xx = numpy.asarray(xx.convert("L").copy())
+            with torch.no_grad():
+                xx = torch.Tensor(x).long()
+                xx = torch.nn.functional.one_hot(xx, num_classes=12)
+            xx = xx.cpu()
+            xx = numpy.transpose(xx, axes=(1, 2))
+            xx = numpy.transpose(xx, axes=(0, 1))
+
+        xxx = numpy.zeros((1, 512, 512))
+        x = numpy.concat([x, xx, xxx], axis=0)
+
+        assert x.shape == (16, 512, 512)
+        return x
 
     def getLabel(self, i):
         y = PIL.Image.open(self.paths[i][1]).convert("L").copy()
