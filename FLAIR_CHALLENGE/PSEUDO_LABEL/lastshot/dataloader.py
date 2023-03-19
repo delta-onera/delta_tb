@@ -223,8 +223,8 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z8 = self.f[3](z4)  # 96,64
         zf = self.f[5](self.f[4](z8))  # 224,32
 
-        x8max = torch.nn.functional.max_pooling2d(x, kernel_size=8, stride=8, padding=0)
-        x8avg = torch.nn.functional.avg_pooling2d(x, kernel_size=8, stride=8, padding=0)
+        x8max = torch.nn.functional.max_pool2d(x, kernel_size=8, stride=8, padding=0)
+        x8avg = torch.nn.functional.avg_pool2d(x, kernel_size=8, stride=8, padding=0)
         zf = torch.nn.functional.interpolate(zf, size=(64, 64), mode="bilinear")
 
         z = torch.cat([x8max, x8avg, zf, z8], dim=1)  # 224+18+18+96=356
@@ -232,15 +232,15 @@ class UNET_EFFICIENTNET(torch.nn.Module):
         z = torch.nn.functional.leaky_relu(self.g2(z))  # 256
 
         z = torch.nn.functional.interpolate(z, size=(128, 128), mode="bilinear")
-        x8max = torch.nn.functional.max_pooling2d(x, kernel_size=4, stride=4, padding=0)
-        x8avg = torch.nn.functional.avg_pooling2d(x, kernel_size=4, stride=4, padding=0)
+        x8max = torch.nn.functional.max_pool2d(x, kernel_size=4, stride=4, padding=0)
+        x8avg = torch.nn.functional.avg_pool2d(x, kernel_size=4, stride=4, padding=0)
 
         z = torch.cat([x8max, x8avg, z, z4], dim=1)  # 256+18+18+64=356
         z = torch.nn.functional.leaky_relu(self.g3(z))
         z = torch.nn.functional.leaky_relu(self.g4(z))  # 128
 
-        x8max = torch.nn.functional.max_pooling2d(x, kernel_size=2, stride=2, padding=0)
-        x8avg = torch.nn.functional.avg_pooling2d(x, kernel_size=2, stride=2, padding=0)
+        x8max = torch.nn.functional.max_pool2d(x, kernel_size=2, stride=2, padding=0)
+        x8avg = torch.nn.functional.avg_pool2d(x, kernel_size=2, stride=2, padding=0)
         z = torch.nn.functional.interpolate(z, size=(256, 256), mode="bilinear")
 
         z = torch.cat([x8max, x8avg, z, z2], dim=1)  # 128+18+18+32=196
