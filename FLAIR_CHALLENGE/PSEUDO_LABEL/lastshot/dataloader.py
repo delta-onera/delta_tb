@@ -84,7 +84,7 @@ class CropExtractor(threading.Thread):
             x = x / 255
             x = (x - 0.5) / (0.5)
 
-        if len(self.paths[i]) == 1:
+        if len(self.paths[i]) == 2:
             xx = PIL.Image.open(
                 "../../cheat/orientedfusion/predictions/PRED_" + self.getName(i)
             )
