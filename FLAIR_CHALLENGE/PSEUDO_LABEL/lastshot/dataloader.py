@@ -199,7 +199,7 @@ class UNET_EFFICIENTNET(torch.nn.Module):
             self.f[0][0] = torch.nn.Conv2d(
                 18, 32, kernel_size=3, stride=2, padding=1, bias=False
             )
-            self.f[0][0].weight = torch.nn.Parameter(tmp // 6)
+            self.f[0][0].weight = torch.nn.Parameter(tmp / 6)
 
         self.g1 = torch.nn.Conv2d(356, 256, kernel_size=5, padding=2)
         self.g2 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1)
