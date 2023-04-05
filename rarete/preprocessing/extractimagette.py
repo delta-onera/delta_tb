@@ -1,6 +1,7 @@
 import os
 import PIL
 from PIL import Image
+import numpy
 
 root = "/scratchf/OSCD/"
 folders = os.listdir(root)
@@ -22,5 +23,5 @@ for path in folders:
     img1, img2, cm = numpy.asarray(img1), numpy.asarray(img2), numpy.asarray(cm)
     if img1.shape != img2.shape:
         print(path, img1.shape, img2.shape)
-    if img1.shape[1:3] != cm.shape:
+    if img1.shape[0:2] != cm.shape:
         print(path, img1.shape, cm.shape)
