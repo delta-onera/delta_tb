@@ -8,31 +8,15 @@ import queue
 import threading
 
 
-def distancetransform(y, size=4):
-    yy = 2.0 * y.unsqueeze(0) - 1
-    yyy = torch.nn.functional.avg_pool2d(
-        yy, kernel_size=2 * size + 1, stride=1, padding=size
-    )
-    D = 1.0 - 0.5 * (yy - yyy).abs()
-    return D[0]
-
-
-def perf(cm):
-    accu = 100.0 * (cm[0][0] + cm[1][1]) / (torch.sum(cm) + 1)
-    iou0 = 50.0 * cm[0][0] / (cm[0][0] + cm[1][0] + cm[0][1] + 1)
-    iou1 = 50.0 * cm[1][1] / (cm[1][1] + cm[1][0] + cm[0][1] + 1)
-    return torch.Tensor((iou0 + iou1, accu))
-
-
-def symetrie(x, y, ijk):
+def symetrie(x, ijk):
     i, j, k = ijk[0], ijk[1], ijk[2]
     if i == 1:
-        x, y = numpy.transpose(x, axes=(1, 0, 2)), numpy.transpose(y, axes=(1, 0))
+        x = numpy.transpose(x, axes=(1, 0, 2))
     if j == 1:
-        x, y = numpy.flip(x, axis=1), numpy.flip(y, axis=1)
+        x = numpy.flip(x, axis=1)
     if k == 1:
-        x, y = numpy.flip(x, axis=0), numpy.flip(y, axis=0)
-    return x.copy(), y.copy()
+        x = numpy.flip(x, axis=0)
+    return x.copy()
 
 
 def pilTOtorch(x):
@@ -43,72 +27,61 @@ def torchTOpil(x):
     return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
 
 
-class CropExtractor(threading.Thread):
-    def __init__(self, path, maxsize=500, tilesize=128):
+class Dataloader(threading.Thread):
+    def __init__(self, paths, maxsize=10, batchsize=64):
         threading.Thread.__init__(self)
         self.isrunning = False
+
         self.maxsize = maxsize
+        self.batchsize = batchsize
+        self.paths = paths
 
-        self.path = path
-        self.NB = 0
-        self.tilesize = tilesize
-        while os.path.exists(self.path + str(self.NB) + "_x.png"):
-            self.NB += 1
+    def getImages(self, i, torchformat=False):
+        assert i < len(self.path)
 
-        if self.NB == 0:
-            print("wrong path", self.path)
-            quit()
-
-    def getImageAndLabel(self, i, torchformat=False):
-        assert i < self.NB
-
-        image = PIL.Image.open(self.path + str(i) + "_x.png").convert("RGB").copy()
-        image = numpy.uint8(numpy.asarray(image))
-
-        label = PIL.Image.open(self.path + str(i) + "_y.png").convert("L").copy()
-        label = numpy.uint8(numpy.asarray(label))
-        label = numpy.uint8(label != 0)
+        img1 = PIL.Image.open(self.paths[i] + "_1.png").convert("RGB").copy()
+        img1 = numpy.uint8(numpy.asarray(img1))
+        img2 = PIL.Image.open(self.paths[i] + "_2.png").convert("RGB").copy()
+        img2 = numpy.uint8(numpy.asarray(img2))
 
         if torchformat:
-            return pilTOtorch(image), torch.Tensor(label)
+            return pilTOtorch(img1), pilTOtorch(img2)
         else:
-            return image, label
-
-    ###############################################################
+            return img1, img2
 
     def getCrop(self):
         assert self.isrunning
         return self.q.get(block=True)
 
-    def getBatch(self, batchsize):
-        tilesize = self.tilesize
-        x = torch.zeros(batchsize, 3, self.tilesize, tilesize)
-        y = torch.zeros(batchsize, tilesize, tilesize)
-        for i in range(batchsize):
-            x[i], y[i] = self.getCrop()
-        return x, y.long()
-
     def run(self):
+        assert not self.isrunning
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
         tilesize = self.tilesize
 
         while True:
-            I = [i for i in range(self.NB)]
-            random.shuffle(I)
-            for i in I:
-                image, label = self.getImageAndLabel(i, torchformat=False)
+            I = (torch.rand(self.batchsize) * len(self.paths)).long()
+            flag = numpy.random.randint(0, 2, size=(self.batchsize, 3))
+            batch = torch.zeros(batchsize, 6, 48, 48)
+            for i in range(self.batchsize):
+                img1, img2 = self.getImages(I[i], torchformat=False)
+                img1, img2 = symetrie(img1, flag[i]), symetrie(img2, flag[i])
+                img1, img2 = pilTOtorch(x), torch.Tensor(y)
+                batch[i, 0:3], batch[i, 3:6] = img1, img2
+            self.q.put(batch, block=True)
 
-                ntile = image.shape[0] * image.shape[1] // 128 / 128 // 10 + 1
-                ntile = int(min(128, ntile))
 
-                RC = numpy.random.rand(ntile, 2)
-                flag = numpy.random.randint(0, 2, size=(ntile, 3))
-                for j in range(ntile):
-                    r = int(RC[j][0] * (image.shape[0] - tilesize - 2))
-                    c = int(RC[j][1] * (image.shape[1] - tilesize - 2))
-                    im = image[r : r + tilesize, c : c + tilesize, :]
-                    mask = label[r : r + tilesize, c : c + tilesize]
-                    x, y = symetrie(im.copy(), mask.copy(), flag[j])
-                    x, y = pilTOtorch(x), torch.Tensor(y)
-                    self.q.put((x, y), block=True)
+def getstdtraindataloader():
+    root = "../preprocessing/build/"
+    paths = [i for i in range(2358)]
+    paths = [paths[i] for i in range(len(paths)) if i % 4 < 2]
+    paths = [root + path for path in paths]
+    return Dataloader(paths)
+
+
+def getstdtestdataloader():
+    root = "../preprocessing/build/"
+    paths = [i for i in range(2358)]
+    paths = [paths[i] for i in range(len(paths)) if i % 4 >= 2]
+    paths = [root + path for path in paths]
+    return Dataloader(paths)
