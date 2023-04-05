@@ -26,13 +26,13 @@ dataset.start()
 for i in range(nbbatchs):
     x = dataset.getBatch()
     x = ((x / 255) - 0.5) * 2
-    x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
+    # x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
     x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
 
     z1 = net(x1)
     z2 = net(x2)
 
-    centredloss = torch.nn.functional(z1.abs() + z2.abs() - 1)
+    centredloss = torch.nn.functional.relu(z1.abs() + z2.abs() - 1)
     centredloss = (centredloss + centredloss ** 2).mean()
 
     samearealoss = ((z1 - z2) ** 2).mean()
