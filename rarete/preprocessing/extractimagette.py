@@ -15,6 +15,7 @@ print(folders)
 os.system("rm -r build")
 os.system("mkdir build")
 
+size = 48
 i = 0
 for path in folders:
     img1 = PIL.Image.open(root + path + "/pair/img1.png").convert("RGB").copy()
@@ -27,12 +28,12 @@ for path in folders:
     if img1.shape[0:2] != cm.shape:
         print(path, img1.shape, cm.shape)
 
-    for row in range(0, cm.shape[0] - 33, 32):
-        for col in range(0, cm.shape[1] - 33, 32):
-            if cm[row : row + 32, col : col + 32].sum() > 0:
+    for row in range(0, cm.shape[0] - size - 2, size):
+        for col in range(0, cm.shape[1] - size - 2, size):
+            if cm[row : row + size, col : col + size].sum() > 0:
                 continue
-            crop1 = img1[row : row + 32, col : col + 32, :]
-            crop2 = img2[row : row + 32, col : col + 32, :]
+            crop1 = img1[row : row + size, col : col + size, :]
+            crop2 = img2[row : row + size, col : col + size, :]
             crop1, crop2 = PIL.Image.fromarray(crop1), PIL.Image.fromarray(crop2)
 
             crop1.save("build/" + str(i) + "_1.png")
