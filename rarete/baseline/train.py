@@ -29,15 +29,15 @@ for i in range(nbbatchs):
     # x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
     x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
 
-    z1 = net(x1)
-    z2 = net(x2)
+    N = x.shape[0]
+    z1 = net(x1).view(N, 1280, -1).mean(2)
+    z2 = net(x2).view(N, 1280, -1).mean(2)
 
     centredloss = torch.nn.functional.relu(z1.abs() + z2.abs() - 1)
     centredloss = (centredloss + centredloss ** 2).mean()
 
     samearealoss = ((z1 - z2) ** 2).mean()
 
-    N = x.shape[0]
     diffarealoss1 = [(z1[i] - z1[i + 1]).abs() for i in range(N - 1)]
     diffarealoss2 = [(z2[i] - z2[i + 4]).abs() for i in range(N - 4)]
     diffarealoss = diffarealoss1 + diffarealoss2

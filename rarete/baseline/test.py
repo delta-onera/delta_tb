@@ -32,10 +32,10 @@ with torch.no_grad():
         # x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
         x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
 
-        z1 = net(x1)
-        z2 = net(x2)
-
         N = x.shape[0]
+        z1 = net(x1).view(N, 1280, -1).mean(2)
+        z2 = net(x2).view(N, 1280, -1).mean(2)
+
         D = torch.zeros(N, N)
         for i in range(N):
             for j in range(N):
