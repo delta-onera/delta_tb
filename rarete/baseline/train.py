@@ -26,6 +26,7 @@ dataset.start()
 for i in range(nbbatchs):
     x = dataset.getBatch()
     x = ((x / 255) - 0.5) * 2
+    x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
     x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
 
     z1 = net(x1)
