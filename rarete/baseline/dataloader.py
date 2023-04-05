@@ -69,7 +69,7 @@ class Dataloader(threading.Thread):
 
 def getstdtraindataloader():
     root = "../preprocessing/build/"
-    paths = [i for i in range(2358)]
+    paths = [str(i) for i in range(2358)]
     paths = [paths[i] for i in range(len(paths)) if i % 4 < 2]
     paths = [root + path for path in paths]
     return Dataloader(paths)
@@ -77,7 +77,7 @@ def getstdtraindataloader():
 
 def getstdtestdataloader():
     root = "../preprocessing/build/"
-    paths = [i for i in range(2358)]
+    paths = [str(i) for i in range(2358)]
     paths = [paths[i] for i in range(len(paths)) if i % 4 >= 2]
     paths = [root + path for path in paths]
     return Dataloader(paths)
