@@ -5,8 +5,6 @@ from PIL import Image
 import torch
 import dataloader
 
-torch.backends.cudnn.benchmark = True
-
 
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
@@ -29,7 +27,6 @@ with torch.no_grad():
     for k in range(10):
         x = dataset.getBatch()
         x = ((x / 255) - 0.5) * 2
-        # x = torch.nn.functional.interpolate(x, size=(64, 64), mode="bilinear")
         x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
 
         N = x.shape[0]
