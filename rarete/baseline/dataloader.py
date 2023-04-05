@@ -23,10 +23,6 @@ def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1)))
 
 
-def torchTOpil(x):
-    return numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-
-
 class Dataloader(threading.Thread):
     def __init__(self, paths, maxsize=10, batchsize=64):
         threading.Thread.__init__(self)

@@ -33,8 +33,9 @@ for i in range(nbbatchs):
 
     samearealoss = ((z1 - z2) ** 2).mean()
 
-    diffarealoss1 = [(z1[i] - z1[i + 1]).abs() for i in range(z1.shape[0] - 1)]
-    diffarealoss2 = [(z2[i] - z2[i + 4]).abs() for i in range(z1.shape[0] - 4)]
+    N = x.shape[0]
+    diffarealoss1 = [(z1[i] - z1[i + 1]).abs() for i in range(N - 1)]
+    diffarealoss2 = [(z2[i] - z2[i + 4]).abs() for i in range(N - 4)]
     diffarealoss = diffarealoss1 + diffarealoss2
     diffarealoss = sum(diffarealoss) / len(diffarealoss)
 
