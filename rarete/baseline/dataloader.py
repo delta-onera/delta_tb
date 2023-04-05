@@ -33,7 +33,7 @@ class Dataloader(threading.Thread):
         self.paths = paths
 
     def getImages(self, i, torchformat=False):
-        assert i < len(self.path)
+        assert i < len(self.paths)
 
         img1 = PIL.Image.open(self.paths[i] + "_1.png").convert("RGB").copy()
         img1 = numpy.uint8(numpy.asarray(img1))
