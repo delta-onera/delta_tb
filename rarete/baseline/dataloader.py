@@ -45,7 +45,7 @@ class Dataloader(threading.Thread):
         else:
             return img1, img2
 
-    def getCrop(self):
+    def getBatch(self):
         assert self.isrunning
         return self.q.get(block=True)
 
