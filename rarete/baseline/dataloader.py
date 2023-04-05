@@ -53,6 +53,7 @@ class Dataloader(threading.Thread):
         assert not self.isrunning
         self.isrunning = True
         self.q = queue.Queue(maxsize=self.maxsize)
+        batchsize = self.batchsize
 
         while True:
             I = (torch.rand(self.batchsize) * len(self.paths)).long()
