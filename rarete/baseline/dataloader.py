@@ -62,7 +62,7 @@ class Dataloader(threading.Thread):
             for i in range(self.batchsize):
                 img1, img2 = self.getImages(I[i], torchformat=False)
                 img1, img2 = symetrie(img1, flag[i]), symetrie(img2, flag[i])
-                img1, img2 = pilTOtorch(x), torch.Tensor(y)
+                img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
                 batch[i, 0:3], batch[i, 3:6] = img1, img2
             self.q.put(batch, block=True)
 
