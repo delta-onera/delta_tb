@@ -6,6 +6,8 @@ import torch
 import torchvision
 import dataloader
 
+torch.backends.cudnn.benchmark = True
+
 print("load data")
 dataset = dataloader.getstdtraindataloader()
 

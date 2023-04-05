@@ -5,6 +5,8 @@ from PIL import Image
 import torch
 import dataloader
 
+torch.backends.cudnn.benchmark = True
+
 
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
