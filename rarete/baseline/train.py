@@ -3,6 +3,7 @@ import numpy
 import PIL
 from PIL import Image
 import torch
+import torchvision
 import dataloader
 
 print("load data")
