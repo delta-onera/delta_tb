@@ -8,7 +8,6 @@ import dataloader
 
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-    print(visu.shape)
     return PIL.Image.fromarray(numpy.uint8((visu + 1) * 125))
 
 
@@ -47,13 +46,13 @@ with torch.no_grad():
         I = [(D[i][i] - D_[i].min(), i) for i in range(N)]
         I = sorted(I)
 
-        x1, x2 = torchTOpil(x1[I[0][1]]), torchTOpil(x2[I[0][1]])
-        x1.save("build/" + str(k) + "_1.png")
-        x2.save("build/" + str(k) + "_2.png")
+        visu1, visu2 = torchTOpil(x1[I[0][1]]), torchTOpil(x2[I[0][1]])
+        visu1.save("build/" + str(k) + "_1.png")
+        visu2.save("build/" + str(k) + "_2.png")
 
-        x1, x2 = torchTOpil(x1[I[20][1]]), torchTOpil(x2[I[20][1]])
-        x1.save("build/" + str(k) + "_3.png")
-        x2.save("build/" + str(k) + "_4.png")
+        visu1, visu2 = torchTOpil(x1[I[20][1]]), torchTOpil(x2[I[20][1]])
+        visu1.save("build/" + str(k) + "_3.png")
+        visu2.save("build/" + str(k) + "_4.png")
 
 
 os._exit(0)
