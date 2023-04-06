@@ -9,7 +9,7 @@ import dataloader
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
     print(visu.shape)
-    return PIL.Image.fromarray(visu)
+    return PIL.Image.fromarray(numpy.uint8((visu + 1) * 125))
 
 
 print("load data")
@@ -42,6 +42,8 @@ with torch.no_grad():
         for i in range(N):
             D_[i][i] += 100000
 
+        I = [(D[i][i] < D_[i].min()) for i in range(N)]
+        print(len(I / N))
         I = [(D[i][i] - D_[i].min(), i) for i in range(N)]
         I = sorted(I)
 
