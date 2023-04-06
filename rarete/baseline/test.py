@@ -43,7 +43,7 @@ with torch.no_grad():
             D_[i][i] += 100000
 
         I = [(D[i][i] < D_[i].min()) for i in range(N)]
-        print(len(I / N))
+        print(len(I) / N)
         I = [(D[i][i] - D_[i].min(), i) for i in range(N)]
         I = sorted(I)
 
