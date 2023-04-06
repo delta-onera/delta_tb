@@ -36,7 +36,7 @@ with torch.no_grad():
         D = torch.zeros(N, N)
         for i in range(N):
             for j in range(N):
-                D[i][j] = (z1[i] - z2[j]) ** 2
+                D[i][j] = ((z1[i] - z2[j]) ** 2).mean()
         D_ = D.clone()
         for i in range(N):
             D_[i][i] += 100000
