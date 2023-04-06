@@ -8,6 +8,7 @@ import dataloader
 
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
+    print(visu.shape)
     return PIL.Image.fromarray(visu)
 
 
