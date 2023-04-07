@@ -14,24 +14,14 @@ def random_deformation(path, finalsize=256):
     roll_range, pitch_range, yaw_range = 10, 10, 40
 
     img = PIL.Image.open(path).convert("RGB").copy()
+    w, h = img.size
 
+    w, h = w // 2, h // 2
     imgtemoin = numpy.zeros((img.size[0], img.size[1], 3))
-    imgtemoin[
-        img.size[0] // 2 - 5 : img.size[0] // 2 + 5,
-        img.size[1] // 2 - 5 : img.size[1] // 2 + 5,
-        0,
-    ] = 255
-    imgtemoin[
-        img.size[0] // 2 + 50 - 5 : img.size[0] // 2 + 50 + 5,
-        img.size[1] // 2 - 5 : img.size[1] // 2 + 5,
-        1,
-    ] = 255
-    imgtemoin[
-        img.size[0] // 2 - 5 : img.size[0] // 2 + 5,
-        img.size[1] // 2 + 50 - 5 : img.size[1] // 2 + 50 + 5,
-        2,
-    ] = 255
-    imgtemoin = PIL.Image.fromarray(imgtemoin)
+    imgtemoin[w - 5 : w + 5, h - 5 : h + 5, 0] = 255
+    imgtemoin[w + 45 : w + 55, h - 5 : h + 5, 1] = 255
+    imgtemoin[w - 5 : w + 5, h + 45 : h + 55, 2] = 255
+    imgtemoin = PIL.Image.fromarray(numpy.uint8(imgtemoin))
 
     # Random roll, pitch, yaw
     roll = math.radians(random.uniform(-roll_range, roll_range))
@@ -39,7 +29,7 @@ def random_deformation(path, finalsize=256):
     yaw = math.radians(random.uniform(-yaw_range, yaw_range))
 
     # Compute rotation matrix
-    cx, cy = img.size[0] / 2, img.size[1] / 2
+    cx, cy = w, h
     cos_roll, sin_roll = math.cos(roll), math.sin(roll)
     cos_pitch, sin_pitch = math.cos(pitch), math.sin(pitch)
     cos_yaw, sin_yaw = math.cos(yaw), math.sin(yaw)
