@@ -5,6 +5,7 @@ from PIL import ImageEnhance
 from PIL import ImageOps
 from PIL import ImageDraw
 import math
+import numpy
 
 
 def random_deformation(path, finalsize=256):
