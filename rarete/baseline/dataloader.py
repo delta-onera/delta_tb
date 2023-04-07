@@ -19,6 +19,9 @@ def random_geometric_deformation(path):
     image = image.transform(
         image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
     )
+    
+    ### faut checker que la doc elle fait bien ce qu'elle dit !!!
+    
     image = numpy.asarray(image)
     h, w, _ = image.shape
     h, w = h // 2, w // 2
