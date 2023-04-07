@@ -25,7 +25,7 @@ def random_geometric_deformation(path):
     M[0][-1] -= w - 128
     M[1][-1] -= h - 128
 
-    inverseM = numpy.zero((3, 3))
+    inverseM = numpy.zeros((3, 3))
     inverseM[:2, :2] = numpy.linalg.inv(M[:2, :2])
 
     return numpy.uint8(image), M, inverseM
