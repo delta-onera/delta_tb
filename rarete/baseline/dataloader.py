@@ -7,7 +7,7 @@ import random
 def random_geometric_deformation(path):
     image = PIL.Image.open(path).convert("RGB").copy()
 
-    M = numpy.zeros((3, 2))
+    M = numpy.zeros((2, 3))
     for i in range(2):
         for j in range(2):
             M[i][j] = random.uniform(-0.3, 0.3)
