@@ -116,32 +116,18 @@ def random_deformation(path, finalsize=256):
     return numpy.uint8(numpy.asarray(img)), M, imgtemoin
 
 
-deformed_img, _, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img, M1, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
 
 
-deformed_img, M, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img, M2, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+
+q = numpy.asarray([128, 128, 1])
+q = numpy.dot(M2, numpy.dot(numpy.linalg.inv(M1), q))
+deformed_img[int(q[0]) - 3 : int(q[0]) + 3, int(q[1]) - 3 : int(q[1]) + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test2.png")
-visu = PIL.Image.fromarray(temoin)
-visu.save("build/test3.png")
-
-w, h = 250, 250
-temoin = numpy.zeros((500, 500, 3))
-temoin[w - 5 : w + 5, h - 5 : h + 5, 0] = 255
-temoin[w + 25 : w + 35, h - 5 : h + 5, 1] = 255
-temoin[w - 5 : w + 5, h + 25 : h + 35, 2] = 255
-
-temoinbis = numpy.zeros((256, 256, 3))
-for i in range(150, 350):
-    for j in range(150, 350):
-        q = numpy.array([i, j, 1])
-        q = numpy.dot(M, q)
-        if 0 <= q[0] and q[0] < 256 and 0 <= q[1] and q[1] < 256:
-            temoinbis[int(q[0]), int(q[1]), :] = temoin[i, j, :]
-visu = PIL.Image.fromarray(numpy.uint8(temoinbis))
-visu.save("build/test4.png")
 
 
 quit()
