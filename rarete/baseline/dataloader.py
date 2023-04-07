@@ -14,10 +14,9 @@ def random_deformation(path, finalsize=256):
     roll_range, pitch_range, yaw_range = 10, 10, 40
 
     img = PIL.Image.open(path).convert("RGB").copy()
-    w, h = img.size
 
-    w, h = w // 2, h // 2
-    imgtemoin = numpy.zeros((img.size[0], img.size[1], 3))
+    w, h = 250, 250
+    imgtemoin = numpy.zeros((500, 500, 3))
     imgtemoin[w - 5 : w + 5, h - 5 : h + 5, 0] = 255
     imgtemoin[w + 25 : w + 35, h - 5 : h + 5, 1] = 255
     imgtemoin[w - 5 : w + 5, h + 25 : h + 35, 2] = 255
