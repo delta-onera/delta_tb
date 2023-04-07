@@ -68,9 +68,12 @@ def random_deformation(path, finalsize=256):
 
 
 deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
-
 visu = PIL.Image.fromarray(deformed_img)
-visu.save("build/test.png")
+visu.save("build/test1.png")
+
+deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test2.png")
 
 visu = PIL.Image.open("/scratchf/OSCD/rennes/pair/img1.png").convert("RGB").copy()
 visu.save("build/testbefore.png")
