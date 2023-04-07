@@ -23,7 +23,7 @@ def random_geometric_deformation(path):
     w, h = w // 2, h // 2
     image = image[w - 128 : w + 128, h - 128 : h + 128, :]
 
-    offset = numpy.asarray([M[0][-1] - w + 128, M[1][-1] - h + 128])
+    offset = numpy.asarray([M[0][-1] + w - 128, M[1][-1] + h - 128])
     M = M[:2, :2]
 
     return numpy.uint8(image), M, offset
@@ -38,11 +38,11 @@ visu.save("build/test1.png")
 
 q = numpy.ones(2) * 128
 print(q)
-q = numpy.dot(numpy.linalg.inv(A), q - b)
+q = numpy.dot(A, q + b)
 print(q)
 
 deformed_img, A, b = random_geometric_deformation(path)
-q = numpy.dot(A, q + b)
+q = numpy.dot(numpy.linalg.inv(A), q - b)
 print(q)
 qx, qy = int(q[0]), int(q[1])
 deformed_img[qx - 3 : qx + 3, qy - 3 : qy + 3, :] = 0
