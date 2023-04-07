@@ -8,12 +8,13 @@ import os
 def random_geometric_deformation(path):
     image = PIL.Image.open(path).convert("RGB").copy()
 
-    M = numpy.zeros((2, 3))
+    M = numpy.zeros((3, 3))
     for i in range(2):
         for j in range(2):
             M[i][j] = random.uniform(-0.3, 0.3)
         M[i][i] += 1
         M[i][-1] = random.uniform(-30, 30)
+    M[-1][-1] = 1
 
     image = image.transform(
         image.size, Image.AFFINE, data=M.flatten(), resample=Image.BICUBIC
@@ -25,27 +26,26 @@ def random_geometric_deformation(path):
 
     tmp = numpy.asarray([w - 128, h - 128])
     tmp = numpy.dot(M[:2, :2], tmp)
+    M[0][-1] += tmp[0]
+    M[1][-1] += tmp[1]
 
-    offset = M[:, -1] + tmp
-    M = M[:2, :2]
-
-    return numpy.uint8(image), M, offset
+    return numpy.uint8(image), M
 
 
 path = "/scratchf/OSCD/rennes/pair/img1.png"
 os.system("cp " + path + " build")
-deformed_img, A, b = random_geometric_deformation(path)
+deformed_img, M = random_geometric_deformation(path)
 deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
 
-q = numpy.ones(2) * 128
+q = numpy.asarray([128, 128, 1])
 print(q)
-q = numpy.dot(A, q) + b
+q = numpy.dot(M, q)
 print(q)
 
-deformed_img, A, b = random_geometric_deformation(path)
-q = numpy.dot(numpy.linalg.inv(A), q - b)
+deformed_img, M = random_geometric_deformation(path)
+q = numpy.dot(numpy.linalg.inv(M), q)
 print(q)
 qx, qy = int(q[0]), int(q[1])
 deformed_img[qx - 3 : qx + 3, qy - 3 : qy + 3, :] = 0
