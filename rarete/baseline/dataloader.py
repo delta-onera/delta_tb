@@ -45,7 +45,10 @@ Z = numpy.array([[zoom, 0, 0], [0, zoom, 0], [0, 0, 1]])
 # Transformation matrix
 M = numpy.matmul(Z, numpy.matmul(R, T))
 
-print(tx, ty, M.flatten()[:6])
+print(Z)
+print(R)
+print(T)
+print(M)
 quit()
 
 
