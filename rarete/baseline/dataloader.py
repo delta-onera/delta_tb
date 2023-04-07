@@ -41,7 +41,7 @@ visu.save("build/test1.png")
 
 q = numpy.ones(2) * 128
 print(q)
-q = numpy.dot(A, q + b)
+q = numpy.dot(A, q) + b
 print(q)
 
 deformed_img, A, b = random_geometric_deformation(path)
