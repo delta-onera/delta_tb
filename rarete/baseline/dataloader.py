@@ -25,16 +25,29 @@ def random_geometric_deformation(path):
     M[0][-1] -= w - 128
     M[1][-1] -= h - 128
 
-    return numpy.uint8(image), M
+    inverseM = numpy.zero((3, 3))
+    inverseM[:2, :2] = numpy.linalg.inv(M[:2, :2])
+
+    return numpy.uint8(image), M, inverseM
 
 
-deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
-# deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
+deformed_img, _, M1 = random_geometric_deformation(
+    "/scratchf/OSCD/rennes/pair/img1.png"
+)
+deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
 
-deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
-# deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
+q = numpy.asarray([128, 128, -1])
+q = numpy.dot(M1, q)
+q[-1] = 1
+
+deformed_img, M2, _ = random_geometric_deformation(
+    "/scratchf/OSCD/rennes/pair/img1.png"
+)
+q = numpy.dot(M2, q)
+qx, qy = int(q[0]), int(q[1])
+deformed_img[qx - 3 : qx + 3, qy - 3 : qy + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test2.png")
 
