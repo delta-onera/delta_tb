@@ -95,16 +95,17 @@ def random_deformation(path, finalsize=256):
     return numpy.uint8(numpy.asarray(img)), numpy.uint8(numpy.asarray(imgtemoin))
 
 
-deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
+visu = PIL.Image.fromarray(temoin)
+visu.save("build/test3.png")
 
-deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test2.png")
-
-visu = PIL.Image.open("/scratchf/OSCD/rennes/pair/img1.png").convert("RGB").copy()
-visu.save("build/testbefore.png")
+visu = PIL.Image.fromarray(temoin)
+visu.save("build/test4.png")
 
 quit()
 
