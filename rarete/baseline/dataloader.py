@@ -2,6 +2,7 @@ import numpy
 import PIL
 from PIL import Image
 import random
+import os
 
 
 def random_geometric_deformation(path):
@@ -29,6 +30,7 @@ def random_geometric_deformation(path):
 
 
 path = "/scratchf/OSCD/rennes/pair/img1.png"
+os.system("cp " + path + " build")
 deformed_img, A, b = random_geometric_deformation(path)
 deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
@@ -36,7 +38,7 @@ visu.save("build/test1.png")
 
 q = numpy.ones(2) * 128
 print(q)
-q = numpy.dot(numpy.linalg.inv(A), q-b)
+q = numpy.dot(numpy.linalg.inv(A), q - b)
 print(q)
 
 deformed_img, A, b = random_geometric_deformation(path)
