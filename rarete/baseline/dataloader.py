@@ -3,42 +3,88 @@ import PIL
 from PIL import Image
 import random
 
-class ProjectionMatric:
-    def __init__(self, matrice, offsetx,offsety):
-        self.matrice = matrice
-        self.offsetx = offsetx
-        self.offsety = self.offsety
-    
-    def projection(self,x,y):
-        
-        q = numpy.asarray([x-self.offsetx,y-self.offsetx,1])
+
+# Random roll, pitch, yaw rotations, translation, zoom
+roll = random.uniform(-10, 10)
+pitch = random.uniform(-10, 10)
+yaw = random.uniform(-40, 40)
+tx = random.uniform(-40, 40)
+ty = random.uniform(-40, 40)
+zoom = random.uniform(0.9, 1.1)
+
+# Translation matrix
+T = numpy.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
+
+# Rotation matrices
+Rx = numpy.array(
+    [
+        [1, 0, 0],
+        [0, numpy.cos(numpy.radians(pitch)), -numpy.sin(numpy.radians(pitch))],
+        [0, numpy.sin(numpy.radians(pitch)), numpy.cos(numpy.radians(pitch))],
+    ]
+)
+Ry = numpy.array(
+    [
+        [numpy.cos(numpy.radians(yaw)), 0, -numpy.sin(numpy.radians(yaw))],
+        [0, 1, 0],
+        [numpy.sin(numpy.radians(yaw)), 0, numpy.cos(numpy.radians(yaw))],
+    ]
+)
+Rz = numpy.array(
+    [
+        [numpy.cos(numpy.radians(roll)), -numpy.sin(numpy.radians(roll)), 0],
+        [numpy.sin(numpy.radians(roll)), numpy.cos(numpy.radians(roll)), 0],
+        [0, 0, 1],
+    ]
+)
+R = numpy.matmul(Rz, numpy.matmul(Ry, Rx))
+
+# Zoom matrix
+Z = numpy.array([[zoom, 0, 0], [0, zoom, 0], [0, 0, 1]])
+
+# Transformation matrix
+M = numpy.matmul(Z, numpy.matmul(R, T))
+
+print(tx, ty, M.flatten()[:6])
+quit()
+
 
 def random_geometric_deformation(path):
     image = PIL.Image.open(path).convert("RGB").copy()
-    
-    # Random roll, pitch, yaw rotations
+
+    # Random roll, pitch, yaw rotations, translation, zoom
     roll = random.uniform(-10, 10)
     pitch = random.uniform(-10, 10)
     yaw = random.uniform(-40, 40)
-
-    # Random translation
     tx = random.uniform(-40, 40)
     ty = random.uniform(-40, 40)
-
-    # Random zoom
     zoom = random.uniform(0.9, 1.1)
-
-    # Compute the transformation matrices
-    center_x = image.width / 2
-    center_y = image.height / 2
 
     # Translation matrix
     T = numpy.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
 
     # Rotation matrices
-    Rx = numpy.array([[1, 0, 0], [0, numpy.cos(numpy.radians(pitch)), -numpy.sin(numpy.radians(pitch))], [0, numpy.sin(numpy.radians(pitch)), numpy.cos(numpy.radians(pitch))]])
-    Ry = numpy.array([[numpy.cos(numpy.radians(yaw)), 0, -numpy.sin(numpy.radians(yaw))], [0, 1, 0], [numpy.sin(numpy.radians(yaw)), 0, numpy.cos(numpy.radians(yaw))]])
-    Rz = numpy.array([[numpy.cos(numpy.radians(roll)), -numpy.sin(numpy.radians(roll)), 0], [numpy.sin(numpy.radians(roll)), numpy.cos(numpy.radians(roll)), 0], [0, 0, 1]])
+    Rx = numpy.array(
+        [
+            [1, 0, 0],
+            [0, numpy.cos(numpy.radians(pitch)), -numpy.sin(numpy.radians(pitch))],
+            [0, numpy.sin(numpy.radians(pitch)), numpy.cos(numpy.radians(pitch))],
+        ]
+    )
+    Ry = numpy.array(
+        [
+            [numpy.cos(numpy.radians(yaw)), 0, -numpy.sin(numpy.radians(yaw))],
+            [0, 1, 0],
+            [numpy.sin(numpy.radians(yaw)), 0, numpy.cos(numpy.radians(yaw))],
+        ]
+    )
+    Rz = numpy.array(
+        [
+            [numpy.cos(numpy.radians(roll)), -numpy.sin(numpy.radians(roll)), 0],
+            [numpy.sin(numpy.radians(roll)), numpy.cos(numpy.radians(roll)), 0],
+            [0, 0, 1],
+        ]
+    )
     R = numpy.matmul(Rz, numpy.matmul(Ry, Rx))
 
     # Zoom matrix
@@ -48,22 +94,18 @@ def random_geometric_deformation(path):
     M = numpy.matmul(Z, numpy.matmul(R, T))
 
     # Apply the transformation to the image
-    result_image = image.transform(image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC)
+    result_image = image.transform(
+        image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
+    )
 
     # Compute the transformation matrices for going from new to old pixels and vice versa
+    center_x = image.width / 2
+    center_y = image.height / 2
     M_inv = numpy.linalg.inv(M)
     M_to_new_pixel = numpy.array([[1, 0, -center_x], [0, 1, -center_y], [0, 0, 1]])
     M_to_old_pixel = numpy.array([[1, 0, center_x], [0, 1, center_y], [0, 0, 1]])
     M_to_new_pixel = numpy.matmul(M_to_new_pixel, M_inv)
     M_to_old_pixel = numpy.matmul(M, M_to_old_pixel)
-
-
-
-
-
-
-
-
 
     # Crop the resulting image to size 256x256 centered in the image
     crop_size = 256
@@ -75,16 +117,6 @@ def random_geometric_deformation(path):
 
     # Return the resulting image and the transformation matrices
     return result_image, M_to_new_pixel, M_to_old_pixel
-
-
-
-
-
-
-
-
-
-
 
 
 import PIL
