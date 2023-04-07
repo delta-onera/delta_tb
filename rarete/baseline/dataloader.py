@@ -17,14 +17,14 @@ def random_geometric_deformation(path):
     M[-1][-1] = 1
 
     image = image.transform(
-        image.size, Image.AFFINE, data=M.flatten(), resample=Image.BICUBIC
+        image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
     )
     image = numpy.asarray(image)
-    w, h, _ = image.shape
-    w, h = w // 2, h // 2
-    image = image[w - 128 : w + 128, h - 128 : h + 128, :]
+    h, w, _ = image.shape
+    h, w = h // 2, w // 2
+    image = image[h - 128 : h + 128, w - 128 : w + 128, :]
 
-    tmp = numpy.asarray([w - 128, h - 128])
+    tmp = numpy.asarray([h - 128, w - 128])
     tmp = numpy.dot(M[:2, :2], tmp)
     M[0][-1] += tmp[0]
     M[1][-1] += tmp[1]
@@ -47,7 +47,7 @@ print(q)
 deformed_img, M = random_geometric_deformation(path)
 q = numpy.dot(numpy.linalg.inv(M), q)
 print(q)
-qx, qy = int(q[0]), int(q[1])
+qx, qy = int(q[1]), int(q[0])
 deformed_img[qx - 3 : qx + 3, qy - 3 : qy + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test2.png")
