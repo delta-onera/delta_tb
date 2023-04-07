@@ -34,11 +34,14 @@ deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
 
-q = numpy.ones(2) * 128 - b
-q = numpy.dot(numpy.linalg.inv(A), q)
+q = numpy.ones(2) * 128
+print(q)
+q = numpy.dot(numpy.linalg.inv(A), q-b)
+print(q)
 
 deformed_img, A, b = random_geometric_deformation(path)
 q = numpy.dot(A, q + b)
+print(q)
 qx, qy = int(q[0]), int(q[1])
 deformed_img[qx - 3 : qx + 3, qy - 3 : qy + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
