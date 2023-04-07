@@ -6,16 +6,11 @@ from PIL import ImageDraw
 import math
 
 
-def random_deformation(
-    path,
-    rotation_range=10,
-    translation_range=(0.1, 0.1),
-    zoom_range=(0.9, 1.1),
-    roll_range=5,
-    pitch_range=5,
-    yaw_range=5,
-    finalsize=256,
-):
+def random_deformation(path, finalsize=256):
+    translation_range = (0.1, 0.1)
+    zoom_range = (0.9, 1.1)
+    roll_range, pitch_range, yaw_range = 5, 5, 5
+
     img = PIL.Image.open(path).convert("RGB").copy()
 
     # Random roll, pitch, yaw
@@ -44,21 +39,21 @@ def random_deformation(
         img.size,
         Image.AFFINE,
         (a, b, -cx * a - b * cy + cx, d, e, -cx * d - e * cy + cy, g, h, i),
-        resample=Image.BICUBIC,
+        resample=Image.BILINEAR,
     )
 
     # Random translation
     tx = random.uniform(-translation_range[0], translation_range[0]) * img.size[0]
     ty = random.uniform(-translation_range[1], translation_range[1]) * img.size[1]
     img = img.transform(
-        img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BICUBIC
+        img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
     )
 
     # Random zoom
     zoom = random.uniform(zoom_range[0], zoom_range[1])
     w, h = img.size
     nw, nh = int(w * zoom), int(h * zoom)
-    img = img.resize((nw, nh), resample=Image.BICUBIC)
+    img = img.resize((nw, nh), resample=Image.BILINEAR)
 
     # Crop the image to its final size
     left = (nw - finalsize) // 2
