@@ -65,7 +65,7 @@ def random_deformation(path, finalsize=256):
         img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
     )
     imgtemoin = imgtemoin.transform(
-        img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
+        imgtemoin.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
     )
 
     # Random zoom
@@ -81,6 +81,7 @@ def random_deformation(path, finalsize=256):
     right = (nw + finalsize) // 2
     bottom = (nh + finalsize) // 2
     img = img.crop((left, top, right, bottom))
+    imgtemoin = imgtemoin.crop((left, top, right, bottom))
 
     return numpy.uint8(numpy.asarray(img)), numpy.uint8(numpy.asarray(imgtemoin))
 
