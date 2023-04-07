@@ -22,11 +22,11 @@ def random_geometric_deformation(path):
     w, h, _ = image.shape
     w, h = w // 2, h // 2
     image = image[w - 128 : w + 128, h - 128 : h + 128, :]
-    
-    tmp = numpy.asarray(w-128,h-128)
-    tmp = numpy.dot(M[:2,:2],tmp)
 
-    offset = M[:,-1]+tmp
+    tmp = numpy.asarray([w - 128, h - 128])
+    tmp = numpy.dot(M[:2, :2], tmp)
+
+    offset = M[:, -1] + tmp
     M = M[:2, :2]
 
     return numpy.uint8(image), M, offset
