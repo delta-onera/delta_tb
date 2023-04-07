@@ -28,6 +28,7 @@ def random_geometric_deformation(path):
 
     return numpy.uint8(image), M, offset
 
+### rahhhhhh
 
 path = "/scratchf/OSCD/rennes/pair/img1.png"
 os.system("cp " + path + " build")
