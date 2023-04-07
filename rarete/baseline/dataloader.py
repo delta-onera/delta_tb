@@ -1,3 +1,102 @@
+import PIL
+from PIL import Image
+import numpy
+
+
+def random_geometric_deformation(path):
+    image = PIL.Image.open(path).convert("RGB").copy()
+
+    # Random roll, pitch, and yaw rotations
+    roll = numpy.random.uniform(-10, 10)
+    pitch = numpy.random.uniform(-10, 10)
+    yaw = numpy.random.uniform(-40, 40)
+
+    # Random translation
+    x_offset = numpy.random.uniform(-25, 25)
+    y_offset = numpy.random.uniform(-25, 25)
+
+    # Random zoom
+    zoom = numpy.random.uniform(0.9, 1.1)
+
+    # Apply the transformations
+    image = image.rotate(roll, resample=Image.BICUBIC, expand=True)
+    image = image.rotate(pitch, resample=Image.BICUBIC, expand=True)
+    image = image.rotate(yaw, resample=Image.BICUBIC, expand=True)
+    width, height = image.size
+    new_width = int(width * zoom)
+    new_height = int(height * zoom)
+    image = image.resize((new_width, new_height), resample=Image.BICUBIC)
+    image = image.crop((x_offset, y_offset, x_offset + width, y_offset + height))
+
+    # Compute the transformation matrix
+    matrix = numpy.array(
+        [
+            [numpy.cos(yaw), -numpy.sin(yaw), x_offset],
+            [numpy.sin(yaw), numpy.cos(yaw), y_offset],
+            [0, 0, 1],
+        ]
+    )
+    matrix = numpy.dot(
+        numpy.array([[1, 0, 0], [0, 1, 0], [-new_width / 2, -new_height / 2, 1]]),
+        matrix,
+    )
+    matrix = numpy.dot(
+        numpy.array([[1 / zoom, 0, 0], [0, 1 / zoom, 0], [0, 0, 1]]), matrix
+    )
+    matrix = numpy.dot(
+        numpy.array(
+            [
+                [numpy.cos(-pitch), 0, numpy.sin(-pitch)],
+                [0, 1, 0],
+                [-numpy.sin(-pitch), 0, numpy.cos(-pitch)],
+            ]
+        ),
+        matrix,
+    )
+    matrix = numpy.dot(
+        numpy.array(
+            [
+                [1, 0, 0],
+                [0, numpy.cos(-roll), -numpy.sin(-roll)],
+                [0, numpy.sin(-roll), numpy.cos(-roll)],
+            ]
+        ),
+        matrix,
+    )
+    matrix = numpy.dot(
+        numpy.array(
+            [[1, 0, 0], [0, 1, 0], [new_width / 2 - 128, new_height / 2 - 128, 1]]
+        ),
+        matrix,
+    )
+
+    left = (width - 256) // 2
+    top = (height - 256) // 2
+    right = (width + 256) // 2
+    bottom = (height + 256) // 2
+    image = image.crop((left, top, right, bottom))
+
+    return numpy.uint8(numpy.asarray(image)), matrix
+
+
+deformed_img, M1 = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test1.png")
+
+deformed_img, M2 = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+q = numpy.asarray([128, 128, 1])
+q = numpy.dot(numpy.linalg.inv(M1), q)
+q[2] = 1
+q = numpy.dot(M2, q)
+deformed_img[int(q[0]) - 3 : int(q[0]) + 3, int(q[1]) - 3 : int(q[1]) + 3, :] = 0
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test2.png")
+
+
+quit()
+
+
 import random
 import PIL
 from PIL import Image
