@@ -18,7 +18,7 @@ def random_geometric_deformation(path):
     image = image.transform(
         image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
     )
-    image = numpy.asarray(result_image)
+    image = numpy.asarray(image)
     w, h, _ = image.shape
     w, h = w // 2, h // 2
     image = image[w - 128 : w + 128, h - 128 : h + 128, :]
