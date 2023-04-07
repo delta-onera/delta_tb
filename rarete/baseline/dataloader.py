@@ -6,6 +6,7 @@ from PIL import ImageOps
 from PIL import ImageDraw
 import math
 import numpy
+import skimage
 
 
 def random_deformation(path, finalsize=256):
@@ -82,20 +83,66 @@ def random_deformation(path, finalsize=256):
     img = img.crop((left, top, right, bottom))
     imgtemoin = imgtemoin.crop((left, top, right, bottom))
 
-    return numpy.uint8(numpy.asarray(img)), numpy.uint8(numpy.asarray(imgtemoin))
+    # Extract correspondance from img temoin
+    imgtemoin = numpy.uint8(numpy.asarray(imgtemoin))
+    maskR = numpy.uint8(imgtemoin[:, :, 0] > 200)
+    maskG = numpy.uint8(imgtemoin[:, :, 1] > 200)
+    maskB = numpy.uint8(imgtemoin[:, :, 2] > 200)
+
+    label_img = skimage.measure.label(maskR)
+    props = skimage.measure.regionprops(label_img)
+    c = max(props, key=lambda x: x.area).centroid
+    cx, cy = int(c[0]), int(c[1])
+
+    label_img = skimage.measure.label(maskG)
+    props = skimage.measure.regionprops(label_img)
+    c = max(props, key=lambda x: x.area).centroid
+    ex, ey = int(c[0]), int(c[1])
+
+    label_img = skimage.measure.label(maskB)
+    props = skimage.measure.regionprops(label_img)
+    c = max(props, key=lambda x: x.area).centroid
+    gx, gy = int(c[0]), int(c[1])
+
+    # 250,250 -> cx,cy
+    # 280,250 -> ex,ey
+    # 250,280 -> gx,gy
+
+    # Construct the transformation matrix
+    A = numpy.array([[250, 280, 250], [250, 250, 280], [1, 1, 1]])
+    B = numpy.array([[cx, ex, gx], [cy, ey, gy], [1, 1, 1]])
+    M = numpy.dot(B, numpy.linalg.inv(A))
+
+    return numpy.uint8(numpy.asarray(img)), M, imgtemoin
 
 
-deformed_img, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img, _, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
-visu = PIL.Image.fromarray(temoin)
-visu.save("build/test3.png")
 
-deformed_img, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+
+deformed_img, M, temoin = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test2.png")
 visu = PIL.Image.fromarray(temoin)
+visu.save("build/test3.png")
+
+w, h = 250, 250
+temoin = numpy.zeros((500, 500, 3))
+temoin[w - 5 : w + 5, h - 5 : h + 5, 0] = 255
+temoin[w + 25 : w + 35, h - 5 : h + 5, 1] = 255
+temoin[w - 5 : w + 5, h + 25 : h + 35, 2] = 255
+
+temoinbis = numpy.zeros((256, 256, 3))
+for i in range(150, 350):
+    for j in range(150, 350):
+        q = numpy.array([i, j, 1])
+        q = numpy.dot(M, q)
+        if 0 <= q[0] and q[0] < 256 and 0 <= q[1] and q[1] < 256:
+            temoinbis[q[0], q[1], :] = temoin[i, j, :]
+visu = PIL.Image.fromarray(temoinbis)
 visu.save("build/test4.png")
+
 
 quit()
 
