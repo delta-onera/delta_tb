@@ -15,6 +15,24 @@ def random_deformation(path, finalsize=256):
 
     img = PIL.Image.open(path).convert("RGB").copy()
 
+    imgtemoin = numpy.zeros((img.size[0], img.size[1], 3))
+    imgtemoin[
+        img.size[0] // 2 - 5 : img.size[0] // 2 + 5,
+        img.size[1] // 2 - 5 : img.size[1] // 2 + 5,
+        0,
+    ] = 255
+    imgtemoin[
+        img.size[0] // 2 + 50 - 5 : img.size[0] // 2 + 50 + 5,
+        img.size[1] // 2 - 5 : img.size[1] // 2 + 5,
+        1,
+    ] = 255
+    imgtemoin[
+        img.size[0] // 2 - 5 : img.size[0] // 2 + 5,
+        img.size[1] // 2 + 50 - 5 : img.size[1] // 2 + 50 + 5,
+        2,
+    ] = 255
+    imgtemoin = PIL.Image.fromarray(imgtemoin)
+
     # Random roll, pitch, yaw
     roll = math.radians(random.uniform(-roll_range, roll_range))
     pitch = math.radians(random.uniform(-pitch_range, pitch_range))
@@ -43,11 +61,20 @@ def random_deformation(path, finalsize=256):
         (a, b, -cx * a - b * cy + cx, d, e, -cx * d - e * cy + cy, g, h, i),
         resample=Image.BILINEAR,
     )
+    imgtemoin = imgtemoin.transform(
+        imgtemoin.size,
+        Image.AFFINE,
+        (a, b, -cx * a - b * cy + cx, d, e, -cx * d - e * cy + cy, g, h, i),
+        resample=Image.BILINEAR,
+    )
 
     # Random translation
     tx = random.uniform(-translation_range[0], translation_range[0]) * img.size[0]
     ty = random.uniform(-translation_range[1], translation_range[1]) * img.size[1]
     img = img.transform(
+        img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
+    )
+    imgtemoin = imgtemoin.transform(
         img.size, Image.AFFINE, (1, 0, tx, 0, 1, ty), resample=Image.BILINEAR
     )
 
@@ -56,6 +83,7 @@ def random_deformation(path, finalsize=256):
     w, h = img.size
     nw, nh = int(w * zoom), int(h * zoom)
     img = img.resize((nw, nh), resample=Image.BILINEAR)
+    imgtemoin = imgtemoin.resize((nw, nh), resample=Image.BILINEAR)
 
     # Crop the image to its final size
     left = (nw - finalsize) // 2
@@ -64,7 +92,7 @@ def random_deformation(path, finalsize=256):
     bottom = (nh + finalsize) // 2
     img = img.crop((left, top, right, bottom))
 
-    return numpy.uint8(numpy.asarray(img))
+    return numpy.uint8(numpy.asarray(img)), numpy.uint8(numpy.asarray(imgtemoin))
 
 
 deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
