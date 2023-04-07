@@ -72,6 +72,9 @@ deformed_img = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test.png")
 
+visu = PIL.Image.open("/scratchf/OSCD/rennes/pair/img1.png").convert("RGB").copy()
+visu.save("build/testbefore.png")
+
 quit()
 
 import os
