@@ -117,12 +117,11 @@ def random_deformation(path, finalsize=256):
 
 
 deformed_img, M1, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
 visu = PIL.Image.fromarray(deformed_img)
 visu.save("build/test1.png")
 
-
 deformed_img, M2, _ = random_deformation("/scratchf/OSCD/rennes/pair/img1.png")
-
 q = numpy.asarray([128, 128, 1])
 q = numpy.dot(M2, numpy.dot(numpy.linalg.inv(M1), q))
 deformed_img[int(q[0]) - 3 : int(q[0]) + 3, int(q[1]) - 3 : int(q[1]) + 3, :] = 0
