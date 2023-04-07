@@ -140,7 +140,7 @@ for i in range(150, 350):
         q = numpy.dot(M, q)
         if 0 <= q[0] and q[0] < 256 and 0 <= q[1] and q[1] < 256:
             temoinbis[int(q[0]), int(q[1]), :] = temoin[i, j, :]
-visu = PIL.Image.fromarray(temoinbis)
+visu = PIL.Image.fromarray(numpy.uint8(temoinbis))
 visu.save("build/test4.png")
 
 
