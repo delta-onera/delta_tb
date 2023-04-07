@@ -11,7 +11,7 @@ import numpy
 def random_deformation(path, finalsize=256):
     translation_range = (0.05, 0.05)
     zoom_range = (0.9, 1.1)
-    roll_range, pitch_range, yaw_range = 10, 60, 5
+    roll_range, pitch_range, yaw_range = 10, 10, 60
 
     img = PIL.Image.open(path).convert("RGB").copy()
 
