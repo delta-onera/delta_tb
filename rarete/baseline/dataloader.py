@@ -11,15 +11,21 @@ def random_geometric_deformation(path):
     M[-1][-1] = 1
     for i in range(2):
         for j in range(2):
-            M[i][j] = random.uniform(-0.4, 0.4)
+            M[i][j] = random.uniform(-0.3, 0.3)
         M[i][i] += 1
         M[i][-1] = random.uniform(-30, 30)
 
-    result_image = image.transform(
+    image = image.transform(
         image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
     )
+    image = numpy.asarray(result_image)
+    w, h, _ = image.shape
+    w, h = w // 2, h // 2
+    image = image[w - 128 : w + 128, h - 128 : h + 128, :]
+    M[0][-1] -= w - 128
+    M[1][-1] -= h - 128
 
-    return numpy.uint8(numpy.asarray(result_image)), M
+    return numpy.uint8(image), M
 
 
 deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
