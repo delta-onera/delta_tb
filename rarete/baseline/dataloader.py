@@ -4,6 +4,55 @@ from PIL import Image
 import random
 
 
+def random_geometric_deformation(path):
+    image = PIL.Image.open(path).convert("RGB").copy()
+
+    M = numpy.zeros((3, 3))
+    M[-1][-1] = 1
+    for i in range(2):
+        for j in range(2):
+            M[i][j] = random.uniform(-0.4, 0.4)
+        M[i][i] += 1
+        M[i][-1] = random.uniform(-30, 30)
+
+    result_image = image.transform(
+        image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
+    )
+
+    return result_image, M
+
+
+deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+# deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test1.png")
+
+deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+# deformed_img[128 - 3 : 128 + 3, 128 - 3 : 128 + 3, :] = 0
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test2.png")
+
+quit()
+
+deformed_img, M2 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
+q = numpy.asarray([128, 128, 1])
+q = numpy.dot(numpy.linalg.inv(M1), q)
+q[2] = 1
+q = numpy.dot(M2, q)
+deformed_img[int(q[0]) - 3 : int(q[0]) + 3, int(q[1]) - 3 : int(q[1]) + 3, :] = 0
+visu = PIL.Image.fromarray(deformed_img)
+visu.save("build/test2.png")
+
+
+quit()
+
+
+import numpy
+import PIL
+from PIL import Image
+import random
+
+
 # Random roll, pitch, yaw rotations, translation, zoom
 roll = random.uniform(-10, 10)
 pitch = random.uniform(-10, 10)
