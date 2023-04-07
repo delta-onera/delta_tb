@@ -19,7 +19,7 @@ def random_geometric_deformation(path):
         image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
     )
 
-    return numpy.unit8(numpy.asarray(result_image)), M
+    return numpy.uint8(numpy.asarray(result_image)), M
 
 
 deformed_img, M1 = random_geometric_deformation("/scratchf/OSCD/rennes/pair/img1.png")
