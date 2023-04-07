@@ -1,4 +1,5 @@
 import random
+import PIL
 from PIL import Image
 from PIL import ImageEnhance
 from PIL import ImageOps
