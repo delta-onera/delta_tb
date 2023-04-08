@@ -4,6 +4,17 @@ from PIL import Image
 import random
 import os
 
+def wtfimagetransform(image,M):
+    output = numpy.zeros(image.shape)
+    for row in range(image.shape[0]):
+        for col in range(image.shape[1]):
+            q = numpy.asarray([row,col,1])
+            q = numpy.dot(M,q)
+            qx,qy = int(q[0]),int(q[1])
+            if 0<=qx<image.shape[0] and 0<=qy<image.shape[1]:
+                output[row][col] = image[qx][qy]
+    return output
+
 
 def random_geometric_deformation(path):
     image = PIL.Image.open(path).convert("RGB").copy()
@@ -16,13 +27,11 @@ def random_geometric_deformation(path):
         M[i][-1] = random.uniform(-30, 30)
     M[-1][-1] = 1
 
-    image = image.transform(
-        image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
-    )
-    
-    ### faut checker que la doc elle fait bien ce qu'elle dit !!!
-    
-    image = numpy.asarray(image)
+    #image = image.transform(
+    #    image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
+    #)
+    #image = numpy.asarray(image)
+    image = wtfimagetransform(numpy.asarray(image),M)
     h, w, _ = image.shape
     h, w = h // 2, w // 2
     image = image[h - 128 : h + 128, w - 128 : w + 128, :]
