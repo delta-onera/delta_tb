@@ -4,6 +4,8 @@ from PIL import Image
 import random
 import os
 
+
+# nous avions raison XD
 def wtfimagetransform(image,M):
     output = numpy.zeros(image.shape)
     for row in range(image.shape[0]):
