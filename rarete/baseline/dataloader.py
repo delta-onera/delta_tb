@@ -28,7 +28,7 @@ def myimagetransform(image, M):
             q = numpy.dot(M, q)
             qx, qy = int(q[0]), int(q[1])
             if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
-                output[row][col] = image[qx][qy]
+                output[row][col] = image[qx][qy][:]
     return numpy.uint8(output)
 
 
@@ -38,6 +38,7 @@ def random_geometric(path):
     image = myimagetransform(numpy.asarray(image), M)
 
     h, w, _ = image.shape
+    assert h > 256 and w > 256
     h, w = h // 2, w // 2
     image = image[h - 128 : h + 128, w - 128 : w + 128, :]
 
