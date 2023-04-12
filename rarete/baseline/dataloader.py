@@ -31,7 +31,7 @@ def myimagetransform(image, M):
     return numpy.uint8(output)
 
 
-def random_geometric_deformation(path):
+def random_geometric(path):
     image = PIL.Image.open(path).convert("RGB").copy()
     M = randomtransform()
     image = myimagetransform(numpy.asarray(image), M)
@@ -63,15 +63,15 @@ class Dataloader(threading.Thread):
         self.paths = paths
 
     def getRawImages(self, i):
-        img1 = PIL.Image.open(self.paths[i] + "_1.png").convert("RGB").copy()
-        img1 = numpy.uint8(numpy.asarray(img1))
-        img2 = PIL.Image.open(self.paths[i] + "_2.png").convert("RGB").copy()
-        img2 = numpy.uint8(numpy.asarray(img2))
+        img1 = PIL.Image.open(self.paths[i] + "/pair/img1.png").convert("RGB")
+        img1 = numpy.uint8(numpy.asarray(img1.copy()))
+        img2 = PIL.Image.open(self.paths[i] + "/pair/img2.png").convert("RGB")
+        img2 = numpy.uint8(numpy.asarray(img2.copy()))
         return img1, img2
 
     def getImages(self, i):
-        img1, M1 = random_geometric_deformation(self.paths[i] + "_1.png")
-        img2, M2 = random_geometric_deformation(self.paths[i] + "_2.png")
+        img1, M1 = random_geometric(self.paths[i] + "/pair/img1.png")
+        img2, M2 = random_geometric(self.paths[i] + "/pair/img2.png")
         M = numpy.matrix(numpy.linalg.inv(M2), M1)
         return img1, img2, M
 
@@ -99,18 +99,20 @@ class Dataloader(threading.Thread):
 
 
 def getstdtraindataloader():
-    root = "../preprocessing/build/"
-    paths = [str(i) for i in range(2358)]
-    paths = [paths[i] for i in range(len(paths)) if i % 4 < 2]
-    paths = [root + path for path in paths]
+    root = "/scratchf/OSCD/"
+    ll = os.listdir(root)
+    ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
+    ll = [ll[i] for i in range(len(paths)) if i % 3 != 0]
+    paths = [root + l for l in ll]
     return Dataloader(paths)
 
 
 def getstdtestdataloader():
-    root = "../preprocessing/build/"
-    paths = [str(i) for i in range(2358)]
-    paths = [paths[i] for i in range(len(paths)) if i % 4 >= 2]
-    paths = [root + path for path in paths]
+    root = "/scratchf/OSCD/"
+    ll = os.listdir(root)
+    ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
+    ll = [ll[i] for i in range(len(paths)) if i % 3 != 0]
+    paths = [root + l for l in ll]
     return Dataloader(paths)
 
 
