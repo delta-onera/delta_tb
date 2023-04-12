@@ -83,7 +83,7 @@ class Dataloader(threading.Thread):
 
     def largeoverlap(self, m12):
         q = numpy.asarray([128, 128, 1])
-        q = numpy.dot(m12[i], q)
+        q = numpy.dot(m12, q)
         q = [int(q[0]), int(q[1])]
         return 0 <= q[0] < 256 and 0 <= q[1] < 256
 
