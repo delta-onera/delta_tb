@@ -7,6 +7,7 @@ import random
 import queue
 import threading
 import os
+import torchvision
 
 
 def randomtransform():
