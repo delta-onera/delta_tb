@@ -46,6 +46,7 @@ def random_geometric(path):
     tmp = numpy.dot(M[:2, :2], tmp)
     M[0][-1] += tmp[0]
     M[1][-1] += tmp[1]
+    assert image.shape == (256, 256, 3)
 
     return numpy.uint8(image), M
 
