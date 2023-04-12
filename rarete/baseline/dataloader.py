@@ -14,9 +14,9 @@ def randomtransform():
     M = numpy.zeros((3, 3))
     for i in range(2):
         for j in range(2):
-            M[i][j] = random.uniform(-0.3, 0.3)
+            M[i][j] = random.uniform(-0.25, 0.25)
         M[i][i] += 1
-        M[i][-1] = random.uniform(-30, 30)
+        M[i][-1] = random.uniform(-25, 25)
     M[-1][-1] = 1
     return M
 
@@ -81,6 +81,12 @@ class Dataloader(threading.Thread):
         assert self.isrunning
         return self.q.get(block=True)
 
+    def largeoverlap(self, m12):
+        q = numpy.asarray([128, 128, 1])
+        q = numpy.dot(m12[i], q)
+        q = [int(q[0]), int(q[1])]
+        return 0 <= q[0] < 256 and 0 <= q[1] < 256
+
     def run(self):
         assert not self.isrunning
         self.isrunning = True
@@ -94,6 +100,8 @@ class Dataloader(threading.Thread):
             m12 = torch.zeros(batchsize, 3, 3)
             for i in range(self.batchsize):
                 img1, img2, M = self.getImages(I[i])
+                if not largeoverlap(M):
+                    img1, img2, M = self.getImages(I[i])
                 img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
                 x1[i], x2[i], m12[i] = img1, img2, torch.Tensor(M)
             self.q.put((x1, x2, m12), block=True)
@@ -143,6 +151,8 @@ if __name__ == "__main__":
     for i in range(8):
         torchvision.utils.save_image(x1[i], "build/" + str(i) + "_1.png")
         torchvision.utils.save_image(x2[i], "build/" + str(i) + "_2.png")
+
+    os.exit()
 
 """
 quit()
