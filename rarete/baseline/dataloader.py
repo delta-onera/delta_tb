@@ -88,14 +88,13 @@ class Dataloader(threading.Thread):
 
         while True:
             I = (torch.rand(self.batchsize) * len(self.paths)).long()
-            flag = numpy.random.randint(0, 2, size=(self.batchsize, 3))
             x1 = torch.zeros(batchsize, 3, 256, 256)
             x2 = torch.zeros(batchsize, 3, 256, 256)
             m12 = torch.zeros(batchsize, 3, 3)
             for i in range(self.batchsize):
                 img1, img2, M = self.getImages(I[i])
                 img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
-                x1[i], x2[i], m12[i] = img1, img2, M
+                x1[i], x2[i], m12[i] = img1, img2, torch.Tensor(M)
             self.q.put((x1, x2, m12), block=True)
 
 
