@@ -4,16 +4,56 @@ from PIL import Image
 import random
 import os
 
+M = numpy.zeros((3, 3))
+for i in range(2):
+    for j in range(2):
+        M[i][j] = random.uniform(-0.3, 0.3)
+    M[i][i] += 1
+    M[i][-1] = random.uniform(-30, 30)
+M[-1][-1] = 1
 
-# nous avions raison XD
-def wtfimagetransform(image,M):
+
+def wtfimagetransform(image, M):
     output = numpy.zeros(image.shape)
     for row in range(image.shape[0]):
         for col in range(image.shape[1]):
-            q = numpy.asarray([row,col,1])
-            q = numpy.dot(M,q)
-            qx,qy = int(q[0]),int(q[1])
-            if 0<=qx<image.shape[0] and 0<=qy<image.shape[1]:
+            q = numpy.asarray([row, col, 1])
+            q = numpy.dot(M, q)
+            qx, qy = int(q[0]), int(q[1])
+            if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
+                output[row][col] = image[qx][qy]
+    return output
+
+
+path = "/scratchf/OSCD/rennes/pair/img1.png"
+image = PIL.Image.open(path).convert("RGB").copy()
+deformed_img1 = wtfimagetransform(numpy.asarray(image), M)
+deformed_img1 = PIL.Image.fromarray(deformed_img)
+deformed_img1.save("build/1.png")
+
+deformed_img2 = image.transform(
+    image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
+)
+deformed_img2.save("build/2.png")
+
+quit()
+
+import numpy
+import PIL
+from PIL import Image
+import random
+import os
+
+
+# nous avions raison XD
+def wtfimagetransform(image, M):
+    output = numpy.zeros(image.shape)
+    for row in range(image.shape[0]):
+        for col in range(image.shape[1]):
+            q = numpy.asarray([row, col, 1])
+            q = numpy.dot(M, q)
+            qx, qy = int(q[0]), int(q[1])
+            if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
                 output[row][col] = image[qx][qy]
     return output
 
@@ -29,15 +69,15 @@ def random_geometric_deformation(path):
         M[i][-1] = random.uniform(-30, 30)
     M[-1][-1] = 1
 
-    #image = image.transform(
+    # image = image.transform(
     #    image.size, Image.AFFINE, data=M.flatten()[:6], resample=Image.BICUBIC
-    #)
-    #image = numpy.asarray(image)
-    image = wtfimagetransform(numpy.asarray(image),M)
+    # )
+    # image = numpy.asarray(image)
+    image = wtfimagetransform(numpy.asarray(image), M)
     h, w, _ = image.shape
     h, w = h // 2, w // 2
     image = image[h - 128 : h + 128, w - 128 : w + 128, :]
-    
+
     tmp = numpy.asarray([h, w, 1])
     print(tmp)
     print(numpy.dot(M, tmp))
