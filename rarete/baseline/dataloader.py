@@ -38,7 +38,6 @@ def random_geometric(path):
     image = myimagetransform(numpy.asarray(image), M)
 
     h, w, _ = image.shape
-    assert h > 256 and w > 256
     h, w = h // 2, w // 2
     image = image[h - 128 : h + 128, w - 128 : w + 128, :]
 
@@ -47,7 +46,6 @@ def random_geometric(path):
     tmp = numpy.dot(M[:2, :2], tmp)
     M[0][-1] += tmp[0]
     M[1][-1] += tmp[1]
-    assert image.shape == (256, 256, 3)
 
     return numpy.uint8(image), M
 
@@ -104,7 +102,12 @@ def getstdtraindataloader():
     root = "/scratchf/OSCD/"
     ll = os.listdir(root)
     ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
-    ll = [ll[i] for i in range(len(ll)) if i % 3 != 0]
+    lll = []
+    for l in ll:
+        tmp = PIL.Image.open(root + l + "/pair/img1.png").copy()
+        if min(tmp.size) > 256:
+            lll.append(l)
+    ll = [lll[i] for i in range(len(lll)) if i % 3 != 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
 
@@ -113,7 +116,12 @@ def getstdtestdataloader():
     root = "/scratchf/OSCD/"
     ll = os.listdir(root)
     ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
-    ll = [ll[i] for i in range(len(ll)) if i % 3 == 0]
+    lll = []
+    for l in ll:
+        tmp = PIL.Image.open(root + l + "/pair/img1.png").copy()
+        if min(tmp.size) > 256:
+            lll.append(l)
+    ll = [lll[i] for i in range(len(lll)) if i % 3 == 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
 
