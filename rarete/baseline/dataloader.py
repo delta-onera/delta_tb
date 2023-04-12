@@ -12,6 +12,12 @@ for i in range(2):
     M[i][-1] = random.uniform(-30, 30)
 M[-1][-1] = 1
 
+M = numpy.zeros((3, 3))
+M[0,0]=0.5
+M[0,1]=-0.5
+M[1,0]=0.5
+M[1,1]=0.5
+M[2,2]=1
 
 def wtfimagetransform(image, M):
     output = numpy.zeros(image.shape)
