@@ -28,7 +28,7 @@ def wtfimagetransform(image, M):
 path = "/scratchf/OSCD/rennes/pair/img1.png"
 image = PIL.Image.open(path).convert("RGB").copy()
 deformed_img1 = wtfimagetransform(numpy.asarray(image), M)
-deformed_img1 = PIL.Image.fromarray(deformed_img)
+deformed_img1 = PIL.Image.fromarray(deformed_img1)
 deformed_img1.save("build/1.png")
 
 deformed_img2 = image.transform(
