@@ -100,8 +100,11 @@ class Dataloader(threading.Thread):
             m12 = torch.zeros(batchsize, 3, 3)
             for i in range(self.batchsize):
                 img1, img2, M = self.getImages(I[i])
-                if not self.largeoverlap(M):
-                    img1, img2, M = self.getImages(I[i])
+                for j in range(3):
+                    if not self.largeoverlap(M):
+                        img1, img2, M = self.getImages(I[i])
+                    else:
+                        break
                 img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
                 x1[i], x2[i], m12[i] = img1, img2, torch.Tensor(M)
             self.q.put((x1, x2, m12), block=True)
