@@ -2,7 +2,136 @@ import numpy
 import PIL
 from PIL import Image
 import random
-import os
+import torch
+import random
+import queue
+import threading
+
+
+def randomtransform():
+    M = numpy.zeros((3, 3))
+    for i in range(2):
+        for j in range(2):
+            M[i][j] = random.uniform(-0.3, 0.3)
+        M[i][i] += 1
+        M[i][-1] = random.uniform(-30, 30)
+    M[-1][-1] = 1
+    return M
+
+
+def myimagetransform(image, M):
+    output = numpy.zeros(image.shape)
+    for row in range(image.shape[0]):
+        for col in range(image.shape[1]):
+            q = numpy.asarray([row, col, 1])
+            q = numpy.dot(M, q)
+            qx, qy = int(q[0]), int(q[1])
+            if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
+                output[row][col] = image[qx][qy]
+    return numpy.uint8(output)
+
+
+def random_geometric_deformation(path):
+    image = PIL.Image.open(path).convert("RGB").copy()
+    M = randomtransform()
+    image = myimagetransform(numpy.asarray(image), M)
+
+    h, w, _ = image.shape
+    h, w = h // 2, w // 2
+    image = image[h - 128 : h + 128, w - 128 : w + 128, :]
+
+    tmp = numpy.asarray([h, w, 1])
+    tmp = numpy.asarray([h - 128, w - 128])
+    tmp = numpy.dot(M[:2, :2], tmp)
+    M[0][-1] += tmp[0]
+    M[1][-1] += tmp[1]
+
+    return numpy.uint8(image), M
+
+
+def pilTOtorch(x):
+    return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1))) / 255
+
+
+class Dataloader(threading.Thread):
+    def __init__(self, paths, maxsize=10, batchsize=8, tilesize=256):
+        threading.Thread.__init__(self)
+        self.isrunning = False
+
+        self.maxsize = maxsize
+        self.batchsize = batchsize
+        self.paths = paths
+
+    def getRawImages(self, i):
+        img1 = PIL.Image.open(self.paths[i] + "_1.png").convert("RGB").copy()
+        img1 = numpy.uint8(numpy.asarray(img1))
+        img2 = PIL.Image.open(self.paths[i] + "_2.png").convert("RGB").copy()
+        img2 = numpy.uint8(numpy.asarray(img2))
+        return img1, img2
+
+    def getImages(self, i):
+        img1, M1 = random_geometric_deformation(self.paths[i] + "_1.png")
+        img2, M2 = random_geometric_deformation(self.paths[i] + "_2.png")
+        M = numpy.matrix(numpy.linalg.inv(M2), M1)
+        return img1, img2, M
+
+    def getBatch(self):
+        assert self.isrunning
+        return self.q.get(block=True)
+
+    def run(self):
+        assert not self.isrunning
+        self.isrunning = True
+        self.q = queue.Queue(maxsize=self.maxsize)
+        batchsize = self.batchsize
+
+        while True:
+            I = (torch.rand(self.batchsize) * len(self.paths)).long()
+            flag = numpy.random.randint(0, 2, size=(self.batchsize, 3))
+            x1 = torch.zeros(batchsize, 3, 256, 256)
+            x2 = torch.zeros(batchsize, 3, 256, 256)
+            m12 = torch.zeros(batchsize, 3, 3)
+            for i in range(self.batchsize):
+                img1, img2, M = self.getImages(I[i])
+                img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
+                x1[i], x2[i], m12[i] = img1, img2, M
+            self.q.put((x1, x2, m12), block=True)
+
+
+def getstdtraindataloader():
+    root = "../preprocessing/build/"
+    paths = [str(i) for i in range(2358)]
+    paths = [paths[i] for i in range(len(paths)) if i % 4 < 2]
+    paths = [root + path for path in paths]
+    return Dataloader(paths)
+
+
+def getstdtestdataloader():
+    root = "../preprocessing/build/"
+    paths = [str(i) for i in range(2358)]
+    paths = [paths[i] for i in range(len(paths)) if i % 4 >= 2]
+    paths = [root + path for path in paths]
+    return Dataloader(paths)
+
+
+if __name__ == "__main__":
+    dataset = getstdtraindataloader()
+    dataset.start()
+    x1, x2, m12 = dataset.getBatch()
+
+    for i in range(8):
+        x1[:, 128 - 3 : 128 + 3, 128 - 3 : 128 + 3] = 0
+        q = numpy.asarray([128, 128, 1])
+        q = numpy.dot(m12[i], q)
+        q = [int(q[0]), int(q[1])]
+        if 0 <= q[0] < 256 and 0 <= q[1] < 256:
+            x2[:, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
+
+    torchvision.save_image(x1, "build/" + str(i) + "_1.png")
+    torchvision.save_image(x2, "build/" + str(i) + "_2.png")
+
+"""
+quit()
 
 M = numpy.zeros((3, 3))
 for i in range(2):
@@ -19,16 +148,7 @@ M[1,0]=0.5
 M[1,1]=0.5
 M[2,2]=1
 
-def wtfimagetransform(image, M):
-    output = numpy.zeros(image.shape)
-    for row in range(image.shape[0]):
-        for col in range(image.shape[1]):
-            q = numpy.asarray([row, col, 1])
-            q = numpy.dot(M, q)
-            qx, qy = int(q[0]), int(q[1])
-            if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
-                output[row][col] = image[qx][qy]
-    return output
+
 
 
 path = "/scratchf/OSCD/rennes/pair/img1.png"
@@ -596,3 +716,4 @@ def getstdtestdataloader():
     paths = [paths[i] for i in range(len(paths)) if i % 4 >= 2]
     paths = [root + path for path in paths]
     return Dataloader(paths)
+"""
