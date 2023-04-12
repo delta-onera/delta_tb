@@ -155,4 +155,4 @@ if __name__ == "__main__":
         torchvision.utils.save_image(x1[i], "build/" + str(i) + "_1.png")
         torchvision.utils.save_image(x2[i], "build/" + str(i) + "_2.png")
 
-    os._exit()
+    os._exit(0)
