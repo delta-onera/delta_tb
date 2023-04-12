@@ -133,12 +133,12 @@ if __name__ == "__main__":
     x1, x2, m12 = dataset.getBatch()
 
     for i in range(8):
-        x1[:, i, 128 - 3 : 128 + 3, 128 - 3 : 128 + 3] = 0
+        x1[i, :, 128 - 3 : 128 + 3, 128 - 3 : 128 + 3] = 0
         q = numpy.asarray([128, 128, 1])
         q = numpy.dot(m12[i], q)
         q = [int(q[0]), int(q[1])]
         if 0 <= q[0] < 256 and 0 <= q[1] < 256:
-            x2[:, i, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
+            x2[i, :, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
 
     for i in range(8):
         torchvision.utils.save_image(x1[i], "build/" + str(i) + "_1.png")
