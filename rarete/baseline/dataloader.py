@@ -103,7 +103,7 @@ def getstdtraindataloader():
     root = "/scratchf/OSCD/"
     ll = os.listdir(root)
     ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
-    ll = [ll[i] for i in range(len(paths)) if i % 3 != 0]
+    ll = [ll[i] for i in range(len(ll)) if i % 3 != 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
 
@@ -112,7 +112,7 @@ def getstdtestdataloader():
     root = "/scratchf/OSCD/"
     ll = os.listdir(root)
     ll = [l for l in ll if os.path.exists(root + l + "/pair/img1.png")]
-    ll = [ll[i] for i in range(len(paths)) if i % 3 != 0]
+    ll = [ll[i] for i in range(len(ll)) if i % 3 == 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
 
