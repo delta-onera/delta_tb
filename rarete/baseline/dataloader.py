@@ -73,7 +73,7 @@ class Dataloader(threading.Thread):
     def getImages(self, i):
         img1, M1 = random_geometric(self.paths[i] + "/pair/img1.png")
         img2, M2 = random_geometric(self.paths[i] + "/pair/img2.png")
-        M = numpy.matrix(numpy.linalg.inv(M2), M1)
+        M = numpy.matmul(numpy.linalg.inv(M2), M1)
         return img1, img2, M
 
     def getBatch(self):
