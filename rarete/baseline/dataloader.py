@@ -138,6 +138,25 @@ def getstdtestdataloader():
     return Dataloader(paths)
 
 
+def distanceToAllOther(X):
+    D = X[:, :, None] - X[:, None, :]
+    D = (D * D).sum(0)
+
+    meanDistToOther = D.mean()
+
+    for i in range(D.shape[0]):
+        D[i][i] += 100000
+    _, v = D.min(1)
+    v = sorted(list(v))
+    seuil = v[-5]
+
+    amers = torch.nonzero(v >= seuil).long()
+    amers = amers[:, 0].long()
+    rows, cols = amers // 256, amers % 256
+
+    return meanDistToOther, rows, cols, seuil
+
+
 if __name__ == "__main__":
     dataset = getstdtraindataloader()
     dataset.start()
