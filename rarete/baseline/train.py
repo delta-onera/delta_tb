@@ -79,11 +79,11 @@ for i in range(nbbatchs):
     loss = 5 * boundloss + 10 * samearealoss - diffarealoss + amerloss
 
     with torch.no_grad():
-        printloss[0] += loss.clone().detach()
         printloss[1] += boundloss.clone().detach()
         printloss[2] += samearealoss.clone().detach()
         printloss[3] += diffarealoss.clone().detach()
         printloss[4] += amerloss.clone().detach()
+        printloss[0] += loss.clone().detach()
 
         if i % 100 == 99:
             print(i, printloss.cpu() / 100)
