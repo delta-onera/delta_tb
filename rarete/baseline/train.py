@@ -58,8 +58,8 @@ for i in range(nbbatchs):
     N = z1.shape[0]
     diffarealoss, samearealoss, amerloss = 0, 0, 0
     for n in range(N):
-        dist1, amer1 = dataloader.distanceToAllOther(z1[n].view(380, -1))
-        dist2, amer2 = dataloader.distanceToAllOther(z2[n].view(380, -1))
+        dist1, amer1 = distanceToAllOther(z1[n].view(380, -1))
+        dist2, amer2 = distanceToAllOther(z2[n].view(380, -1))
 
         amerloss = amerloss + CE(p1.view(2, -1), amer1)
         amerloss = amerloss + CE(p2.view(2, -1), amer2)
