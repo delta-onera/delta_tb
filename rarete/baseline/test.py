@@ -48,8 +48,11 @@ with torch.no_grad():
                 if p2[1, row, col] > p2[0, row, col]:
                     amers2.append((row, col))
 
-        for row, col in amers1:
-            x1[:, row - 3 : row + 3, col - 3, col + 3]
+        # only debug for the moment
+        for c in amers1:
+            drawrect(x1, c)
+        for c in amers2:
+            drawrect(x2, c)
 
         visu1, visu2 = torchTOpil(x1), torchTOpil(x2[I[0][1]])
         visu1.save("build/" + str(k) + "_1.png")
