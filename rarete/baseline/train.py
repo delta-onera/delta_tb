@@ -12,12 +12,8 @@ dataset = dataloader.getstdtraindataloader()
 
 print("define model")
 net = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-net[4] = torch.nn.Conv2d(64, 256, kernel_size=1)
-del net[7], net[6], net[5]
-# net[5] = torch.nn.Identity()
-# net[6] = torch.nn.Identity()
-# net[7] = torch.nn.Identity()
-# net[8] = torch.nn.Identity()
+net[5] = torch.nn.Conv2d(128, 256, kernel_size=1)
+del net[7], net[6]
 net = net.cuda()
 net.train()
 
@@ -67,7 +63,7 @@ for i in range(nbbatchs):
 
         diffarealoss = diffarealoss + dist1 + dist2
 
-        amer1 = amer1.reshape(32, 32)
+        amer1 = amer1.reshape(16, 16)
         for row in range(amer1.shape[0]):
             for col in range(amer1.shape[1]):
                 if amer1[row][col] == 0:
@@ -76,7 +72,7 @@ for i in range(nbbatchs):
                 q = numpy.asarray([row * 8 + 4, col * 8 + 4, 1])
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 8), int(q[1] / 8))
-                if (0 <= q[0] < 32) and (0 <= q[1] < 32):
+                if (0 <= q[0] < 16) and (0 <= q[1] < 16):
                     diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
