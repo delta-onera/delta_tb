@@ -25,9 +25,11 @@ dataset.start()
 
 with torch.no_grad():
     for k in range(10):
-        x = dataset.getBatch()
-        x = ((x / 255) - 0.5) * 2
-        x1, x2 = x[:, 0:3, :, :].cuda(), x[:, 3:6, :, :].cuda()
+        x1, x2, m12 = dataset.getBatch()
+        x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
+        z1, z2 = net(x1), net(x2)
+        
+        row,col
 
         N = x.shape[0]
         z1 = net(x1).view(N, 1280, -1).mean(2)

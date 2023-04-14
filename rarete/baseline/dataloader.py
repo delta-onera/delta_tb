@@ -14,9 +14,9 @@ def randomtransform():
     M = numpy.zeros((3, 3))
     for i in range(2):
         for j in range(2):
-            M[i][j] = random.uniform(-0.25, 0.25)
+            M[i][j] = random.uniform(-0.3, 0.3)*random.uniform(0.3, 1)
         M[i][i] += 1
-        M[i][-1] = random.uniform(-25, 25)
+        M[i][-1] = random.uniform(-30, 30)*random.uniform(0.3, 1)
     M[-1][-1] = 1
     return M
 
@@ -142,19 +142,16 @@ def distanceToAllOther(X):
     D = X[:, :, None] - X[:, None, :]
     D = (D * D).sum(0)
 
-    meanDistToOther = D.mean()
+    distTOother = D.mean()
 
     for i in range(D.shape[0]):
         D[i][i] += 100000
     _, v = D.min(1)
-    v = sorted(list(v))
-    seuil = v[-5]
+    seuil = sorted(list(v))[-5]
 
-    amers = torch.nonzero(v >= seuil).long()
-    amers = amers[:, 0].long()
-    rows, cols = amers // 256, amers % 256
-
-    return meanDistToOther, rows, cols, seuil
+    amers = (v>=seuil).long()
+    return distTOother, amers
+    
 
 
 if __name__ == "__main__":
