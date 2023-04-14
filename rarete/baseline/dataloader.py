@@ -56,7 +56,7 @@ def pilTOtorch(x):
 
 
 class Dataloader(threading.Thread):
-    def __init__(self, paths, maxsize=10, batchsize=4, tilesize=256):
+    def __init__(self, paths, maxsize=10, batchsize=2, tilesize=256):
         threading.Thread.__init__(self)
         self.isrunning = False
 
