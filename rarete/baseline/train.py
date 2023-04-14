@@ -12,7 +12,7 @@ dataset = dataloader.getstdtraindataloader()
 
 print("define model")
 net = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-net[4] = torch.nn.Conv2d(32, 256, kernel_size=1)
+net[4] = torch.nn.Conv2d(64, 256, kernel_size=1)
 del net[7], net[6], net[5]
 # net[5] = torch.nn.Identity()
 # net[6] = torch.nn.Identity()
