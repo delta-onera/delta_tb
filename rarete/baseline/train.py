@@ -79,14 +79,14 @@ for i in range(nbbatchs):
                     diff = z1[n][row][col] - z2[n][q[0]][q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
-    loss = 5 * centredloss + 10 * samearealoss - diffarealoss + amer1
+    loss = 5 * boundloss + 10 * samearealoss - diffarealoss + amerloss
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()
-        printloss[1] += centredloss.clone().detach()
+        printloss[1] += boundloss.clone().detach()
         printloss[2] += samearealoss.clone().detach()
         printloss[3] += diffarealoss.clone().detach()
-        printloss[4] += amer1.clone().detach()
+        printloss[4] += amerloss.clone().detach()
 
         if i % 100 == 99:
             print(i, printloss.cpu() / 100)
