@@ -61,8 +61,8 @@ for i in range(nbbatchs):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(380, -1))
         dist2, amer2 = distanceToAllOther(z2[n].reshape(380, -1))
 
-        amerloss = amerloss + CE(p1.reshape(2, -1), amer1)
-        amerloss = amerloss + CE(p2.reshape(2, -1), amer2)
+        amerloss = amerloss + CE(p1[n].reshape(2, -1), amer1)
+        amerloss = amerloss + CE(p2[n].reshape(2, -1), amer2)
 
         diffarealoss = diffarealoss + dist1 + dist2
 
@@ -76,7 +76,7 @@ for i in range(nbbatchs):
                 q = numpy.dot(m12, q)
                 q = (int(q[0] / 8), int(q[1] / 8))
                 if (0 <= q[0] < 256) and (0 <= q[1] < 256):
-                    diff = z1[rows][cols] - z2[q[0]][q[1]]
+                    diff = z1[n][rows][cols] - z2[n][q[0]][q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
     loss = 5 * centredloss + 10 * samearealoss - diffarealoss + amer1
