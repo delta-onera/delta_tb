@@ -34,7 +34,7 @@ def distanceToAllOther(X):
 
     for i in range(D.shape[0]):
         D[i][i] = 10000
-    _, v = D.min(1)
+    v, _ = D.min(1)
     seuil = sorted(list(v))[-5]
 
     amers = (v >= seuil).long()
