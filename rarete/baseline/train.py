@@ -73,7 +73,7 @@ for i in range(nbbatchs):
                     continue
 
                 q = numpy.asarray([row * 8 + 4, col * 8 + 4, 1])
-                q = numpy.dot(m12, q)
+                q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 8), int(q[1] / 8))
                 if (0 <= q[0] < 256) and (0 <= q[1] < 256):
                     diff = z1[n][rows][cols] - z2[n][q[0]][q[1]]
