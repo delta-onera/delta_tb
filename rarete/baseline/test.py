@@ -33,34 +33,31 @@ dataset.start()
 
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
 with torch.no_grad():
-    for k in range(10):
+    if True:
         x1, x2, m12 = dataset.getBatch()
         x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
         z1, z2 = net(x1), net(x2)
         p1, p2 = z1[:, 0:2, :, :], z2[:, 0:2, :, :]
         z1, z2 = z1[:, 2:, :, :], z2[:, 2:, :, :]
 
-        amers1, amers2 = [], []
-        for row in range(16):
-            for col in range(16):
-                if p1[1, row, col] > p1[0, row, col]:
-                    amers1.append((row, col))
-                if p2[1, row, col] > p2[0, row, col]:
-                    amers2.append((row, col))
+        for i in range(x1.shape[0]):
+            amers1, amers2 = [], []
+            for row in range(16):
+                for col in range(16):
+                    if p1[i, 1, row, col] > p1[i, 0, row, col]:
+                        amers1.append((row, col))
+                    if p2[i, 1, row, col] > p2[i, 0, row, col]:
+                        amers2.append((row, col))
 
-        # only debug for the moment
-        for c in amers1:
-            drawrect(x1, c)
-        for c in amers2:
-            drawrect(x2, c)
+            # only debug for the moment
+            for c in amers1:
+                drawrect(x1[i], c)
+            for c in amers2:
+                drawrect(x2[i], c)
 
-        visu1, visu2 = torchTOpil(x1), torchTOpil(x2[I[0][1]])
-        visu1.save("build/" + str(k) + "_1.png")
-        visu2.save("build/" + str(k) + "_2.png")
-
-        visu1, visu2 = torchTOpil(x1[I[20][1]]), torchTOpil(x2[I[20][1]])
-        visu1.save("build/" + str(k) + "_3.png")
-        visu2.save("build/" + str(k) + "_4.png")
+            visu1, visu2 = torchTOpil(x1[i]), torchTOpil(x2[i])
+            visu1.save("build/" + str(i) + "_1.png")
+            visu2.save("build/" + str(i) + "_2.png")
 
 
 os._exit(0)
