@@ -59,5 +59,4 @@ with torch.no_grad():
             visu1.save("build/" + str(i) + "_1.png")
             visu2.save("build/" + str(i) + "_2.png")
 
-
 os._exit(0)
