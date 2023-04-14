@@ -74,7 +74,7 @@ for i in range(nbbatchs):
                 q = (int(q[0] / 8), int(q[1] / 8))
                 if (0 <= q[0] < 16) and (0 <= q[1] < 16):
                     diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
-                    samearealoss = samearealoss + (diff ** 2).sum()
+                    samearealoss = samearealoss[0] + (diff ** 2).sum()
 
     loss = 5 * boundloss + 10 * samearealoss - diffarealoss + amerloss
 
