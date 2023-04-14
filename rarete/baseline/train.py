@@ -53,7 +53,7 @@ for i in range(nbbatchs):
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
 
     N = z1.shape[0]
-    diffarealoss, samearealoss, amerloss = 0, torch.zeros(1), 0
+    diffarealoss, samearealoss, amerloss = 0, torch.zeros(1).cuda(), 0
     for n in range(N):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(254, -1))
         dist2, amer2 = distanceToAllOther(z2[n].reshape(254, -1))
