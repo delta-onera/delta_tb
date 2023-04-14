@@ -40,9 +40,9 @@ with torch.no_grad():
         p1, p2 = z1[:, 0:2, :, :], z2[:, 0:2, :, :]
         z1, z2 = z1[:, 2:, :, :], z2[:, 2:, :, :]
 
-        amers1, amer2 = [], []
-        for row in range(amer1.shape[0]):
-            for col in range(amer1.shape[1]):
+        amers1, amers2 = [], []
+        for row in range(16):
+            for col in range(16):
                 if p1[1, row, col] > p1[0, row, col]:
                     amers1.append((row, col))
                 if p2[1, row, col] > p2[0, row, col]:
