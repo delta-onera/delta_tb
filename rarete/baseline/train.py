@@ -75,7 +75,7 @@ for i in range(nbbatchs):
                 q = numpy.asarray([row * 8 + 4, col * 8 + 4, 1])
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 8), int(q[1] / 8))
-                if (0 <= q[0] < 256) and (0 <= q[1] < 256):
+                if (0 <= q[0] < 32) and (0 <= q[1] < 32):
                     diff = z1[n][row][col] - z2[n][q[0]][q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
