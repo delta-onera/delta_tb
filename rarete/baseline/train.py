@@ -13,10 +13,11 @@ dataset = dataloader.getstdtraindataloader()
 print("define model")
 net = torchvision.models.efficientnet_v2_l(weights="DEFAULT").features
 net[4] = torch.nn.Conv2d(96, 382, kernel_size=1)
-net[5] = torch.nn.Identity()
-net[6] = torch.nn.Identity()
-net[7] = torch.nn.Identity()
-net[8] = torch.nn.Identity()
+del net[8], net[7], net[6], net[5]
+# net[5] = torch.nn.Identity()
+# net[6] = torch.nn.Identity()
+# net[7] = torch.nn.Identity()
+# net[8] = torch.nn.Identity()
 net = net.cuda()
 net.train()
 
