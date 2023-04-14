@@ -61,6 +61,7 @@ for i in range(nbbatchs):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(380, -1))
         dist2, amer2 = distanceToAllOther(z2[n].reshape(380, -1))
 
+        print(p1[n].shape,p1[n].reshape(2, -1).shape, amer1.shape)
         amerloss = amerloss + CE(p1[n].reshape(2, -1), amer1)
         amerloss = amerloss + CE(p2[n].reshape(2, -1), amer2)
 
