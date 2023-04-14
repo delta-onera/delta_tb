@@ -66,7 +66,7 @@ for i in range(nbbatchs):
 
         diffarealoss = diffarealoss + dist1 + dist2
 
-        amer1 = amer1.reshape(z1.shape[1:])
+        amer1 = amer1.reshape(32, 32)
         for row in range(amer1.shape[0]):
             for col in range(amer1.shape[1]):
                 if amer1[row][col] == 0:
