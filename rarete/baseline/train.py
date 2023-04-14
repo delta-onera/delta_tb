@@ -57,7 +57,7 @@ for i in range(nbbatchs):
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
 
     N = z1.shape[0]
-    diffarealoss, samearealoss, amerloss = 0, 0, 0
+    diffarealoss, samearealoss, amerloss = 0, torch.zeros(1), 0
     for n in range(N):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(254, -1))
         dist2, amer2 = distanceToAllOther(z2[n].reshape(254, -1))
@@ -77,7 +77,7 @@ for i in range(nbbatchs):
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 8), int(q[1] / 8))
                 if (0 <= q[0] < 32) and (0 <= q[1] < 32):
-                    diff = z1[n][row][col] - z2[n][q[0]][q[1]]
+                    diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
     loss = 5 * boundloss + 10 * samearealoss - diffarealoss + amerloss
