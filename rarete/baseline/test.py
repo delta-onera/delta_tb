@@ -11,6 +11,14 @@ def torchTOpil(x):
     return PIL.Image.fromarray(numpy.uint8((visu + 1) * 125))
 
 
+def drawrect(x, c):
+    c = (c[0] * 8 + 4, c[1] * 8 + 4)
+    x[0, c[0] - 3, c[1] - 3 : c[1] + 3] = 1
+    x[0, c[0] - 3, c[1] + 3 : c[1] + 3] = 1
+    x[0, c[0] - 3 : c[0] + 3, c[1] - 3] = 1
+    x[0, c[0] - 3 : c[0] + 3, c[1] + 3] = 1
+
+
 print("load data")
 dataset = dataloader.getstdtestdataloader()
 
@@ -40,7 +48,10 @@ with torch.no_grad():
                 if p2[1, row, col] > p2[0, row, col]:
                     amers2.append((row, col))
 
-        visu1, visu2 = torchTOpil(x1[I[0][1]]), torchTOpil(x2[I[0][1]])
+        for row, col in amers1:
+            x1[:, row - 3 : row + 3, col - 3, col + 3]
+
+        visu1, visu2 = torchTOpil(x1), torchTOpil(x2[I[0][1]])
         visu1.save("build/" + str(k) + "_1.png")
         visu2.save("build/" + str(k) + "_2.png")
 
