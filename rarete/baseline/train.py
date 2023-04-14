@@ -53,7 +53,7 @@ for i in range(nbbatchs):
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
 
     N = z1.shape[0]
-    diffarealoss, samearealoss, amerloss = 0, torch.zeros(1).cuda(), 0
+    diffarealoss, samearealoss, amerloss = 0, 0, 0
     for n in range(N):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(254, -1))
         dist2, amer2 = distanceToAllOther(z2[n].reshape(254, -1))
@@ -74,13 +74,14 @@ for i in range(nbbatchs):
                 q = (int(q[0] / 8), int(q[1] / 8))
                 if (0 <= q[0] < 16) and (0 <= q[1] < 16):
                     diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
-                    samearealoss = samearealoss[0] + (diff ** 2).sum()
+                    samearealoss = samearealoss + (diff ** 2).sum()
 
     loss = 5 * boundloss + 10 * samearealoss - diffarealoss + amerloss
 
     with torch.no_grad():
         printloss[1] += boundloss.clone().detach()
-        printloss[2] += samearealoss.clone().detach()
+        if samearealoss != 0:
+            printloss[2] += samearealoss.clone().detach()
         printloss[3] += diffarealoss.clone().detach()
         printloss[4] += amerloss.clone().detach()
         printloss[0] += loss.clone().detach()
