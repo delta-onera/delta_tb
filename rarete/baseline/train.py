@@ -57,7 +57,7 @@ for i in range(nbbatchs):
     diffarealoss, samearealoss, amerloss = 0, 0, 0
     for n in range(N):
         dist1, amer1 = distanceToAllOther(z1[n].reshape(254, -1))
-        dist2, _ = distanceToAllOther(z2[n].reshape(254, -1))
+        dist2, amer2 = distanceToAllOther(z2[n].reshape(254, -1))
 
         amerloss = amerloss + CE(p1[n].reshape(2, -1).transpose(0, 1), amer1)
         amerloss = amerloss + CE(p2[n].reshape(2, -1).transpose(0, 1), amer2)
