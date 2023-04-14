@@ -14,9 +14,9 @@ def randomtransform():
     M = numpy.zeros((3, 3))
     for i in range(2):
         for j in range(2):
-            M[i][j] = random.uniform(-0.3, 0.3)*random.uniform(0.3, 1)
+            M[i][j] = random.uniform(-0.3, 0.3) * random.uniform(0.3, 1)
         M[i][i] += 1
-        M[i][-1] = random.uniform(-30, 30)*random.uniform(0.3, 1)
+        M[i][-1] = random.uniform(-30, 30) * random.uniform(0.3, 1)
     M[-1][-1] = 1
     return M
 
@@ -28,7 +28,7 @@ def myimagetransform(image, M):
             q = numpy.asarray([row, col, 1])
             q = numpy.dot(M, q)
             qx, qy = int(q[0]), int(q[1])
-            if 0 <= qx < image.shape[0] and 0 <= qy < image.shape[1]:
+            if (0 <= qx < image.shape[0]) and (0 <= qy < image.shape[1]):
                 output[row][col] = image[qx][qy][:]
     return numpy.uint8(output)
 
@@ -85,7 +85,7 @@ class Dataloader(threading.Thread):
         q = numpy.asarray([128, 128, 1])
         q = numpy.dot(m12, q)
         q = [int(q[0]), int(q[1])]
-        return 0 <= q[0] < 256 and 0 <= q[1] < 256
+        return (0 <= q[0] < 256) and (0 <= q[1] < 256)
 
     def run(self):
         assert not self.isrunning
@@ -138,22 +138,6 @@ def getstdtestdataloader():
     return Dataloader(paths)
 
 
-def distanceToAllOther(X):
-    D = X[:, :, None] - X[:, None, :]
-    D = (D * D).sum(0)
-
-    distTOother = D.mean()
-
-    for i in range(D.shape[0]):
-        D[i][i] += 100000
-    _, v = D.min(1)
-    seuil = sorted(list(v))[-5]
-
-    amers = (v>=seuil).long()
-    return distTOother, amers
-    
-
-
 if __name__ == "__main__":
     dataset = getstdtraindataloader()
     dataset.start()
@@ -164,7 +148,7 @@ if __name__ == "__main__":
         q = numpy.asarray([128, 128, 1])
         q = numpy.dot(m12[i], q)
         q = [int(q[0]), int(q[1])]
-        if 0 <= q[0] < 256 and 0 <= q[1] < 256:
+        if (0 <= q[0] < 256) and (0 <= q[1] < 256):
             x2[i, :, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
 
     for i in range(8):

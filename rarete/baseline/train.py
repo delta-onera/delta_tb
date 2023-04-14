@@ -28,15 +28,29 @@ printloss = torch.zeros(5).cuda()
 nbbatchs = 50000
 dataset.start()
 
-net.seuil = collections.deque(maxlen=1000)
+
+def distanceToAllOther(X):
+    D = X[:, :, None] - X[:, None, :]
+    D = (D * D).sum(0)
+
+    distTOother = D.mean()
+
+    for i in range(D.shape[0]):
+        D[i][i] += 100000
+    _, v = D.min(1)
+    seuil = sorted(list(v))[-5]
+
+    amers = (v >= seuil).long()
+    return distTOother, amers
+
 
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
     x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
     z1, z2 = net(x1), net(x2)
-    p1, p2= z1[:,0:2,:,:],z2[:,0:2,:,:]
-    z1, z2  =z1[:,2:,:,:],z2[:,2:,:,:]
-    
+    p1, p2 = z1[:, 0:2, :, :], z2[:, 0:2, :, :]
+    z1, z2 = z1[:, 2:, :, :], z2[:, 2:, :, :]
+
     b1 = torch.nn.functional.relu(z1.abs() - 1)
     b2 = torch.nn.functional.relu(z2.abs() - 1)
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
@@ -48,24 +62,24 @@ for i in range(nbbatchs):
     else:
         targetseuil = None
     for n in range(N):
-        dist1, amer1 = dataloader.distanceToAllOther(z1[n].view(380,-1))
-        dist2, amer2 = dataloader.distanceToAllOther(z2[n].view(380,-1))
-        
-        amerloss = amerloss + CE(p1.view(2,-1),amer1)
-        amerloss = amerloss + CE(p2.view(2,-1),amer2)
-        
-        diffarealoss = diffarealoss + dist1+dist2
-        
+        dist1, amer1 = dataloader.distanceToAllOther(z1[n].view(380, -1))
+        dist2, amer2 = dataloader.distanceToAllOther(z2[n].view(380, -1))
+
+        amerloss = amerloss + CE(p1.view(2, -1), amer1)
+        amerloss = amerloss + CE(p2.view(2, -1), amer2)
+
+        diffarealoss = diffarealoss + dist1 + dist2
+
         amer1 = amer1.view(z1.shape[1:])
         for row in range(amer1.shape[0]):
             for col in range(amer1.shape[1]):
-                if amer1[row][col]==0:
+                if amer1[row][col] == 0:
                     continue
-                
-                q = numpy.asarray([row*8+4, col*8+4,1])
+
+                q = numpy.asarray([row * 8 + 4, col * 8 + 4, 1])
                 q = numpy.dot(m12, q)
-                q = (int(q[0] / 8), int(q[1] / 8)
-                if 0 <= q[0] < 256 and 0 <= q[1] < 256:
+                q = (int(q[0] / 8), int(q[1] / 8))
+                if (0 <= q[0] < 256) and (0 <= q[1] < 256):
                     diff = z1[rows][cols] - z2[q[0]][q[1]]
                     samearealoss = samearealoss + (diff ** 2).sum()
 
