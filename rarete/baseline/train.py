@@ -57,10 +57,6 @@ for i in range(nbbatchs):
 
     N = z1.shape[0]
     diffarealoss, samearealoss, amerloss = 0, 0, 0
-    if len(net.seuil) > 500:
-        targetseuil = sum(net.seuil) / len(net.seuil)
-    else:
-        targetseuil = None
     for n in range(N):
         dist1, amer1 = dataloader.distanceToAllOther(z1[n].view(380, -1))
         dist2, amer2 = dataloader.distanceToAllOther(z2[n].view(380, -1))

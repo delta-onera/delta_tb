@@ -24,7 +24,6 @@ print("test")
 dataset.start()
 
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
-
 with torch.no_grad():
     for k in range(10):
         x1, x2, m12 = dataset.getBatch()
