@@ -138,7 +138,7 @@ def getstdtestdataloader():
     return Dataloader(paths)
 
 
-class RINET(torch.nn.module):
+class RINET(torch.nn.Module):
     def __init__(self):
         super(RINET, self).__init__()
         self.net = torchvision.models.efficientnet_v2_s(weights="DEFAULT")
