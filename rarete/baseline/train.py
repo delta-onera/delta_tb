@@ -30,20 +30,21 @@ CE = torch.nn.CrossEntropyLoss()
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
     x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
-    z1, z2 = net.f(net(x1)), net.f(net(x2))
+    z1, z2 = net(x1), net(x2)
+    f1, f2 = net.f(z1), net.f(z2)
 
-    b1 = torch.nn.functional.relu(z1.abs() - 1)
-    b2 = torch.nn.functional.relu(z2.abs() - 1)
+    b1 = torch.nn.functional.relu(f1.abs() - 1)
+    b2 = torch.nn.functional.relu(f2.abs() - 1)
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
 
-    N = z1.shape[0]
+    N = f1.shape[0]
     diffarealoss, samearealoss, total = 0, 0, 0
     for n in range(N):
-        Z = z1[n].reshape(128, -1)
+        Z = f1[n].reshape(128, -1)
         D1 = Z[:, :, None] - Z[:, None, :]
         D1 = D1.abs().mean() / N
 
-        Z = z2[n].reshape(128, -1)
+        Z = f2[n].reshape(128, -1)
         D2 = Z[:, :, None] - Z[:, None, :]
         D2 = D2.abs().mean() / N
         diffarealoss = diffarealoss - D1 - D2
@@ -54,7 +55,7 @@ for i in range(nbbatchs):
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 16), int(q[1] / 16))
                 if (0 <= q[0] < 16) and (0 <= q[1] < 16):
-                    diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
+                    diff = f1[n, :, row, col] - f2[n, :, q[0], q[1]]
                     samearealoss = samearealoss + (diff ** 2).mean()
                     total += 1
 
@@ -99,7 +100,7 @@ for i in range(nbbatchs):
     with torch.no_grad():
         x1 = (x1.cuda() - 0.5) * 2
         c1 = net(x1)
-        z1 = net.f(c1)
+        f1 = net.f(c1)
         amers = torch.zeros(N, 16, 16)
 
     for n in range(N):
