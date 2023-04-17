@@ -33,10 +33,32 @@ def myimagetransform(image, M):
     return numpy.uint8(output)
 
 
+def myimagetransformCHATGPT(image, M):
+    output = np.zeros(image.shape, dtype=np.uint8)
+    image_shape = image.shape
+    rows, cols = np.indices(image_shape[:2])  # Create arrays of row and column indices
+
+    # Compute transformed indices for all pixels in the image
+    qx = np.round(M[0, 0] * rows + M[0, 1] * cols + M[0, 2]).astype(int)
+    qy = np.round(M[1, 0] * rows + M[1, 1] * cols + M[1, 2]).astype(int)
+
+    # Check if transformed indices are within bounds of the image
+    valid_indices = (
+        (qx >= 0) & (qx < image_shape[0]) & (qy >= 0) & (qy < image_shape[1])
+    )
+
+    # Use NumPy indexing to efficiently access corresponding pixels in the image
+    output[rows[valid_indices], cols[valid_indices]] = image[
+        qx[valid_indices], qy[valid_indices]
+    ]
+
+    return output
+
+
 def random_geometric(path):
     image = PIL.Image.open(path).convert("RGB").copy()
     M = randomtransform()
-    image = myimagetransform(numpy.asarray(image), M)
+    image = myimagetransformCHATGPT(numpy.asarray(image), M)
 
     h, w, _ = image.shape
     h, w = h // 2, w // 2

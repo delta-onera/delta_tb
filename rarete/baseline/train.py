@@ -117,7 +117,7 @@ for i in range(nbbatchs):
         amers2[n] = (v >= seuil).reshape(16, 16)
 
     amers1, amers2 = amers1.long(), amers2.long()
-    p1, p2 = net.p(z1), net.p(z2)
+    p1, p2 = net.p_(z1), net.p_(z2)
     loss = CE(p1, amers1) + CE(p2, amers2)
 
     with torch.no_grad():
