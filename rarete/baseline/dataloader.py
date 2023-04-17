@@ -160,9 +160,6 @@ class RINET(torch.nn.Module):
         return self.p_(z)
 
 
-net.f = torch.nn.Conv2d(128, 128, kernel_size=1)
-net.p = torch.nn.Conv2d(128, 2, kernel_size=1)
-
 if __name__ == "__main__":
     dataset = getstdtraindataloader()
     dataset.start()
