@@ -95,7 +95,8 @@ for i in range(nbbatchs):
     with torch.no_grad():
         z1, z2 = net(x1.cuda()), net(x2.cuda())
         f1, f2 = net.f_(z1), net.f_(z2)
-        amers1, amers2 = torch.zeros(N, 16, 16), torch.zeros(N, 16, 16)
+        amers1 = torch.zeros(N, 16, 16).cuda()
+        amers2 = torch.zeros(N, 16, 16).cuda()
 
     for n in range(N):
         Z = z1[n].reshape(128, -1)
