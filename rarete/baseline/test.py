@@ -36,9 +36,9 @@ with torch.no_grad():
     if True:
         x1, x2, m12 = dataset.getBatch()
         x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
-        z1, z2 = net(x1), net(x2)
-        p1, p2 = z1[:, 0:2, :, :], z2[:, 0:2, :, :]
-        z1, z2 = z1[:, 2:, :, :], z2[:, 2:, :, :]
+        c1, c2 = net(x1), net(x2)
+        z1, z2 = net.f(c1), net.f(c2)
+        p1, p2 = net.f(p1), net.f(p2)
 
         for i in range(x1.shape[0]):
             amers1, amers2 = [], []
