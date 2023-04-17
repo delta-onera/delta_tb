@@ -31,6 +31,7 @@ for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
     x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
     z1, z2 = net(x1), net(x2)
+    print(z1.shape)
     f1, f2 = net.f(z1), net.f(z2)
 
     b1 = torch.nn.functional.relu(f1.abs() - 1)
