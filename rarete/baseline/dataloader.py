@@ -34,13 +34,15 @@ def myimagetransform(image, M):
 
 
 def myimagetransformCHATGPT(image, M):
-    output = np.zeros(image.shape, dtype=np.uint8)
+    output = numpy.zeros(image.shape, dtype=numpy.uint8)
     image_shape = image.shape
-    rows, cols = np.indices(image_shape[:2])  # Create arrays of row and column indices
+    rows, cols = numpy.indices(
+        image_shape[:2]
+    )  # Create arrays of row and column indices
 
     # Compute transformed indices for all pixels in the image
-    qx = np.round(M[0, 0] * rows + M[0, 1] * cols + M[0, 2]).astype(int)
-    qy = np.round(M[1, 0] * rows + M[1, 1] * cols + M[1, 2]).astype(int)
+    qx = numpy.round(M[0, 0] * rows + M[0, 1] * cols + M[0, 2]).astype(int)
+    qy = numpy.round(M[1, 0] * rows + M[1, 1] * cols + M[1, 2]).astype(int)
 
     # Check if transformed indices are within bounds of the image
     valid_indices = (
