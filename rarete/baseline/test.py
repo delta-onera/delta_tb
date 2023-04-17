@@ -8,7 +8,7 @@ import dataloader
 
 def torchTOpil(x):
     visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-    return PIL.Image.fromarray(numpy.uint8((visu + 1) * 125))
+    return PIL.Image.fromarray(numpy.uint8(visu * 255))
 
 
 def drawrect(x, c):
