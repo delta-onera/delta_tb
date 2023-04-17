@@ -159,6 +159,11 @@ class RINET(torch.nn.Module):
             z = self.forward(x)
         return self.p_(z)
 
+    def bothFP(self, x):
+        with torch.no_grad():
+            z = self.forward(x)
+            return self.f_(z), self.p_(z)
+
 
 if __name__ == "__main__":
     dataset = getstdtraindataloader()
