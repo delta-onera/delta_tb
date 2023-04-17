@@ -14,9 +14,9 @@ def randomtransform():
     M = numpy.zeros((3, 3))
     for i in range(2):
         for j in range(2):
-            M[i][j] = random.uniform(-0.3, 0.3) * random.uniform(0.3, 1)
+            M[i][j] = random.uniform(-0.25, 0.25) * random.uniform(0.3, 1)
         M[i][i] += 1
-        M[i][-1] = random.uniform(-30, 30) * random.uniform(0.3, 1)
+        M[i][-1] = random.uniform(-25, 25) * random.uniform(0.3, 1)
     M[-1][-1] = 1
     return M
 
@@ -100,11 +100,8 @@ class Dataloader(threading.Thread):
             m12 = torch.zeros(batchsize, 3, 3)
             for i in range(self.batchsize):
                 img1, img2, M = self.getImages(I[i])
-                for j in range(3):
-                    if not self.largeoverlap(M):
-                        img1, img2, M = self.getImages(I[i])
-                    else:
-                        break
+                if not self.largeoverlap(M):
+                    img1, img2, M = self.getImages(I[i])
                 img1, img2 = pilTOtorch(img1), pilTOtorch(img2)
                 x1[i], x2[i], m12[i] = img1, img2, torch.Tensor(M)
             self.q.put((x1, x2, m12), block=True)
