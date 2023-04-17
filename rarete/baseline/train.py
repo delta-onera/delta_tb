@@ -54,7 +54,7 @@ for i in range(nbbatchs):
                     samearealoss = samearealoss + (diff ** 2).mean()
                     total += 1
 
-    loss = boundloss - diffarealoss
+    loss = boundloss + diffarealoss
     if total > 0:
         loss = loss + samearealoss / total * 10
 
