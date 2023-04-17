@@ -32,31 +32,34 @@ print("test")
 dataset.start()
 
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
-with torch.no_grad():
-    if True:
-        x1, x2, m12 = dataset.getBatch()
-        x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
-        c1, c2 = net(x1), net(x2)
-        z1, z2 = net.f(c1), net.f(c2)
-        p1, p2 = net.f(p1), net.f(p2)
+if True:
+    x1, x2, m12 = dataset.getBatch()
+    (
+        f1,
+        p1,
+    ) = net.bothFP(x1.cuda())
+    (
+        f2,
+        p2,
+    ) = net.bothFP(x2.cuda())
 
-        for i in range(x1.shape[0]):
-            amers1, amers2 = [], []
-            for row in range(16):
-                for col in range(16):
-                    if p1[i, 1, row, col] > p1[i, 0, row, col]:
-                        amers1.append((row, col))
-                    if p2[i, 1, row, col] > p2[i, 0, row, col]:
-                        amers2.append((row, col))
+    for i in range(x1.shape[0]):
+        amers1, amers2 = [], []
+        for row in range(16):
+            for col in range(16):
+                if p1[i, 1, row, col] > p1[i, 0, row, col]:
+                    amers1.append((row, col))
+                if p2[i, 1, row, col] > p2[i, 0, row, col]:
+                    amers2.append((row, col))
 
-            # only debug for the moment
-            for c in amers1:
-                drawrect(x1[i], c)
-            for c in amers2:
-                drawrect(x2[i], c)
+        # only debug for the moment
+        for c in amers1:
+            drawrect(x1[i], c)
+        for c in amers2:
+            drawrect(x2[i], c)
 
-            visu1, visu2 = torchTOpil(x1[i]), torchTOpil(x2[i])
-            visu1.save("build/" + str(i) + "_1.png")
-            visu2.save("build/" + str(i) + "_2.png")
+        visu1, visu2 = torchTOpil(x1[i]), torchTOpil(x2[i])
+        visu1.save("build/" + str(i) + "_1.png")
+        visu2.save("build/" + str(i) + "_2.png")
 
 os._exit(0)
