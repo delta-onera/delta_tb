@@ -54,14 +54,15 @@ for i in range(nbbatchs):
                     samearealoss = samearealoss + (diff ** 2).mean()
                     total += 1
 
+    samearealoss = samearealoss / total * 10
     loss = boundloss + diffarealoss
     if total > 0:
-        loss = loss + samearealoss / total * 10
+        loss = loss + samearealoss
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()
         printloss[1] += boundloss.clone().detach()
-        if total != 0:
+        if total > 0:
             printloss[2] += samearealoss.clone().detach()
         printloss[3] += diffarealoss.clone().detach()
 
