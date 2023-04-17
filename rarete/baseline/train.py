@@ -11,10 +11,7 @@ print("load data")
 dataset = dataloader.getstdtraindataloader()
 
 print("define model")
-net = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-net.f = torch.nn.Conv2d(128, 128, kernel_size=1)
-net.p = torch.nn.Conv2d(128, 2, kernel_size=1)
-del net[7], net[6], net[5]
+net = dataloader.RINET()
 net = net.cuda()
 net.train()
 
@@ -29,29 +26,26 @@ CE = torch.nn.CrossEntropyLoss()
 
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
-    x1, x2 = (x1.cuda() - 0.5) * 2, (x2.cuda() - 0.5) * 2
-    z1, z2 = net(x1), net(x2)
-    print(z1.shape)
-    f1, f2 = net.f(z1), net.f(z2)
+    f1, f2 = net.f(x1.cuda()), net.f(x2.cuda())
 
     b1 = torch.nn.functional.relu(f1.abs() - 1)
     b2 = torch.nn.functional.relu(f2.abs() - 1)
     boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
 
-    N = f1.shape[0]
+    N = x1.shape[0]
     diffarealoss, samearealoss, total = 0, 0, 0
     for n in range(N):
-        Z = f1[n].reshape(128, -1)
-        D1 = Z[:, :, None] - Z[:, None, :]
+        F = f1[n].reshape(128, -1)
+        D1 = F[:, :, None] - F[:, None, :]
         D1 = D1.abs().mean() / N
 
-        Z = f2[n].reshape(128, -1)
-        D2 = Z[:, :, None] - Z[:, None, :]
+        F = f2[n].reshape(128, -1)
+        D2 = F[:, :, None] - F[:, None, :]
         D2 = D2.abs().mean() / N
         diffarealoss = diffarealoss - D1 - D2
 
-        for row in range(amer1.shape[0]):
-            for col in range(amer1.shape[1]):
+        for row in range(16):
+            for col in range(16):
                 q = numpy.asarray([row * 16 + 8, col * 16 + 8, 1])
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 16), int(q[1] / 16))
@@ -97,27 +91,34 @@ printloss = 0
 CE = torch.nn.CrossEntropyLoss()
 nbbatchs = 100
 for i in range(nbbatchs):
-    x1, _, _ = dataset.getBatch()
+    x1, x2, _ = dataset.getBatch()
     with torch.no_grad():
-        x1 = (x1.cuda() - 0.5) * 2
-        c1 = net(x1)
-        f1 = net.f(c1)
-        amers = torch.zeros(N, 16, 16)
+        z1, z2 = net(x1.cuda()), net(x2.cuda())
+        f1, f2 = net.f_(z1), net.f_(z2)
+        amers1, amers2 = torch.zeros(N, 16, 16), torch.zeros(N, 16, 16)
 
     for n in range(N):
-        Z = z[n].reshape(128, -1)
+        Z = z1[n].reshape(128, -1)
         D = Z[:, :, None] - Z[:, None, :]
         D = (D ** 2).mean(0)
-        for i in range(D.shape[0]):
-            D[i][i] = 10000
+        for j in range(16):
+            D[j][j] = 10000
             v, _ = D.min(1)
             seuil = sorted(list(v))[-5]
+        amers1[n] = (v >= seuil).reshape(16, 16)
 
-        amers[n] = (v >= seuil).reshape(16, 16)
+        Z = z2[n].reshape(128, -1)
+        D = Z[:, :, None] - Z[:, None, :]
+        D = (D ** 2).mean(0)
+        for j in range(16):
+            D[j][j] = 10000
+            v, _ = D.min(1)
+            seuil = sorted(list(v))[-5]
+        amers2[n] = (v >= seuil).reshape(16, 16)
 
-    amers = amers.long()
-    p1 = net.p(c1)
-    loss = CE(p1, amers)
+    amers1, amers2 = amers1.long(), amers2.long()
+    p1, p2 = net.p(z1), net.p(z2)
+    loss = CE(p1, amers1) + CE(p2, amers2)
 
     with torch.no_grad():
         printloss += loss.clone().detach()

@@ -138,6 +138,31 @@ def getstdtestdataloader():
     return Dataloader(paths)
 
 
+class RINET(torch.nn.module):
+    def __init__(self):
+        super(RINET, self).__init__()
+        self.net = torchvision.models.efficientnet_v2_s(weights="DEFAULT")
+        self.net = self.net.features
+        del self.net[7], self.net[6], self.net[5]
+
+        self.f_ = torch.nn.Conv2d(128, 128, kernel_size=1)
+        self.p_ = torch.nn.Conv2d(128, 2, kernel_size=1)
+
+    def forward(self, x):
+        return self.net((x - 0.5) * 2)
+
+    def f(self, x):
+        return self.f_(self.forward(x))
+
+    def p(self, x):
+        with torch.no_grad():
+            z = self.forward(x)
+        return self.p_(z)
+
+
+net.f = torch.nn.Conv2d(128, 128, kernel_size=1)
+net.p = torch.nn.Conv2d(128, 2, kernel_size=1)
+
 if __name__ == "__main__":
     dataset = getstdtraindataloader()
     dataset.start()
