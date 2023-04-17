@@ -19,7 +19,7 @@ net.train()
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(4).cuda()
-nbbatchs = 1000
+nbbatchs = 20
 dataset.start()
 
 CE = torch.nn.CrossEntropyLoss()
