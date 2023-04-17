@@ -34,14 +34,8 @@ dataset.start()
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
 if True:
     x1, x2, m12 = dataset.getBatch()
-    (
-        f1,
-        p1,
-    ) = net.bothFP(x1.cuda())
-    (
-        f2,
-        p2,
-    ) = net.bothFP(x2.cuda())
+    f1, p1 = net.bothFP(x1.cuda())
+    f2, p2 = net.bothFP(x2.cuda())
 
     for i in range(x1.shape[0]):
         amers1, amers2 = [], []
