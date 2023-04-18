@@ -17,6 +17,7 @@ def drawrect(x, c):
     x[0, c[0] - 3, c[1] + 3 : c[1] + 3] = 1
     x[0, c[0] - 3 : c[0] + 3, c[1] - 3] = 1
     x[0, c[0] - 3 : c[0] + 3, c[1] + 3] = 1
+    return x
 
 
 print("load data")
@@ -52,9 +53,9 @@ if True:
 
         # only debug for the moment
         for c in amers1:
-            drawrect(x1[i], c)
+            x1[i] = drawrect(x1[i], c)
         for c in amers2:
-            drawrect(x2[i], c)
+            x2[i] = drawrect(x2[i], c)
 
         visu1, visu2 = torchTOpil(x1[i]), torchTOpil(x2[i])
         visu1.save("build/" + str(i) + "_1.png")
