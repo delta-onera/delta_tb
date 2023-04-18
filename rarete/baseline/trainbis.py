@@ -51,6 +51,11 @@ for i in range(nbbatchs):
             seuil = sorted(list(v))[-5]
         amers2[n] = (v >= seuil).reshape(16, 16)
 
+    amers1 = torch.nn.functional.interpolate(amer1, (256, 256))
+    torchvision.utils.save_image(amers1, "build/wtf.png")
+    torchvision.utils.save_image(x1, "build/wtf.png")
+    quit()
+
     amers1, amers2 = amers1.long(), amers2.long()
     p1, p2 = net.p_(z1), net.p_(z2)
     loss = CE(p1, amers1) + CE(p2, amers2)
