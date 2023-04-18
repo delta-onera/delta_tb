@@ -191,7 +191,7 @@ if __name__ == "__main__":
     dataset.start()
     x1, x2, m12 = dataset.getBatch()
 
-    for i in range(8):
+    for i in range(7):
         x1[i, :, 128 - 3 : 128 + 3, 128 - 3 : 128 + 3] = 0
         q = numpy.asarray([128, 128, 1])
         q = numpy.dot(m12[i], q)
