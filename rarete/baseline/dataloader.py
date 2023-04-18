@@ -199,7 +199,7 @@ if __name__ == "__main__":
         if (0 <= q[0] < 256) and (0 <= q[1] < 256):
             x2[i, :, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
 
-    for i in range(8):
+    for i in range(7):
         torchvision.utils.save_image(x1[i], "build/" + str(i) + "_1.png")
         torchvision.utils.save_image(x2[i], "build/" + str(i) + "_2.png")
 
