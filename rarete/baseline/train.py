@@ -19,7 +19,7 @@ net.train()
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 printloss = torch.zeros(4).cuda()
-nbbatchs = 1000
+nbbatchs = 10000
 dataset.start()
 
 
@@ -89,7 +89,7 @@ print("train second head")
 optimizer = torch.optim.Adam(net.p_.parameters(), lr=0.0001)
 printloss = 0
 CE = torch.nn.CrossEntropyLoss()
-nbbatchs = 100
+nbbatchs = 1000
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
     with torch.no_grad():
