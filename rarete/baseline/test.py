@@ -41,7 +41,7 @@ if True:
         amers1, amers2 = [], []
         for row in range(16):
             for col in range(16):
-                if p1[i, 1, row, col] > p1[i, 0, row, col]:
+                if p1[i, 1, row, col] > p1[i, 0, row, col] - 0.1:
                     amers1.append((row, col))
                 if p2[i, 1, row, col] > p2[i, 0, row, col]:
                     amers2.append((row, col))
