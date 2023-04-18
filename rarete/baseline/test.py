@@ -38,11 +38,12 @@ if True:
     f1, p1 = net.bothFP(x1.cuda())
     f2, p2 = net.bothFP(x2.cuda())
 
-    delta = p1[:, 1, :, :] - p1[:, 0, :, :]
-    v, _ = torch.topk(delta.flatten(), 5)
-    v = v[-1]
-
     for i in range(x1.shape[0]):
+        delta = p1[i, 1, :, :] - p1[i, 0, :, :]
+        v, _ = torch.topk(delta.flatten(), 5)
+        print(v)
+        v = v[-1]
+
         amers1, amers2 = [], []
         for row in range(16):
             for col in range(16):
