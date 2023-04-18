@@ -21,6 +21,8 @@ optimizer = torch.optim.Adam(net.p_.parameters(), lr=0.0001)
 printloss = 0
 CE = torch.nn.CrossEntropyLoss()
 nbbatchs = 1000
+dataset.start()
+
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
     with torch.no_grad():
