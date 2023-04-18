@@ -51,7 +51,7 @@ for i in range(nbbatchs):
             seuil = sorted(list(v))[-5]
         amers2[n] = (v >= seuil).reshape(16, 16)
 
-    amers1 = torch.nn.functional.interpolate(amers1, (256, 256))
+    amers1 = torch.nn.functional.interpolate(amers1.unsqueeze(1), (256, 256))
     torchvision.utils.save_image(amers1, "build/wtf.png")
     torchvision.utils.save_image(x1, "build/wtf.png")
     quit()
