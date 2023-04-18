@@ -36,9 +36,7 @@ def myimagetransform(image, M):
 def myimagetransformCHATGPT(image, M):
     output = numpy.zeros(image.shape, dtype=numpy.uint8)
     image_shape = image.shape
-    rows, cols = numpy.indices(
-        image_shape[:2]
-    )  # Create arrays of row and column indices
+    rows, cols = numpy.indices(image_shape[:2])
 
     # Compute transformed indices for all pixels in the image
     qx = numpy.round(M[0, 0] * rows + M[0, 1] * cols + M[0, 2]).astype(int)
@@ -77,6 +75,21 @@ def random_geometric(path):
 
 def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1))) / 255
+
+
+def removeborder(x):
+    y = x
+    if len(x.shape) == 4:
+        y[:, :, 0, :] = 0
+        y[:, :, -1, :] = 0
+        y[:, :, :, 0] = 0
+        y[:, :, :, -1] = 0
+    else:
+        y[0, :] = 0
+        y[-1, :] = 0
+        y[:, 0] = 0
+        y[:, -1] = 0
+    return y
 
 
 class Dataloader(threading.Thread):

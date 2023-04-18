@@ -36,11 +36,14 @@ for i in range(nbbatchs):
     for n in range(N):
         F = f1[n].reshape(128, -1)
         D1 = F[:, :, None] - F[:, None, :]
-        D1 = D1.abs().mean() / N
+        D1.abs().mean(0)
+        D1 = dataloader.removeborder(D1).mean() / N
 
         F = f2[n].reshape(128, -1)
         D2 = F[:, :, None] - F[:, None, :]
-        D2 = D2.abs().mean() / N
+        D2.abs().mean(0)
+        D2 = dataloader.removeborder(D2).mean() / N
+
         diffarealoss = diffarealoss - D1 - D2
 
         for row in range(16):
