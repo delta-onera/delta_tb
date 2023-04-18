@@ -25,6 +25,7 @@ dataset.start()
 
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
+    N = x1.shape[0]
     with torch.no_grad():
         z1, z2 = net(x1.cuda()), net(x2.cuda())
         f1, f2 = net.f_(z1), net.f_(z2)
