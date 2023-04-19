@@ -45,7 +45,8 @@ for i in range(nbbatchs):
             D[j][j] = 10000
         v, _ = (D * mask).min(1)
         seuil = sorted(list(v))[-5]
-        amers1[n] = removeborder((v >= seuil).reshape(16, 16))
+        amers1[n] = (v >= seuil).reshape(16, 16)
+        amers1[n] = dataloader.removeborder(amers1[n])
 
         Z = z2[n].reshape(128, 256)
         D = Z[:, :, None] - Z[:, None, :]
@@ -54,7 +55,8 @@ for i in range(nbbatchs):
             D[j][j] = 10000
         v, _ = (D * mask).min(1)
         seuil = sorted(list(v))[-5]
-        amers2[n] = removeborder((v >= seuil).reshape(16, 16))
+        amers2[n] = (v >= seuil).reshape(16, 16)
+        amers2[n] = dataloader.removeborder(amers2[n])
 
     p1, p2 = net.p_(z1), net.p_(z2)
     loss = CE(p1, amers1.long()) + CE(p2, amers2.long())
