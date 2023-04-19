@@ -25,7 +25,7 @@ dataset.start()
 
 mask = torch.ones(16, 16)
 mask = dataloader.removeborder(mask)
-mask.reshape(128)
+mask.reshape(256)
 
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
@@ -37,19 +37,19 @@ for i in range(nbbatchs):
         amers2 = torch.zeros(N, 16, 16).cuda()
 
     for n in range(N):
-        Z = z1[n].reshape(128, -1)
+        Z = z1[n].reshape(256, -1)
         D = Z[:, :, None] - Z[:, None, :]
         D = D.abs().mean(0)
-        for j in range(128):
+        for j in range(256):
             D[j][j] = 10000
         v, _ = (D * mask).min(1)
         seuil = sorted(list(v))[-5]
         amers1[n] = removeborder((v >= seuil).reshape(16, 16))
 
-        Z = z2[n].reshape(128, -1)
+        Z = z2[n].reshape(256, -1)
         D = Z[:, :, None] - Z[:, None, :]
         D = D.abs().mean(0)
-        for j in range(128):
+        for j in range(256):
             D[j][j] = 10000
         v, _ = (D * mask).min(1)
         seuil = sorted(list(v))[-5]
