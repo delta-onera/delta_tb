@@ -23,6 +23,10 @@ CE = torch.nn.CrossEntropyLoss()
 nbbatchs = 1000
 dataset.start()
 
+mask = torch.ones(16, 16)
+mask = dataloader.removeborder(mask)
+mask.reshape(128)
+
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
     N = x1.shape[0]
@@ -36,25 +40,23 @@ for i in range(nbbatchs):
         Z = z1[n].reshape(128, -1)
         D = Z[:, :, None] - Z[:, None, :]
         D = D.abs().mean(0)
-        for j in range(16):
+        for j in range(128):
             D[j][j] = 10000
-            v, _ = D.min(1)
-            seuil = sorted(list(v))[-5]
-        amers1[n] = (v >= seuil).reshape(16, 16)
+        v, _ = (D * mask).min(1)
+        seuil = sorted(list(v))[-5]
+        amers1[n] = removeborder((v >= seuil).reshape(16, 16))
 
         Z = z2[n].reshape(128, -1)
         D = Z[:, :, None] - Z[:, None, :]
         D = D.abs().mean(0)
-        for j in range(16):
+        for j in range(128):
             D[j][j] = 10000
-            v, _ = D.min(1)
-            seuil = sorted(list(v))[-5]
-        amers2[n] = (v >= seuil).reshape(16, 16)
+        v, _ = (D * mask).min(1)
+        seuil = sorted(list(v))[-5]
+        amers2[n] = removeborder((v >= seuil).reshape(16, 16))
 
-    amers1 = dataloader.removeborder(amers1).long()
-    amers2 = dataloader.removeborder(amers2).long()
     p1, p2 = net.p_(z1), net.p_(z2)
-    loss = CE(p1, amers1) + CE(p2, amers2)
+    loss = CE(p1, amers1.long()) + CE(p2, amers2.long())
 
     with torch.no_grad():
         printloss += loss.clone().detach()

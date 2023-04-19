@@ -22,6 +22,9 @@ printloss = torch.zeros(4).cuda()
 nbbatchs = 10000
 dataset.start()
 
+mask = torch.ones(16, 16)
+mask = dataloader.removeborder(mask)
+mask.reshape(128)
 
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
@@ -37,12 +40,12 @@ for i in range(nbbatchs):
         F = f1[n].reshape(128, -1)
         D1 = F[:, :, None] - F[:, None, :]
         D1.abs().mean(0)
-        D1 = dataloader.removeborder(D1).mean() / N
+        D1 = (D1.mean(1) * mask).mean(0) / N
 
         F = f2[n].reshape(128, -1)
         D2 = F[:, :, None] - F[:, None, :]
         D2.abs().mean(0)
-        D2 = dataloader.removeborder(D2).mean() / N
+        D2 = (D2.mean(1) * mask).mean(0) / N
 
         diffarealoss = diffarealoss - D1 - D2
 

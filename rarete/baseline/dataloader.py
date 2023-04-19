@@ -79,16 +79,10 @@ def pilTOtorch(x):
 
 def removeborder(x):
     y = x
-    if len(x.shape) == 4:
-        y[:, :, 0, :] = 0
-        y[:, :, -1, :] = 0
-        y[:, :, :, 0] = 0
-        y[:, :, :, -1] = 0
-    else:
-        y[0, :] = 0
-        y[-1, :] = 0
-        y[:, 0] = 0
-        y[:, -1] = 0
+    y[0, :] = 0
+    y[-1, :] = 0
+    y[:, 0] = 0
+    y[:, -1] = 0
     return y
 
 
