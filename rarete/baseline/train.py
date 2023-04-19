@@ -37,12 +37,12 @@ for i in range(nbbatchs):
     N = x1.shape[0]
     diffarealoss, samearealoss, total = 0, 0, 0
     for n in range(N):
-        F = f1[n].reshape(256, -1)
+        F = f1[n].reshape(128, 256)
         D1 = F[:, :, None] - F[:, None, :]
         D1.abs().mean(0)
         D1 = (D1.mean(1) * mask).mean(0) / N
 
-        F = f2[n].reshape(256, -1)
+        F = f2[n].reshape(128, 256)
         D2 = F[:, :, None] - F[:, None, :]
         D2.abs().mean(0)
         D2 = (D2.mean(1) * mask).mean(0) / N
