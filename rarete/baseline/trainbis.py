@@ -23,9 +23,10 @@ CE = torch.nn.CrossEntropyLoss()
 nbbatchs = 1000
 dataset.start()
 
-mask = torch.ones(16, 16)
-mask = dataloader.removeborder(mask)
-mask = mask.reshape(256)
+with torch.no_grad():
+    mask = torch.ones(16, 16)
+    mask = dataloader.removeborder(mask)
+    mask = mask.reshape(256).cuda()
 
 for i in range(nbbatchs):
     x1, x2, _ = dataset.getBatch()
