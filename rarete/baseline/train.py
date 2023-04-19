@@ -24,7 +24,7 @@ dataset.start()
 
 mask = torch.ones(16, 16)
 mask = dataloader.removeborder(mask)
-mask.reshape(256)
+mask = mask.reshape(256)
 
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
