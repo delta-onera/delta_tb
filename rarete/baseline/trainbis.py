@@ -20,7 +20,7 @@ print("train second head")
 optimizer = torch.optim.Adam(net.p_.parameters(), lr=0.0001)
 printloss = 0
 CE = torch.nn.CrossEntropyLoss()
-nbbatchs = 1000
+nbbatchs = 10000
 dataset.start()
 
 with torch.no_grad():
