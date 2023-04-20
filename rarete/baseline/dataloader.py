@@ -179,31 +179,27 @@ class RINET(torch.nn.Module):
         x = self.net((x - 0.5) * 2)
         return self.final(x)
 
-    def distance(self,x):
-        x = self.forward(x)
-        N,_,H,W = x.shape()
-        D = torch.zeros(N,H,W,H,W)
-        for n in range(N):
-            for i in range(1,H-1):
-                for j in range(1,W-1):
-                    for k in range(1,H-1):
-                        for l in range(1,W-1):
-                            D[n][i][j][k][l] = (x[n,:,i,j]-x[n,:,k,l]).mean()
-        return D
-        
-    def distanceChatGPT(self, x):
-        x = self.forward(x)
+    def distance(self, x):
         N, C, H, W = x.shape
-        x_diff = x[:, :, None, None, ...] - x[:, :, ..., None, None]  # Compute pairwise differences using broadcasting
-        x_diff_mean = x_diff.abs().mean(dim=1)  # Compute mean difference along the channel dimension
-        x_diff_mean[:,0,:]=0
-        x_diff_mean[:,-1,:]=0
-        x_diff_mean[:,:,0]=0
-        x_diff_mean[:,:,-1]=0 #il faisait n'importe quoi là....
-        for i in range(H):
-            for j in range(W):
-                x_diff_mean[i][j][i][j] = 1000
-        return x_diff_mean
+        x = x[:, :, None, None, ...] - x[:, :, ..., None, None]
+        x = x_diff.abs().mean(dim=1)
+        assert x.shape == (N, H, W, H, W)
+
+        subX = x[:, 1:-1, 1:-1, 1:-1, 1:-1]
+        totalmean = subX.mean()
+
+        subX[:, :, :, torch.arange(H - 2)[:, None], torch.arange(W - 2)] = 1000
+        subX = subX.reshape(N, H - 2, W - 2, (H - 2) * (W - 2))
+        subXmin, _ = subX.min(3)
+        totalminmean = subXmin.mean()
+
+        Xmin = torch.zeros(N, H, W)
+        Xmin[:, 1:-1, 1:-1] = subXmin
+        minV, _ = torch.topk(Xmin.reshape(N, W * H), k=5, dim=1)
+        minV, _ = minV.min(1)
+        farestX = (Xmin > minV.unsqueeze(-1)).long()
+
+        return totalmean, totalminmean, farestX
 
 
 if __name__ == "__main__":
