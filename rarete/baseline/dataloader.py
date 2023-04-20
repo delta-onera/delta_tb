@@ -173,24 +173,37 @@ class RINET(torch.nn.Module):
         self.net = self.net.features
         del self.net[7], self.net[6], self.net[5]
 
-        self.f_ = torch.nn.Conv2d(128, 128, kernel_size=1)
-        self.p_ = torch.nn.Conv2d(128, 2, kernel_size=1)
+        self.final = torch.nn.Conv2d(128, 128, kernel_size=1)
 
     def forward(self, x):
-        return self.net((x - 0.5) * 2)
+        x = self.net((x - 0.5) * 2)
+        return self.final(x)
 
-    def f(self, x):
-        return self.f_(self.forward(x))
-
-    def p(self, x):
-        with torch.no_grad():
-            z = self.forward(x)
-        return self.p_(z)
-
-    def bothFP(self, x):
-        with torch.no_grad():
-            z = self.forward(x)
-            return self.f_(z), self.p_(z)
+    def distance(self,x):
+        x = self.forward(x)
+        N,_,H,W = x.shape()
+        D = torch.zeros(N,H,W,H,W)
+        for n in range(N):
+            for i in range(1,H-1):
+                for j in range(1,W-1):
+                    for k in range(1,H-1):
+                        for l in range(1,W-1):
+                            D[n][i][j][k][l] = (x[n,:,i,j]-x[n,:,k,l]).mean()
+        return D
+        
+    def distanceChatGPT(self, x):
+        x = self.forward(x)
+        N, C, H, W = x.shape
+        x_diff = x[:, :, None, None, ...] - x[:, :, ..., None, None]  # Compute pairwise differences using broadcasting
+        x_diff_mean = x_diff.abs().mean(dim=1)  # Compute mean difference along the channel dimension
+        x_diff_mean[:,0,:]=0
+        x_diff_mean[:,-1,:]=0
+        x_diff_mean[:,:,0]=0
+        x_diff_mean[:,:,-1]=0 #il faisait n'importe quoi là....
+        for i in range(H):
+            for j in range(W):
+                x_diff_mean[i][j][i][j] = 1000
+        return x_diff_mean
 
 
 if __name__ == "__main__":
