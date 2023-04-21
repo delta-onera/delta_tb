@@ -21,6 +21,7 @@ def randomtransform():
     return M
 
 
+"""
 def myimagetransform(image, M):
     output = numpy.zeros(image.shape)
     for row in range(image.shape[0]):
@@ -31,9 +32,10 @@ def myimagetransform(image, M):
             if (0 <= qx < image.shape[0]) and (0 <= qy < image.shape[1]):
                 output[row][col] = image[qx][qy][:]
     return numpy.uint8(output)
+"""
 
 
-def myimagetransformCHATGPT(image, M):
+def myimagetransform(image, M):
     output = numpy.zeros(image.shape, dtype=numpy.uint8)
     image_shape = image.shape
     rows, cols = numpy.indices(image_shape[:2])
@@ -43,14 +45,10 @@ def myimagetransformCHATGPT(image, M):
     qy = numpy.round(M[1, 0] * rows + M[1, 1] * cols + M[1, 2]).astype(int)
 
     # Check if transformed indices are within bounds of the image
-    valid_indices = (
-        (qx >= 0) & (qx < image_shape[0]) & (qy >= 0) & (qy < image_shape[1])
-    )
+    I = (qx >= 0) & (qx < image_shape[0]) & (qy >= 0) & (qy < image_shape[1])
 
     # Use NumPy indexing to efficiently access corresponding pixels in the image
-    output[rows[valid_indices], cols[valid_indices]] = image[
-        qx[valid_indices], qy[valid_indices]
-    ]
+    output[rows[I], cols[I]] = image[qx[I], qy[I]]
 
     return output
 
@@ -58,7 +56,7 @@ def myimagetransformCHATGPT(image, M):
 def random_geometric(path):
     image = PIL.Image.open(path).convert("RGB").copy()
     M = randomtransform()
-    image = myimagetransformCHATGPT(numpy.asarray(image), M)
+    image = myimagetransform(numpy.asarray(image), M)
 
     h, w, _ = image.shape
     h, w = h // 2, w // 2
@@ -75,15 +73,6 @@ def random_geometric(path):
 
 def pilTOtorch(x):
     return torch.Tensor(numpy.transpose(x, axes=(2, 0, 1))) / 255
-
-
-def removeborder(x):
-    y = x
-    y[0, :] = 0
-    y[-1, :] = 0
-    y[:, 0] = 0
-    y[:, -1] = 0
-    return y
 
 
 class Dataloader(threading.Thread):
@@ -147,6 +136,7 @@ def getstdtraindataloader():
         tmp = PIL.Image.open(root + l + "/pair/img1.png").copy()
         if min(tmp.size) > 256:
             lll.append(l)
+    lll = sorted(lll)
     ll = [lll[i] for i in range(len(lll)) if i % 3 != 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
@@ -161,6 +151,7 @@ def getstdtestdataloader():
         tmp = PIL.Image.open(root + l + "/pair/img1.png").copy()
         if min(tmp.size) > 256:
             lll.append(l)
+    lll = sorted(lll)
     ll = [lll[i] for i in range(len(lll)) if i % 3 == 0]
     paths = [root + l for l in ll]
     return Dataloader(paths)
@@ -196,7 +187,7 @@ class RINET(torch.nn.Module):
         Xmin = torch.zeros(N, H, W)
         Xmin[:, 1:-1, 1:-1] = subXmin
         minV, _ = torch.topk(Xmin.reshape(N, W * H), k=5, dim=1)
-        minV, _ = minV.min(1)
+        minV, _ = minV.min(1)  # min5max
         farestX = (Xmin > minV.unsqueeze(-1)).long()
 
         return totalmean, totalminmean, farestX
@@ -207,7 +198,7 @@ if __name__ == "__main__":
     dataset.start()
     x1, x2, m12 = dataset.getBatch()
 
-    for i in range(7):
+    for i in range(x1.shape[0]):
         x1[i, :, 128 - 3 : 128 + 3, 128 - 3 : 128 + 3] = 0
         q = numpy.asarray([128, 128, 1])
         q = numpy.dot(m12[i], q)
@@ -215,7 +206,7 @@ if __name__ == "__main__":
         if (0 <= q[0] < 256) and (0 <= q[1] < 256):
             x2[i, :, q[0] - 3 : q[0] + 3, q[1] - 3 : q[1] + 3] = 0
 
-    for i in range(7):
+    for i in range(x1.shape[0]):
         torchvision.utils.save_image(x1[i], "build/" + str(i) + "_1.png")
         torchvision.utils.save_image(x2[i], "build/" + str(i) + "_2.png")
 

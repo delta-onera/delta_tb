@@ -22,48 +22,34 @@ printloss = torch.zeros(4).cuda()
 nbbatchs = 10000
 dataset.start()
 
-with torch.no_grad():
-    mask = torch.ones(16, 16)
-    mask = dataloader.removeborder(mask)
-    mask = mask.reshape(256).cuda()
-
 for i in range(nbbatchs):
     x1, x2, m12 = dataset.getBatch()
-    f1, f2 = net.f(x1.cuda()), net.f(x2.cuda())
+    z1, z2 = net(x1.cuda()), net(x2.cuda())
 
-    b1 = torch.nn.functional.relu(f1.abs() - 1)
-    b2 = torch.nn.functional.relu(f2.abs() - 1)
-    boundloss = (b1 + b2 + b1 * b1 + b2 * b2).mean()
+    b1 = torch.nn.functional.relu(z1.abs() - 1)
+    b2 = torch.nn.functional.relu(z2.abs() - 1)
+    boundloss = (b1 * b1 + b2 * b2).mean()
 
-    N = x1.shape[0]
-    diffarealoss, samearealoss, total = 0, 0, 0
+    totalmean1, totalminmean1, _ = net.distance(z1)
+    totalmean2, totalminmean2, _ = net.distance(z2)
+    diffarealoss = totalmean1 + totalminmean1 + totalmean2 + totalminmean2
+
+    samearealoss, total = 0, 0
     for n in range(N):
-        F = f1[n].reshape(128, 256)
-        D1 = F[:, :, None] - F[:, None, :]
-        D1 = D1.abs().mean(0)
-        D1 = (D1.mean(1) * mask).mean(0) / N
-
-        F = f2[n].reshape(128, 256)
-        D2 = F[:, :, None] - F[:, None, :]
-        D2 = D2.abs().mean(0)
-        D2 = (D2.mean(1) * mask).mean(0) / N
-
-        diffarealoss = diffarealoss - D1 - D2
-
         for row in range(16):
             for col in range(16):
                 q = numpy.asarray([row * 16 + 8, col * 16 + 8, 1])
                 q = numpy.dot(m12[n], q)
                 q = (int(q[0] / 16), int(q[1] / 16))
                 if (0 <= q[0] < 16) and (0 <= q[1] < 16):
-                    diff = f1[n, :, row, col] - f2[n, :, q[0], q[1]]
+                    diff = z1[n, :, row, col] - z2[n, :, q[0], q[1]]
                     samearealoss = samearealoss + (diff ** 2).mean()
                     total += 1
 
-    samearealoss = samearealoss / total * 10
     loss = boundloss + diffarealoss
     if total > 0:
-        loss = loss + samearealoss
+        samearealoss = samearealoss / total
+        loss = loss + samearealoss * 10
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()

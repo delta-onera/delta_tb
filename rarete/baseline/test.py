@@ -1,14 +1,8 @@
 import os
 import numpy
-import PIL
-from PIL import Image
 import torch
+import torchvision
 import dataloader
-
-
-def torchTOpil(x):
-    visu = numpy.transpose(x.cpu().numpy(), axes=(1, 2, 0))
-    return PIL.Image.fromarray(numpy.uint8(visu * 255))
 
 
 def drawrect(x, c):
@@ -35,31 +29,20 @@ dataset.start()
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
 if True:
     x1, x2, m12 = dataset.getBatch()
-    f1, p1 = net.bothFP(x1.cuda())
-    f2, p2 = net.bothFP(x2.cuda())
+    z1, z2 = net(x1.cuda()), net(x2.cuda())
 
-    for i in range(x1.shape[0]):
-        delta = p1[i, 1, :, :] - p1[i, 0, :, :]
-        v, _ = torch.topk(delta.flatten(), 5)
-        print(v)
-        v = v[-1]
+    _, _, farestX1 = net.distance(z1)
+    _, _, farestX2 = net.distance(z2)
 
-        amers1, amers2 = [], []
+    for n in range(x1.shape[0]):
         for row in range(16):
             for col in range(16):
-                if p1[i, 1, row, col] - p1[i, 0, row, col] >= v:
-                    amers1.append((row, col))
-                if p2[i, 1, row, col] > p2[i, 0, row, col]:
-                    amers2.append((row, col))
+                if farestX1[n][row][col]:
+                    x1[n] = drawrect(x1[n], (row, col))
+                if farestX2[n][row][col]:
+                    x2[n] = drawrect(x2[n], (row, col))
 
-        # only debug for the moment
-        for c in amers1:
-            x1[i] = drawrect(x1[i], c)
-        for c in amers2:
-            x2[i] = drawrect(x2[i], c)
-
-        visu1, visu2 = torchTOpil(x1[i]), torchTOpil(x2[i])
-        visu1.save("build/" + str(i) + "_1.png")
-        visu2.save("build/" + str(i) + "_2.png")
+        torchvision.utils.save_image(x1[n], "build/" + str(n) + "_1.png")
+        torchvision.utils.save_image(x2[n], "build/" + str(n) + "_2.png")
 
 os._exit(0)
