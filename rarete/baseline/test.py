@@ -14,6 +14,16 @@ def drawrect(x, c):
     return x
 
 
+import numpy as np
+from scipy.optimize import linear_sum_assignment
+
+
+def match_vectors(z1, z2):
+    # Match vectors from the set z1 to the set z2 with minimum square distance.
+    dist_matrix = np.sum((x[:, None, :] - y[None, :, :]) ** 2, axis=-1)
+    return linear_sum_assignment(dist_matrix)
+
+
 print("load data")
 dataset = dataloader.getstdtestdataloader()
 
@@ -34,6 +44,7 @@ if True:
     _, _, farestX1 = net.distance(z1)
     _, _, farestX2 = net.distance(z2)
 
+    # visu
     for n in range(x1.shape[0]):
         for row in range(16):
             for col in range(16):
@@ -44,5 +55,7 @@ if True:
 
         torchvision.utils.save_image(x1[n], "build/" + str(n) + "_1.png")
         torchvision.utils.save_image(x2[n], "build/" + str(n) + "_2.png")
+
+    # matching and quantitative eval
 
 os._exit(0)
