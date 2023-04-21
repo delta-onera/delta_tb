@@ -32,7 +32,7 @@ for i in range(nbbatchs):
 
     totalmean1, totalminmean1, _ = net.distance(z1)
     totalmean2, totalminmean2, _ = net.distance(z2)
-    diffarealoss = totalmean1 + totalminmean1 + totalmean2 + totalminmean2
+    diffarealoss = -totalmean1 - totalminmean1 - totalmean2 - totalminmean2
 
     samearealoss, total = 0, 0
     for n in range(x1.shape[0]):
