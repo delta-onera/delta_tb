@@ -189,9 +189,9 @@ class RINET(torch.nn.Module):
         minV, _ = torch.topk(Xmin.reshape(N, W * H), k=5, dim=1)
         minV, _ = minV.min(1)  # min5max
         print(Xmin.shape, minV.shape)
-        farestX = (Xmin > minV.unsqueeze(-1)).long()
+        farestX = Xmin > minV.unsqueeze(-1).unsqueeze(-1)
 
-        return totalmean, totalminmean, farestX
+        return totalmean, totalminmean, farestX.long()
 
 
 if __name__ == "__main__":
