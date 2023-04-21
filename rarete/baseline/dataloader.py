@@ -188,7 +188,6 @@ class RINET(torch.nn.Module):
         Xmin[:, 1:-1, 1:-1] = subXmin
         minV, _ = torch.topk(Xmin.reshape(N, W * H), k=5, dim=1)
         minV, _ = minV.min(1)  # min5max
-        print(Xmin.shape, minV.shape)
         farestX = Xmin > minV.unsqueeze(-1).unsqueeze(-1)
 
         return totalmean, totalminmean, farestX.long()

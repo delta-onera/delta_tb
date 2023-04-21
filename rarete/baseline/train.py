@@ -35,7 +35,7 @@ for i in range(nbbatchs):
     diffarealoss = totalmean1 + totalminmean1 + totalmean2 + totalminmean2
 
     samearealoss, total = 0, 0
-    for n in range(N):
+    for n in range(x1.shape[0]):
         for row in range(16):
             for col in range(16):
                 q = numpy.asarray([row * 16 + 8, col * 16 + 8, 1])
