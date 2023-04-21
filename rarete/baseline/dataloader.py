@@ -166,6 +166,13 @@ class RINET(torch.nn.Module):
 
         self.final = torch.nn.Conv2d(128, 128, kernel_size=1)
 
+        with torch.no_grad():
+            self.diag = torch.zeros(7, 14, 14, 14, 14).cuda()
+            for n in range(7):
+                for row in range(14):
+                    for col in range(14):
+                        self.diag[n][row][col][row][col] = 1000
+
     def forward(self, x):
         x = self.net((x - 0.5) * 2)
         return self.final(x)
@@ -179,7 +186,7 @@ class RINET(torch.nn.Module):
         subX = x[:, 1:-1, 1:-1, 1:-1, 1:-1]
         totalmean = subX.mean()
 
-        subX[:, :, :, torch.arange(H - 2)[:, None], torch.arange(W - 2)] = 1000
+        subX = subX + self.diag.clone()
         subX = subX.reshape(N, H - 2, W - 2, (H - 2) * (W - 2))
         subXmin, _ = subX.min(3)
         totalminmean = subXmin.mean()
@@ -188,7 +195,7 @@ class RINET(torch.nn.Module):
         Xmin[:, 1:-1, 1:-1] = subXmin
         minV, _ = torch.topk(Xmin.reshape(N, W * H), k=5, dim=1)
         minV, _ = minV.min(1)  # min5max
-        farestX = Xmin > minV.unsqueeze(-1).unsqueeze(-1)
+        farestX = Xmin >= minV.unsqueeze(-1).unsqueeze(-1)
 
         return totalmean, totalminmean, farestX.long()
 
