@@ -173,7 +173,7 @@ class RINET(torch.nn.Module):
     def distance(self, x):
         N, C, H, W = x.shape
         x = x[:, :, None, None, ...] - x[:, :, ..., None, None]
-        x = x_diff.abs().mean(dim=1)
+        x = x.abs().mean(dim=1)
         assert x.shape == (N, H, W, H, W)
 
         subX = x[:, 1:-1, 1:-1, 1:-1, 1:-1]
