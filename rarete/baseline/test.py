@@ -29,7 +29,7 @@ def drawrect(x, c, i=0):
 
 
 print("load data")
-dataset = dataloader.getstdtraindataloader()
+dataset = dataloader.getstdtestdataloader()
 
 print("define model")
 net = torch.load("build/model.pth")
@@ -41,7 +41,7 @@ print("test")
 dataset.start()
 
 totalmatch, goodmatch, perfectmatch = 0, 0, 0
-if True:
+for k in range(10):
     x1, x2, m12 = dataset.getBatch()
     z1, z2 = net(x1.cuda()), net(x2.cuda())
 
