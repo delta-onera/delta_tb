@@ -10,9 +10,9 @@ def drawrect(x, c, i=0):
     if i == 0:
         I = 0
     if i == 1:
-        I = 0
+        I = 1
     if i == 2:
-        I = 0
+        I = 2
     if i == 3:
         I = [0, 1]
     if i == 4:
@@ -68,11 +68,10 @@ if True:
                     # diff q and row_index, col_index
                     totalmatch += 1
                     i += 1
-                    if q[0] == row_index and q[1] == col_index:
-                        perfectmatch += 1
-                        goodmatch += 1
                     if (q[0] - row_index) ** 2 + (q[1] - col_index) ** 2 <= 4:
                         goodmatch += 1
+                    if q[0] == row_index and q[1] == col_index:
+                        perfectmatch += 1
 
         torchvision.utils.save_image(x1[n], "build/" + str(n) + "_1.png")
         torchvision.utils.save_image(x2[n], "build/" + str(n) + "_2.png")
