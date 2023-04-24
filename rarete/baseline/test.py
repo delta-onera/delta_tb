@@ -62,7 +62,7 @@ if True:
                     drawrect(x2[n], (row_index, col_index), i)
 
                     q = numpy.asarray([row * 16 + 8, col * 16 + 8, 1])
-                    q = numpy.dot(m12, q)
+                    q = numpy.dot(m12[n], q)
                     q = (int(q[0] / 16), int(q[1] / 16))
 
                     # diff q and row_index, col_index
