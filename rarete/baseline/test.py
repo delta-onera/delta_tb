@@ -29,7 +29,7 @@ def drawrect(x, c, i=0):
 
 
 print("load data")
-dataset = dataloader.getstdtestdataloader()
+dataset = dataloader.getstdtraindataloader()
 
 print("define model")
 net = torch.load("build/model.pth")
