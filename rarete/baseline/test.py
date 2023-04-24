@@ -67,6 +67,7 @@ if True:
 
                     # diff q and row_index, col_index
                     totalmatch += 1
+                    i += 1
                     if q[0] == row_index and q[1] == col_index:
                         perfectmatch += 1
                         goodmatch += 1
