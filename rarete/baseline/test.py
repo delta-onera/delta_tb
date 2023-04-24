@@ -56,9 +56,9 @@ if True:
 
                     diff = z2[n] - z1[n, :, row, col].unsqueeze(-1).unsqueeze(-1)
                     diff = (diff ** 2).sum(0)
-                    _, idx = torch.min(tensor.reshape(16 * 16), 0)
-                    row_index = idx // tensor.shape[1]
-                    col_index = idx % tensor.shape[1]
+                    _, idx = torch.min(diff.reshape(16 * 16), 0)
+                    row_index = idx // 16
+                    col_index = idx % 16
 
                     drawrect(x2[n], (row_index, col_index), i)
 
