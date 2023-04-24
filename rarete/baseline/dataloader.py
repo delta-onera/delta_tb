@@ -199,6 +199,11 @@ class RINET(torch.nn.Module):
 
         return totalmean, totalminmean, farestX.long()
 
+    def bidistance(self, z1, z2):
+        N, C, H, W = z1.shape
+        diff = z1[:, :, None, None, :, :] - z2[:, :, :, :, None, None]
+        return diff.abs().mean()
+
 
 if __name__ == "__main__":
     dataset = getstdtraindataloader()

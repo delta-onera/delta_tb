@@ -18,7 +18,7 @@ net.train()
 
 print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
-printloss = torch.zeros(4).cuda()
+printloss = torch.zeros(5).cuda()
 nbbatchs = 30000
 dataset.start()
 
@@ -33,6 +33,7 @@ for i in range(nbbatchs):
     totalmean1, totalminmean1, _ = net.distance(z1)
     totalmean2, totalminmean2, _ = net.distance(z2)
     diffarealoss = -totalmean1 - totalmean2 - totalminmean1 - totalminmean2
+    diffarealossbis = -net.bidistance(z1, z2)
 
     samearealoss, total = 0, 0
     for n in range(x1.shape[0]):
@@ -46,10 +47,10 @@ for i in range(nbbatchs):
                     samearealoss = samearealoss + (diff ** 2).mean()
                     total += 1
 
-    loss = boundloss + diffarealoss
+    loss = boundloss + diffarealoss + diffarealossbis
     if total > 0:
         samearealoss = samearealoss / total
-        loss = loss + samearealoss * 10
+        loss = loss + samearealoss * 30
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()
@@ -57,10 +58,11 @@ for i in range(nbbatchs):
         if total > 0:
             printloss[2] += samearealoss.clone().detach()
         printloss[3] += diffarealoss.clone().detach()
+        printloss[4] += diffarealossbis
 
         if i % 10 == 9:
             print(i, printloss.cpu() / 10)
-            printloss = torch.zeros(4).cuda()
+            printloss = torch.zeros(5).cuda()
         if i % 100 == 99:
             torch.save(net, "build/model.pth")
 
