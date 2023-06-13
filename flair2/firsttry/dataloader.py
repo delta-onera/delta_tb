@@ -1,20 +1,43 @@
-
 import os
 import json
 
-class FLAIR2:
-    def __init__(self,root="/scratchf/CHALLENGE_IGN/FLAIR_2/"):
-        with open(root+"flair-2_centroids_sp_to_patch.json") as fichier:
-            self.coords = json.load(fichier)
-        
-        self.allImages = {}
 
-        trainfolder = os.listdir(root+"flair_aerial_train/")
-        testfolder = os.listdir(root+"flair_2_aerial_test/")
-        assert not set(testfolder).intersection(set(trainfolder))
-        
-        print(testfolder)
+class FLAIR2:
+    def __init__(self, root="/scratchf/CHALLENGE_IGN/FLAIR_2/"):
+        self.allimages = {}
         self.root = root
+
+        with open(root + "flair-2_centroids_sp_to_patch.json") as fichier:
+            self.coords = json.load(fichier)
+
+        trainfolder = os.listdir(root + "flair_aerial_train/")
+        testfolder = os.listdir(root + "flair_2_aerial_test/")
+
+        trainsubfolder, testsubfolder = []
+        for folder in trainfolder:
+            subfolder = os.listdir(root + "flair_aerial_train/" + folder)
+            trainsubfolder += [(folder + "/" + sub) for sub in subfolder]
+        for folder in testfolder:
+            subfolder = os.listdir(root + "flair_2_aerial_test/" + folder)
+            testsubfolder += [(folder + "/" + sub) for sub in subfolder]
+
+        trainpaths, testpaths = [], []
+        for folder in trainsubfolder:
+            tmp = "flair_aerial_train/" + folder + "/"
+            l = os.listdir(root + tmp)
+            l = [(tmp + path) for path in l]
+            trainpaths += l
+        for folder in testfolder:
+            tmp = "flair_2_aerial_test/" + folder + "/"
+            subfolder = os.listdir(root + tmp)
+            for sub in subfolder:
+                enfin = os.listdir(root + tmp + subfolder + "/" + sub)
+                enfin = [(tmp + subfolder + "/" + sub + "/" + path) for path in enfin]
+                testpaths += enfin
+
+        for image in self.coords:
+            pass
+
 
 tmp = FLAIR2()
 quit()
