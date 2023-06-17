@@ -8,7 +8,7 @@ class FLAIR2:
         self.root = root
 
         with open(root + "flair-2_centroids_sp_to_patch.json") as fichier:
-            self.coords = json.load(fichier)
+            coords = json.load(fichier)
 
         trainfolder = os.listdir(root + "flair_aerial_train/")
         testfolder = os.listdir(root + "flair_2_aerial_test/")
@@ -25,18 +25,29 @@ class FLAIR2:
         for folder in trainsubfolder:
             tmp = "flair_aerial_train/" + folder + "/"
             l = os.listdir(root + tmp)
-            l = [(tmp + path) for path in l]
+            l = [(tmp + path,folder) for path in l]
             trainpaths += l
         for folder in testfolder:
             tmp = "flair_2_aerial_test/" + folder + "/"
-            subfolder = os.listdir(root + tmp)
-            for sub in subfolder:
-                enfin = os.listdir(root + tmp + subfolder + "/" + sub)
-                enfin = [(tmp + subfolder + "/" + sub + "/" + path) for path in enfin]
-                testpaths += enfin
+            l = os.listdir(root + tmp)
+            l = [(tmp + path,folder) for path in l]
+            testpaths += l
+            
 
-        for image in self.coords:
-            pass
+        for image in coords:
+            l = [s for s in trainpaths if image in s[0]]
+            ll = [s for s in testpaths if image in s[0]]
+            assert len(l)+len(ll)==1
+            self.allimages[image] = {}
+            if len(l)==1:
+                self.allimages[image]["train"]=True
+                self.allimages[image]["path"]=l[0][0]
+                self.allimages[image]["label"]= "flair_labels_train/D004_2021/Z10_AU/msk/MSK_"
+            else:
+                self.allimages[image]["train"]="False"
+                self.allimages[image]["path"]=ll[0][0]
+            self.allimages[image]["coord"]=coords[image]
+            
 
 
 tmp = FLAIR2()
