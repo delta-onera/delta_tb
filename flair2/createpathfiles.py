@@ -15,6 +15,16 @@ root = "/scratchf/CHALLENGE_IGN/FLAIR_2/"
 
 with open(root + "flair-2_centroids_sp_to_patch.json") as fichier:
     coords = json.load(fichier)
+
+    tmp = min([v[0] for (_,v) in coords.items()])
+    print(tmp)
+    tmp = min([v[1] for (_,v) in coords.items()])
+    print(tmp)
+    tmp = max([v[0] for (_,v) in coords.items()])
+    print(tmp)
+    tmp = max([v[1] for (_,v) in coords.items()])
+    print(tmp)
+
     coords = {key: coords[key] for key in sorted(coords.keys())}
 checkforget = set(coords.keys())
 
@@ -50,7 +60,7 @@ for tmp in coords:
 
 torch.save(trainpaths, root + "alltrainpaths.pth")
 
-# THE SAME WITH TEST !!!!!!!!
+print("THE SAME WITH TEST !!!!!!!!")
 trainpaths = {}
 trainfolder, trainsubfolder = os.listdir(root + "flair_2_aerial_test/"), []
 for folder in trainfolder:
