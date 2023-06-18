@@ -91,3 +91,5 @@ for tmp in coords:
 
 torch.save(trainpaths, root + "alltrainpaths.pth")
 print(len(trainpaths))
+
+# 77762 files consistently with the arvix paper but not to the coords file ??
