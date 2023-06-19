@@ -3,6 +3,8 @@ import numpy
 
 
 def compress(x):
+    print(x.flatten().max())
+    print(x.mean())
     print(x.shape)
     xm = x.flatten(2).mean(2)
     print(xm.shape)
@@ -10,8 +12,9 @@ def compress(x):
     print(x_.shape)
     xv = torch.sqrt(((x_.flatten(2)) ** 2).mean(2))
     x_ = x_ / (xv.unsqueeze(-1).unsqueeze(-1) + 0.001)
-    x_ = torch.clamp(x_, -3, 3)
-    x__ = x / (x.flatten().max())
+    x_ = torch.clamp(x_, -4, 4)
+    x__ = 4 * x / (x.flatten().max() + x.mean()) - 1
+    x__ = torch.clamp(x__, -2, 2)
     x = torch.cat([x_, x__], dim=1)
     print(x.shape)
 
@@ -20,9 +23,9 @@ def compress(x):
     D = ((tmp.unsqueeze(0) - tmp.unsqueeze(1)) ** 2).mean(2)
     print(D.shape)
 
-    T = [0, x.shape[0] // 2, x.shape[-1]]
+    T = [0, x.shape[-1]]
     print(T)
-    for t in range(19):
+    for t in range(8):
         d = D[T].transpose(0, 1)
         if t == 0:
             print(d.shape)
@@ -35,7 +38,7 @@ def compress(x):
         T.append(i)
 
     x = x[T]
-    assert x.shape[0:1] == (20, 20)
+    assert x.shape[0:1] == (10, 20)
     return x
 
 
