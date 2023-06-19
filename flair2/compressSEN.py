@@ -1,6 +1,5 @@
 import torch
 import numpy
-import os
 
 
 def compress(x):
@@ -36,7 +35,6 @@ for name in l:
     paths = torch.load(root + name)
     print(len(paths))
     for i in paths:
-        os.system("ls -la " + root + paths[i]["sen"])
         sentinel = numpy.load(root + paths[i]["sen"])
 
         sentinel = torch.Tensor(numpy.float32(sentinel)).cuda()
@@ -44,6 +42,6 @@ for name in l:
         sentinel = sentinel.cpu().numpy()
 
         numpy.save("/d/achanhon/tmp", sentinel)
-        # numpy.save(root + paths[i]["sen"], sentinel)
-        os.system("ls -la /d/achanhon/tmp.npy")
-        quit()
+        numpy.save(root + paths[i]["sen"], sentinel)
+
+print("GOOOOOOOOOOOD")
