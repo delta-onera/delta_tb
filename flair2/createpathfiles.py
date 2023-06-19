@@ -15,8 +15,6 @@ root = "/scratchf/CHALLENGE_IGN/FLAIR_2/"
 
 with open(root + "flair-2_centroids_sp_to_patch.json") as fichier:
     coords = json.load(fichier)
-    checkforget = set(coords.keys())
-
 print("nb coords", len(coords))
 
 print("TEST")
@@ -33,7 +31,6 @@ for tmp in coords:
         tmp = "flair_2_aerial_test/" + folder + "/img/IMG_"
         if os.path.exists(root + tmp + number6(num) + ".tif"):
             trainpaths[num] = {}
-            checkforget.remove("IMG_" + number6(num) + ".tif")
             trainpaths[num]["image"] = tmp + number6(num) + ".tif"
 
             tmp = "flair_2_sen_test/" + folder + "/sen/"
@@ -68,7 +65,6 @@ for tmp in coords:
         tmp = "flair_aerial_train/" + folder + "/img/IMG_"
         if os.path.exists(root + tmp + number6(num) + ".tif"):
             trainpaths[num] = {}
-            checkforget.remove("IMG_" + number6(num) + ".tif")
             trainpaths[num]["image"] = tmp + number6(num) + ".tif"
             tmp = "flair_labels_train/" + folder + "/msk/MSK_"
             trainpaths[num]["label"] = tmp + number6(num) + ".tif"
