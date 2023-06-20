@@ -7,6 +7,31 @@ import random
 from functools import lru_cache
 
 
+def confusion(y, z):
+    cm = torch.zeros(13, 13).cuda()
+    for a in range(13):
+        for b in range(13):
+            cm[a][b] = ((z == a).float() * (y == b).float()).sum()
+    return cm
+
+
+def perf(cm):
+    cmt = torch.transpose(cm, 0, 1)
+
+    accu = 0
+    for i in range(12):
+        accu += cm[i][i]
+    accu /= cm[0:12, 0:12].flatten().sum()
+
+    iou = 0
+    for i in range(12):
+        inter = cm[i][i]
+        union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 0)
+        iou += inter / union
+
+    return (iou / 12 * 100, accu * 100)
+
+
 @lru_cache
 def readSEN(path):
     return numpy.load(path)
@@ -49,7 +74,7 @@ class FLAIR2(threading.Thread):
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
-                y = torch.Tensor(numpy.clip(src.read(1), 0, 13))
+                y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
             return torch.Tensor(x), sen, y
         else:
             return torch.Tensor(x), sen
@@ -115,7 +140,7 @@ class MyNet(torch.nn.Module):
 
     def forward(self, x, s, keepEFF=False):
         x = ((x / 255) - 0.5) / 0.5
-        xm = torch.zeros(x.shape[0], 1, 512, 512)
+        xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
         if keepEFF:
             with torch.no_grad():
@@ -157,12 +182,11 @@ if __name__ == "__main__":
     os.system("/d/achanhon/miniconda3/bin/python -u train.py")
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
+    quit()
 
     net = MyNet()
     print(net(torch.rand(2, 5, 512, 512), torch.rand(2, 200, 40, 40)).shape)
     quit()
-
-    
 
     data = FLAIR2("train")
     data.start()
