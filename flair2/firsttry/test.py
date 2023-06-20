@@ -6,6 +6,14 @@ from PIL import Image
 
 assert torch.cuda.is_available()
 
+
+def number6(i):
+    s = str(i)
+    while len(s) < 6:
+        s = "0" + s
+    return s
+
+
 print("load model")
 net = torch.load("build/model.pth")
 net = net.cuda()
@@ -26,4 +34,4 @@ with torch.no_grad():
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
-        z.save("build/" + name, compression="tiff_lzw")
+        z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")

@@ -86,7 +86,7 @@ for i in range(nbbatchs):
             perf = dataloader.perf(stats)
             stats = torch.zeros((13, 13)).cuda()
             print(i, "perf", perf)
-            if perf[0] > 98:
+            if perf[0] > 80:
                 os._exit(0)
 
     if i > nbbatchs * 0.1:
