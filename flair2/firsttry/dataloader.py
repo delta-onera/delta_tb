@@ -80,6 +80,80 @@ class FLAIR2(threading.Thread):
 
 import torchvision
 
+
+class MyNet(torch.nn.Module):
+    def __init__(self):
+        super(MyNet, self).__init__()
+        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        with torch.no_grad():
+            old = tmp[0][0]
+            tmp[0][0] = torch.nn.Conv2d(
+                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        self.backbone = tmp
+
+        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+        self.compress = torch.nn.Conv2d(1280, 128, kernel_size=1)
+
+        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=3, group=20, padding=1)
+        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1, group=20)
+        self.conv3 = torch.nn.Conv2d(400, 200, kernel_size=3, group=20, padding=1)
+        self.conv4 = torch.nn.Conv2d(200, 128, kernel_size=3, padding=1)
+
+        self.conv5 = torch.nn.Conv2d(256, 256, kernel_size=1)
+        self.conv6 = torch.nn.Conv2d(384, 256, kernel_size=1)
+        self.conv7 = torch.nn.Conv2d(384, 256, kernel_size=1)
+        self.conv8 = torch.nn.Conv2d(384, 256, kernel_size=1)
+        self.classif = torch.nn.Conv2d(384, 13, kernel_size=1)
+
+        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
+
+    def applybackend(self, x):
+        x = self.backend[0](x)
+
+    def forward(self, x, s, keepEFF=False):
+        x = ((x / 255) - 0.5) / 0.5
+
+        if keepEFF:
+            with torch.no_grad():
+                for i in range(6):
+                    x = self.backbone[i](x)
+        else:
+            for i in range(6):
+                x = self.backbone[i](x)
+
+        plow = self.classiflow(x)
+
+        if keepEFF:
+            with torch.no_grad():
+                x = self.backbone[7](self.backbone[6](x))
+        else:
+            x = self.backbone[7](self.backbone[6](x))
+        x = torch.nn.functional.gelu(self.compress(x))
+        x = torch.nn.functional.interpolate(x, size=(40, 40), mode="bilinear")
+
+        s_ = self.conv1(s)
+        s = self.conv2(s)
+        s = self.lrelu(torch.cat([s_, s], dim=1))
+        s = self.lrelu(self.conv3(s))
+        s = self.lrelu(self.conv4(s))
+
+        s = torch.cat([s, x], dim=1)
+        s.self.lrelu(self.conv5(s))
+        s = torch.cat([s, x], dim=1)
+        s.self.lrelu(self.conv6(s))
+        s = torch.cat([s, x], dim=1)
+        s.self.lrelu(self.conv7(s))
+        s = torch.cat([s, x], dim=1)
+        s.self.lrelu(self.conv8(s))
+
+        p = self.classif(s)
+        p = p + plow * 0.5
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        return p
+
+
 if __name__ == "__main__":
     import os
 
