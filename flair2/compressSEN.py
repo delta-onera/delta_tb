@@ -24,24 +24,30 @@ def compress(x):
         i = d.argmax()
         T = sorted(T + [int(i)])
 
-    x = x[T]
-    assert x.shape[0:2] == (10, 20)
-    return x.half()
+    x = x[T].half()
+    if x.shape[0:2] == (10, 20):
+        return x
+    else:
+        print(x.shape)
 
 
 root = "/scratchf/CHALLENGE_IGN/FLAIR_2/"
 l = ["alltestpaths.pth", "alltrainpaths.pth"]
+done = set()
 for name in l:
     paths = torch.load(root + name)
     print(len(paths))
     for i in paths:
+        if paths[i]["sen"] in done:
+            continue
+        print(paths[i]["sen"])
+        done.add(paths[i]["sen"])
         sentinel = numpy.load(root + paths[i]["sen"])
 
         sentinel = torch.Tensor(numpy.float32(sentinel)).cuda()
         sentinel = compress(sentinel)
         sentinel = sentinel.cpu().numpy()
 
-        numpy.save("/d/achanhon/tmp", sentinel)
         numpy.save(root + paths[i]["sen"], sentinel)
 
 print("GOOOOOOOOOOOD")
