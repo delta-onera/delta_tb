@@ -150,11 +150,19 @@ class MyNet(torch.nn.Module):
 
 
 if __name__ == "__main__":
+    import os
+
+    os.system("rm -rf build")
+    os.system("mkdir build")
+    os.system("/d/achanhon/miniconda3/bin/python -u train.py")
+    os.system("/d/achanhon/miniconda3/bin/python -u val.py")
+    os.system("/d/achanhon/miniconda3/bin/python -u test.py")
+
     net = MyNet()
     print(net(torch.rand(2, 5, 512, 512), torch.rand(2, 200, 40, 40)).shape)
     quit()
 
-    import os
+    
 
     data = FLAIR2("train")
     data.start()
