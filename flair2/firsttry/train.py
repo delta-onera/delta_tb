@@ -56,7 +56,10 @@ nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    x, s, y = dataset.getBatch()
+    if 2 * i < nbbatchs:
+        x, s, y = dataset.getBatch(16)
+    else:
+        x, s, y = dataset.getBatch(8)
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
     z = net(x, s, keepEFF=(2 * i < nbbatchs))

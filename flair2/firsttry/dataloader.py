@@ -38,7 +38,7 @@ def readSEN(path):
 
 
 class FLAIR2(threading.Thread):
-    def __init__(self, flag="test", root="/scratchf/CHALLENGE_IGN/FLAIR_2/"):
+    def __init__(self, flag="test", root="/d/achanhon/FLAIR_2/"):
         threading.Thread.__init__(self)
         assert flag in ["train", "val", "trainval", "test"]
         self.root = root
