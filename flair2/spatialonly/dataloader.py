@@ -119,16 +119,15 @@ import torchvision
 class MyNetSpatial(torch.nn.Module):
     def __init__(self):
         super(MyNetSpatial, self).__init__()
-        tmp = DeepLabV3_MobileNet_V3_Large_Weights.COCO_WITH_VOC_LABELS_V1
+        self.f = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large()
         with torch.no_grad():
-            old = tmp[0][0].weight / 2
-            tmp[0][0] = torch.nn.Conv2d(
-                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            old = self.f.backbone["0"][0].weight / 2
+            self.f.backbone["0"][0] = torch.nn.Conv2d(
+                6, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
-            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
-        del tmp[7]
-        del tmp[6]
-        self.backbone = tmp
+            self.f[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        
+            old = self.f.classifier[4]
         self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
 
         self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
