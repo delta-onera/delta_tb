@@ -56,13 +56,15 @@ nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    if 2 * i < nbbatchs:
-        x, s, y = dataset.getBatch(16)
+    if 30000 < i < 90000:
+        x, s, y = dataset.getBatch(6)
+        keep = False
     else:
-        x, s, y = dataset.getBatch(8)
+        x, s, y = dataset.getBatch(16)
+        keep = True
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-    z = net(x, s, keepEFF=(2 * i < nbbatchs))
+    z = net(x, s, keepEFF=keep)
 
     dice = diceloss(y, z)
     ce = crossentropy(y, z)
@@ -89,7 +91,7 @@ for i in range(nbbatchs):
             perf = dataloader.perf(stats)
             stats = torch.zeros((13, 13)).cuda()
             print(i, "perf", perf)
-            if perf[0] > 70:
+            if perf[0] > 90:
                 os._exit(0)
 
     if i > nbbatchs * 0.1:
