@@ -109,37 +109,40 @@ import torchvision
 class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
-        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        tmp = torchvision.models.efficientnet_b1(
+            weights=torchvision.models.EfficientNet_B1_Weights.IMAGENET1K_V2
+        ).features
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
-                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+                6, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        del tmp[8]
         del tmp[7]
         del tmp[6]
         self.backbone = tmp
-        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(112, 13, kernel_size=1)
 
-        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv7 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv8 = torch.nn.Conv2d(200, 160, kernel_size=1)
+        self.conv1 = torch.nn.Conv2d(200, 180, kernel_size=3, groups=20)
+        self.conv2 = torch.nn.Conv2d(180, 160, kernel_size=3, groups=20)
+        self.conv3 = torch.nn.Conv2d(160, 140, kernel_size=3, groups=20)
+        self.conv4 = torch.nn.Conv2d(140, 120, kernel_size=3, groups=20)
+        self.conv5 = torch.nn.Conv2d(120, 112, kernel_size=1)
+        self.conv6 = torch.nn.Conv2d(112, 112, kernel_size=1)
+        self.conv7 = torch.nn.Conv2d(112, 112, kernel_size=1)
+        self.conv8 = torch.nn.Conv2d(112, 112, kernel_size=1)
 
-        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
-        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
-        self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge4 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
+        self.merge1 = torch.nn.Conv2d(224, 112, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(224, 112, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(224, 112, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(224, 112, kernel_size=1)
+        self.classif = torch.nn.Conv2d(224, 13, kernel_size=1)
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
 
     def forward(self, x, s, keepEFF=False):
-        x = ((x / 255) - 0.5) / 0.5
+        x = ((x / 255) - 0.5) / 0.25
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
         if keepEFF:
