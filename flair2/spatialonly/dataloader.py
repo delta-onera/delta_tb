@@ -8,9 +8,9 @@ from functools import lru_cache
 
 
 def confusion(y, z):
-    cm = torch.zeros(13, 13).cuda()
-    for a in range(13):
-        for b in range(13):
+    cm = torch.zeros(2, 2).cuda()
+    for a in range(2):
+        for b in range(2):
             cm[a][b] = ((z == a).float() * (y == b).float()).sum()
     return cm
 
@@ -19,17 +19,17 @@ def perf(cm):
     cmt = torch.transpose(cm, 0, 1)
 
     accu = 0
-    for i in range(12):
+    for i in range(2):
         accu += cm[i][i]
-    accu /= cm[0:12, 0:12].flatten().sum()
+    accu /= cm[0:2, 0:2].flatten().sum()
 
     iou = 0
-    for i in range(12):
+    for i in range(2):
         inter = cm[i][i]
         union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 0)
         iou += inter / union
 
-    return (iou / 12 * 100, accu * 100)
+    return (iou / 2 * 100, accu * 100)
 
 
 @lru_cache
@@ -51,9 +51,9 @@ class FLAIR2(threading.Thread):
 
         tmp = sorted(self.paths.keys())
         if flag == "train":
-            tmp = [k for (i, k) in enumerate(tmp) if i % 3 != 0]
+            tmp = [k for (i, k) in enumerate(tmp) if i % 4 != 0]
         if flag == "val":
-            tmp = [k for (i, k) in enumerate(tmp) if i % 3 == 0]
+            tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
         self.paths = {k: self.paths[k] for k in tmp}
 
     def get(self, k):
@@ -74,7 +74,17 @@ class FLAIR2(threading.Thread):
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
-                y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
+                y = torch.Tensor(numpy.clip(src.read(1), 1, 13))
+
+                yMAX = y.unsqueeze(0)
+                yMAX = torch.nn.functional.max_pool2d(yMAX,kernel_size=3,padding=1,stride=1)
+                yMIN = 14-y.unsqueeze(0)
+                yMIN = torch.nn.functional.max_pool2d(yMIN,kernel_size=3,padding=1,stride=1)
+                yMIN = 14-yMIN
+
+                y = (yMIN!=yMAX)[0]
+                # y = torch.nn.functional.max_pool2d(y,kernel_size=3,padding=1,stride=1)
+
             return torch.Tensor(x), sen, y
         else:
             return torch.Tensor(x), sen
@@ -106,10 +116,10 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
-class MyNet(torch.nn.Module):
+class MyNetSpatial(torch.nn.Module):
     def __init__(self):
-        super(MyNet, self).__init__()
-        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        super(MyNetSpatial, self).__init__()
+        tmp = DeepLabV3_MobileNet_V3_Large_Weights.COCO_WITH_VOC_LABELS_V1
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
