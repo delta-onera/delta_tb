@@ -138,7 +138,7 @@ class MyNet(torch.nn.Module):
 
         self.spatial = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large()
         with torch.no_grad():
-            old = self.f.backbone["0"][0].weight / 2
+            old = self.spatial.backbone["0"][0].weight / 2
             self.spatial.backbone["0"][0] = torch.nn.Conv2d(
                 6, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
