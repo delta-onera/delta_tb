@@ -142,7 +142,9 @@ class MyNet(torch.nn.Module):
             self.spatial.backbone["0"][0] = torch.nn.Conv2d(
                 6, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
             )
-            self.f[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+            self.spatial.backbone["0"][0].weight = torch.nn.Parameter(
+                torch.cat([old, old], dim=1)
+            )
 
             self.spatial.classifier[4] = torch.nn.Identity()
         self.classifierhigh = torch.nn.Conv2d(256, 13, kernel_size=(1, 1))
@@ -155,11 +157,12 @@ class MyNet(torch.nn.Module):
         x = torch.cat([x, xm], dim=1)
         if keepEFF:
             with torch.no_grad():
-                x = self.backbone(x)
                 hr = self.spatial(2 * x)["out"]
+                x = self.backbone(x)
         else:
-            x = self.backbone(x)
             hr = self.spatial(2 * x)["out"]
+            x = self.backbone(x)
+
         plow = self.classiflow(x)
         phigh = self.classifierhigh(hr)
 
