@@ -18,7 +18,8 @@ with torch.no_grad():
         x, s, y = dataset.get(name)
         x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0))
+        P = net(x.unsqueeze(0), s.unsqueeze(0))
+        z = net.merge(P)
         _, z = z[0].max(0)
         stats += dataloader.confusion(y, z)
 

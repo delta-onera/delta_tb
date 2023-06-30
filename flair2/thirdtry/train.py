@@ -13,6 +13,11 @@ print("load data")
 dataset = dataloader.FLAIR2("train")
 
 
+def crossentropy2(y, z):
+    tmp = torch.nn.CrossEntropyLoss()
+    return tmp(z, y.long())
+
+
 def crossentropy(y, z):
     class_weights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0]
     tmp = torch.nn.CrossEntropyLoss(weight=torch.Tensor(class_weights).cuda())
@@ -47,7 +52,7 @@ def diceloss(y, z):
     return alldice.mean()
 
 
-print("train")
+print("train backbone")
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(3).cuda()
@@ -56,15 +61,10 @@ nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    if 30000 < i < 90000:
-        x, s, y = dataset.getBatch(4)
-        keep = False
-    else:
-        x, s, y = dataset.getBatch(13)
-        keep = True
+    x, s, y = dataset.getBatch(4)
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-    z = net(x, s, keepEFF=keep)
+    p = net(x, s, nohead=True)
 
     dice = diceloss(y, z)
     ce = crossentropy(y, z)
@@ -93,6 +93,53 @@ for i in range(nbbatchs):
             print(i, "perf", perf)
             if perf[0] > 90:
                 os._exit(0)
+
+    if i > nbbatchs * 0.1:
+        loss = loss * 0.7
+    if i > nbbatchs * 0.2:
+        loss = loss * 0.7
+    if i > nbbatchs * 0.5:
+        loss = loss * 0.7
+    if i > nbbatchs * 0.8:
+        loss = loss * 0.7
+
+    optimizer.zero_grad()
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+    optimizer.step()
+
+print("train head")
+
+optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+printloss = torch.zeros(13).cuda()
+stats = torch.zeros(13, (2, 2)).cuda()
+nbbatchs = 50000
+
+for i in range(nbbatchs):
+    x, s, y = dataset.getBatch(11)
+    x, s, y = x.cuda(), s.cuda(), y.cuda()
+
+    P = net(x, s)
+
+    loss = torch.zeros(12).cuda()
+    for j in range(12):
+        yj = (y == j).float()
+        loss[j] = diceloss(yj, P[j], 0) + crossentropy2(yj, P[j])
+
+    with torch.no_grad():
+        printloss += loss.clone().detach()
+
+        if i < 10:
+            print(i, "/", nbbatchs, printloss.sum(), printloss)
+        if i < 1000 and i % 100 == 99:
+            print(i, "/", nbbatchs, printloss.sum() / 100, printloss / 100)
+            printloss = torch.zeros(12).cuda()
+        if i >= 1000 and i % 300 == 299:
+            print(i, "/", nbbatchs, printloss.sum() / 300, printloss / 300)
+            printloss = torch.zeros(12).cuda()
+
+        if i % 1000 == 999:
+            torch.save(net, "build/model.pth")
 
     if i > nbbatchs * 0.1:
         loss = loss * 0.7
