@@ -8,28 +8,26 @@ from functools import lru_cache
 
 
 def confusion(y, z):
-    cm = torch.zeros(2, 2).cuda()
-    for a in range(2):
-        for b in range(2):
+    cm = torch.zeros(13, 13).cuda()
+    for a in range(13):
+        for b in range(13):
             cm[a][b] = ((z == a).float() * (y == b).float()).sum()
     return cm
 
 
 def perf(cm):
-    cmt = torch.transpose(cm, 0, 1)
-
     accu = 0
-    for i in range(2):
+    for i in range(12):
         accu += cm[i][i]
-    accu /= cm[0:2, 0:2].flatten().sum()
+    accu /= cm[0:12, 0:12].flatten().sum()
 
     iou = 0
-    for i in range(2):
+    for i in range(12):
         inter = cm[i][i]
-        union = cm[i].sum() + cmt[i].sum() - cm[i][i] + (cm[i][i] == 0)
+        union = cm[i].sum() + (cm[:, i]).sum() - cm[i][i] + (cm[i][i] == 0)
         iou += inter / union
 
-    return (iou / 2 * 100, accu * 100)
+    return (iou / 12 * 100, accu * 100)
 
 
 @lru_cache
@@ -38,7 +36,7 @@ def readSEN(path):
 
 
 class FLAIR2(threading.Thread):
-    def __init__(self, flag="test", target = -1, root="/d/achanhon/FLAIR_2/"):
+    def __init__(self, flag="test", root="/d/achanhon/FLAIR_2/"):
         threading.Thread.__init__(self)
         assert flag in ["train", "val", "trainval", "test"]
         self.root = root
@@ -55,8 +53,6 @@ class FLAIR2(threading.Thread):
         if flag == "val":
             tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
         self.paths = {k: self.paths[k] for k in tmp}
-
-        self.target = target
 
     def get(self, k):
         assert k in self.paths
@@ -77,8 +73,6 @@ class FLAIR2(threading.Thread):
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
                 y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
-            if self.target!=-1:
-                y = (y==self.target).float()
             return torch.Tensor(x), sen, y
         else:
             return torch.Tensor(x), sen
@@ -110,6 +104,45 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
+class SentinelNet(torch.nn.Module):
+    def __init__(self):
+        super(SentinelNet, self).__init__()
+
+        self.conv1 = torch.nn.Conv2d(200, 160, kernel_size=5)
+        self.conv2 = torch.nn.Conv2d(160, 160, kernel_size=3)
+        self.conv3 = torch.nn.Conv2d(160, 160, kernel_size=3)
+        self.conv4 = torch.nn.Conv2d(160, 160, kernel_size=1)
+        self.conv5 = torch.nn.Conv2d(160, 160, kernel_size=1)
+
+        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(320, 160, kernel_size=1)
+        self.classif = torch.nn.Conv2d(320, 2, kernel_size=1)
+
+        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
+
+    def forward(self, x, s):
+        s = self.lrelu(self.conv1(s))
+        s = self.lrelu(self.conv2(s))
+        s = self.lrelu(self.conv3(s))
+        s = self.lrelu(self.conv4(s))
+        s = self.lrelu(self.conv5(s))
+
+        s = torch.cat([s, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge1(s))
+        s = torch.cat([s, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge2(s))
+        s = torch.cat([s, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge3(s))
+        s = torch.cat([s, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge4(s))
+        s = torch.cat([s, x], dim=1)
+
+        p = self.classif(s)
+        return torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+
 class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
@@ -123,58 +156,61 @@ class MyNet(torch.nn.Module):
         del tmp[7]
         del tmp[6]
         self.backbone = tmp
-        self.classiflow = torch.nn.Conv2d(160, 2, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
 
-        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv7 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv8 = torch.nn.Conv2d(200, 160, kernel_size=1)
+        self.spatial = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large()
+        with torch.no_grad():
+            old = self.spatial.backbone["0"][0].weight / 2
+            self.spatial.backbone["0"][0] = torch.nn.Conv2d(
+                6, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            self.spatial.backbone["0"][0].weight = torch.nn.Parameter(
+                torch.cat([old, old], dim=1)
+            )
+        self.spatial.classifier[4] = torch.nn.Identity()
+        self.classifierhigh = torch.nn.Conv2d(256, 13, kernel_size=(1, 1))
 
-        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
-        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
-        self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge4 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.classif = torch.nn.Conv2d(320, 2, kernel_size=1)
+        heads = torch.nn.ModuleDict()
+        for i in range(12):
+            heads[i] = SentinelNet()
+        self.w = torch.ones(13).cuda()
 
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
-
-    def forward(self, x, s, keepEFF=False):
+    def forward(self, x, s, nohead=False):
         x = ((x / 255) - 0.5) / 0.5
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
-        if keepEFF:
-            with torch.no_grad():
-                x = self.backbone(x)
-        else:
+        if nohead:
+            hr = self.spatial(2 * x)["out"]
+            phigh = self.classifierhigh(hr)
             x = self.backbone(x)
-        plow = self.classiflow(x)
+            plow = self.classiflow(x)
+            plow = torch.nn.functional.interpolate(
+                plow, size=(512, 512), mode="bilinear"
+            )
+            return plow + phigh
 
-        s = self.lrelu(self.conv1(s))
-        s = self.lrelu(self.conv2(s))
-        s = self.lrelu(self.conv3(s))
-        s = self.lrelu(self.conv4(s))
-        s = self.lrelu(self.conv5(s))
-        s = self.lrelu(self.conv6(s))
-        s = self.lrelu(self.conv7(s))
-        s = self.lrelu(self.conv8(s))
+        # else
+        with torch.no_grad():
+            hr = self.spatial(2 * x)["out"]
+            phigh = self.classifierhigh(hr)
+            x = self.backbone(x)
+            plow = self.classiflow(x)
+            plow = torch.nn.functional.interpolate(
+                plow, size=(512, 512), mode="bilinear"
+            )
 
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge1(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge2(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge3(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge4(s))
-        s = torch.cat([s, x], dim=1)
+        P = {}
+        for i in range(12):
+            P[i] = self.heads[i](x, s)
+        P["low"] = plow
+        P["high"] = phigh
+        return P
 
-        p = self.classif(s)
-        p = p + plow * 0.5
-        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+    def merge(self, P):
+        p = torch.nn.functional.softmax(P["low"] + P["high"], dim=1) * self.w[-1]
+        for i in range(12):
+            P[i] = torch.nn.functional.softmax(P[i], dim=1)
+            p[i] = p[i] + P[i][1] * self.w[i]
         return p
 
 
@@ -187,18 +223,3 @@ if __name__ == "__main__":
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
     quit()
-
-    net = MyNet()
-    print(net(torch.rand(2, 5, 512, 512), torch.rand(2, 200, 40, 40)).shape)
-    quit()
-
-    data = FLAIR2("train")
-    data.start()
-    x, s, y = data.getBatch()
-    y = y[0] / 13
-    x = x[0, 3, :, :] / 255
-    s = s[0, 3, :, :] / 4
-    torchvision.utils.save_image(x, "build/x.png")
-    torchvision.utils.save_image(y, "build/y.png")
-    torchvision.utils.save_image(s, "build/s.png")
-    os._exit(0)
