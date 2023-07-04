@@ -26,10 +26,10 @@ print("test")
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for name in dataset.paths:
-        x, s = dataset.get(name)
-        x, s = x.cuda(), s.cuda()
+        x, _ = dataset.get(name)
+        x = x.cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0))
+        z = net(x.unsqueeze(0))
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))

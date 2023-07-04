@@ -121,51 +121,15 @@ class MyNet(torch.nn.Module):
         self.backbone = tmp
         self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
 
-        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
-        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
-        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 160, kernel_size=1)
-
-        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
-
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
-
-    def forward(self, x, s, keepEFF=False):
+    def forward(self, x):
         x = ((x / 255) - 0.5) / 0.5
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
-        if keepEFF:
-            with torch.no_grad():
-                x = self.backbone(x)
-        else:
-            x = self.backbone(x)
+        x = self.backbone(x)
+        
         plow = self.classiflow(x)
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
-        x = torch.nn.functional.interpolate(x, size=(40, 40), mode="bilinear")
-
-        s = self.lrelu(self.conv1(s))
-        s = self.lrelu(self.conv2(s))
-        s = self.lrelu(self.conv3(s))
-        s = self.lrelu(self.conv4(s))
-        s = self.lrelu(self.conv5(s))
-        s = self.lrelu(self.conv6(s))
-
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge1(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge2(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge3(s))
-        s = torch.cat([s, x], dim=1)
-
-        p = self.classif(s)
-        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p + 0.5 * plow
+        return plow
 
 
 if __name__ == "__main__":
