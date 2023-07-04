@@ -57,10 +57,10 @@ dataset.start()
 
 for i in range(nbbatchs):
     if 30000 < i < 90000:
-        x, s, y = dataset.getBatch(4)
+        x, s, y = dataset.getBatch(6)
         keep = False
     else:
-        x, s, y = dataset.getBatch(13)
+        x, s, y = dataset.getBatch(16)
         keep = True
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
