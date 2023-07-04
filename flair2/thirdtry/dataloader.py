@@ -110,6 +110,12 @@ class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        # 3,512,512
+        # tmp[1](tmp[0](x)) ->24,256,256
+        # tmp[2](tmp[1](tmp[0]))) ->48,128,128
+        # tmp[3](tmp[2](tmp[1](tmp[0])))) ->64,64,64
+        # tmp[4](tmp[3](tmp[2](tmp[1](tmp[0]))))) ->128,32,32
+
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
@@ -133,19 +139,6 @@ class MyNet(torch.nn.Module):
         self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
         self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
 
-        self.spatial = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large()
-        with torch.no_grad():
-            old = self.spatial.backbone["0"][0].weight / 2
-            self.spatial.backbone["0"][0] = torch.nn.Conv2d(
-                6, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
-            )
-            self.spatial.backbone["0"][0].weight = torch.nn.Parameter(
-                torch.cat([old, old], dim=1)
-            )
-
-            self.spatial.classifier[4] = torch.nn.Identity()
-        self.classifierhigh = torch.nn.Conv2d(256, 13, kernel_size=(1, 1))
-
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
 
     def forward(self, x, s, keepEFF=False):
@@ -155,16 +148,16 @@ class MyNet(torch.nn.Module):
 
         if keepEFF:
             with torch.no_grad():
-                hr = self.spatial(2 * x)["out"]
-                x = self.backbone(x)
+                hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
+                x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
         else:
-            hr = self.spatial(2 * x)["out"]
-            x = self.backbone(x)
+            hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
+            x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
 
-        phigh = self.classifierhigh(hr)
         plow = self.classiflow(x)
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
         x = torch.nn.functional.interpolate(x, size=(40, 40), mode="bilinear")
+        hr = 
 
         s = self.lrelu(self.conv1(s))
         s = self.lrelu(self.conv2(s))
@@ -179,11 +172,18 @@ class MyNet(torch.nn.Module):
         s = torch.nn.functional.gelu(self.merge2(s))
         s = torch.cat([s, x], dim=1)
         s = torch.nn.functional.gelu(self.merge3(s))
-        s = torch.cat([s, x], dim=1)
+        x = torch.cat([s, x], dim=1)
+
+        x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        hr = torch.cat([hr, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge1(s))
+        hr = torch.cat([hr, x], dim=1)
+        s = torch.nn.functional.gelu(self.merge2(s))
+
 
         p = self.classif(s)
-        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p + 0.5 * plow + 0.5 * phigh
+        p = torch.nn.functional.interpolate(p, size=(128, 128), mode="bilinear")
+        return p + 0.5 * plow
 
 
 if __name__ == "__main__":
