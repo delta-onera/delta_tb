@@ -110,12 +110,6 @@ class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-        # 3,512,512
-        # tmp[1](tmp[0](x)) ->24,256,256
-        # tmp[2](tmp[1](tmp[0]))) ->48,128,128
-        # tmp[3](tmp[2](tmp[1](tmp[0])))) ->64,64,64
-        # tmp[4](tmp[3](tmp[2](tmp[1](tmp[0]))))) ->128,32,32
-
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
@@ -125,21 +119,22 @@ class MyNet(torch.nn.Module):
         del tmp[7]
         del tmp[6]
         self.backbone = tmp
+
         self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+        self.convHR = torch.nn.Conv2d(48, 48, kernel_size=1)
+        self.convHRbis = torch.nn.Conv2d(48, 48, kernel_size=1)
 
         self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
         self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
         self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
         self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
-        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 160, kernel_size=1)
+        self.conv5 = torch.nn.Conv2d(200, 96, kernel_size=1)
 
-        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
-
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
+        self.merge1 = torch.nn.Conv2d(304, 48, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(400, 128, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.merge4 = torch.nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(128, 13, kernel_size=1)
 
     def forward(self, x, s, keepEFF=False):
         x = ((x / 255) - 0.5) / 0.5
@@ -155,34 +150,27 @@ class MyNet(torch.nn.Module):
             x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
 
         plow = self.classiflow(x)
+        hrbis = torch.nn.functional.gelu(self.convHR(hr))
+        hr = torch.nn.functional.gelu(self.convHR(hr))
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
-        x = torch.nn.functional.interpolate(x, size=(40, 40), mode="bilinear")
-        hr = 
-
-        s = self.lrelu(self.conv1(s))
-        s = self.lrelu(self.conv2(s))
-        s = self.lrelu(self.conv3(s))
-        s = self.lrelu(self.conv4(s))
-        s = self.lrelu(self.conv5(s))
-        s = self.lrelu(self.conv6(s))
-
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge1(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge2(s))
-        s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge3(s))
-        x = torch.cat([s, x], dim=1)
-
         x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
-        hr = torch.cat([hr, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge1(s))
-        hr = torch.cat([hr, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge2(s))
 
+        s = torch.nn.functional.gelu(self.conv1(s))
+        s = torch.nn.functional.gelu(self.conv2(s))
+        s = torch.nn.functional.gelu(self.conv3(s))
+        s = torch.nn.functional.gelu(self.conv4(s))
+        s = torch.nn.functional.gelu(self.conv5(s))
+        s = torch.nn.functional.interpolate(s, size=(128, 128), mode="bilinear")
 
+        sxhr = torch.cat([s, x, hr], dim=1)
+        sxhr = torch.nn.functional.gelu(self.merge1(sxhr))
+        tmp = sxhr * (sxhr < 1).float() + ((sxhr - 1) / 10 + 1) * (sxhr > 1).float()
+        sxhr = torch.cat([s, x, hr, hrbis * tmp, sxhr], dim=1)
+        sxhr = torch.nn.functional.gelu(self.merge2(sxhr))
+        sxhr = torch.nn.functional.gelu(self.merge3(sxhr))
+        sxhr = torch.nn.functional.gelu(self.merge4(sxhr))
         p = self.classif(s)
-        p = torch.nn.functional.interpolate(p, size=(128, 128), mode="bilinear")
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
         return p + 0.5 * plow
 
 
