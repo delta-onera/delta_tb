@@ -64,7 +64,7 @@ class FLAIR2(threading.Thread):
             b = numpy.clip(src.read(3), 0, 255)
             i = numpy.clip(src.read(4), 0, 255)
             e = numpy.clip(src.read(5), 0, 255)
-            x = numpy.stack([r, g, b, i, e], axis=0) * 255
+            x = numpy.stack([r, g, b, i, e], axis=0)
 
         sentinel = readSEN(self.root + self.paths[k]["sen"])
         assert sentinel.shape[0:2] == (10, 20)
@@ -121,19 +121,16 @@ class MyNet(torch.nn.Module):
         self.backbone = tmp
         self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
 
-        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
-        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, groups=20)
+        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
+        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
         self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv7 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv8 = torch.nn.Conv2d(200, 160, kernel_size=1)
+        self.conv6 = torch.nn.Conv2d(200, 160, kernel_size=1)
 
-        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
-        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1, groups=8)
+        self.merge1 = torch.nn.Conv2d(320, 160, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(320, 160, kernel_size=1)
         self.merge3 = torch.nn.Conv2d(320, 160, kernel_size=1)
-        self.merge4 = torch.nn.Conv2d(320, 160, kernel_size=1)
         self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
@@ -148,6 +145,8 @@ class MyNet(torch.nn.Module):
         else:
             x = self.backbone(x)
         plow = self.classiflow(x)
+        plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
+        x = torch.nn.functional.interpolate(x, size=(40, 40), mode="bilinear")
 
         s = self.lrelu(self.conv1(s))
         s = self.lrelu(self.conv2(s))
@@ -155,8 +154,6 @@ class MyNet(torch.nn.Module):
         s = self.lrelu(self.conv4(s))
         s = self.lrelu(self.conv5(s))
         s = self.lrelu(self.conv6(s))
-        s = self.lrelu(self.conv7(s))
-        s = self.lrelu(self.conv8(s))
 
         s = torch.cat([s, x], dim=1)
         s = torch.nn.functional.gelu(self.merge1(s))
@@ -165,13 +162,10 @@ class MyNet(torch.nn.Module):
         s = torch.cat([s, x], dim=1)
         s = torch.nn.functional.gelu(self.merge3(s))
         s = torch.cat([s, x], dim=1)
-        s = torch.nn.functional.gelu(self.merge4(s))
-        s = torch.cat([s, x], dim=1)
 
         p = self.classif(s)
-        p = p + plow * 0.5
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p
+        return p + 0.5 * plow
 
 
 if __name__ == "__main__":
