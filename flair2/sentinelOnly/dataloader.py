@@ -128,7 +128,7 @@ class MyNet(torch.nn.Module):
 
         p = self.classif(s)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p, s
+        return p
 
 
 if __name__ == "__main__":
