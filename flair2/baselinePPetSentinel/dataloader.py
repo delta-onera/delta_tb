@@ -106,9 +106,9 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
-class MyNet(torch.nn.Module):
+class Baseline(torch.nn.Module):
     def __init__(self):
-        super(MyNet, self).__init__()
+        super(Baseline, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
         with torch.no_grad():
             old = tmp[0][0].weight / 2
@@ -147,7 +147,80 @@ class MyNet(torch.nn.Module):
         p = self.classif(hr)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
-        return p + 0.2 * plow
+        return p + 0.2 * plow, hr
+
+
+class Sentinel(torch.nn.Module):
+    def __init__(self):
+        super(Sentinel, self).__init__()
+        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
+        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
+        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.conv6 = torch.nn.Conv2d(200, 320, kernel_size=1)
+
+        self.merge1 = torch.nn.Conv2d(320, 320, kernel_size=3, padding=1)
+        self.merge2 = torch.nn.Conv2d(320, 320, kernel_size=3, padding=1)
+        self.merge3 = torch.nn.Conv2d(320, 320, kernel_size=1)
+        self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
+
+        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
+
+    def forward(self, s):
+        s = self.lrelu(self.conv1(s))
+        s = self.lrelu(self.conv2(s))
+        s = self.lrelu(self.conv3(s))
+        s = self.lrelu(self.conv4(s))
+        s = self.lrelu(self.conv5(s))
+        s = self.lrelu(self.conv6(s))
+
+        s = torch.nn.functional.gelu(self.merge1(s))
+        s = torch.nn.functional.gelu(self.merge2(s))
+        s = torch.nn.functional.gelu(self.merge3(s))
+
+        p = self.classif(s)
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        return p, s
+
+
+class MyNet(torch.nn.Module):
+    def __init__(self, baseline, sentinel):
+        super(MyNet, self).__init__()
+        self.baseline = torch.load(baseline)
+        self.sentinel = torch.load(sentinel)
+
+        self.compress = torch.nn.Conv2d(320, 64, kernel_size=1)
+
+        self.merge1 = torch.nn.Conv2d(320, 64, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(384, 64, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(384, 256, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.merge5 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
+
+    def forward(self, x, s):
+        with torch.no_grad():
+            px, hr = self.baseline(x)
+            ps, fs = self.sentinel(s)
+
+        fs = self.compress(fs)
+        fs = torch.nn.functional.interpolate(fs, size=(128, 128), mode="bilinear")
+
+        xs = torch.cat([hr, fs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge1(xs))
+        xs = torch.cat([hr, fs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge2(xs))
+        xs = torch.cat([hr, fs * xs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge3(xs))
+        xs = torch.cat([hr * xs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge4(xs))
+        xs = torch.nn.functional.gelu(self.merge5(xs))
+
+        p = self.classif(xs)
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+        return p + px * 0.5 + ps * 0.1
 
 
 if __name__ == "__main__":
