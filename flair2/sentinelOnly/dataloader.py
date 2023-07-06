@@ -106,9 +106,53 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
-class MyNet(torch.nn.Module):
+class Baseline(torch.nn.Module):
     def __init__(self):
-        super(MyNet, self).__init__()
+        super(Baseline, self).__init__()
+        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        with torch.no_grad():
+            old = tmp[0][0].weight / 2
+            tmp[0][0] = torch.nn.Conv2d(
+                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        del tmp[7]
+        del tmp[6]
+        self.backbone = tmp
+        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+
+        self.decod1 = torch.nn.Conv2d(48, 64, kernel_size=3, padding=1)
+        self.decod2 = torch.nn.Conv2d(224, 128, kernel_size=1)
+        self.decod3 = torch.nn.Conv2d(288, 256, kernel_size=1)
+        self.decod4 = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(256, 13, kernel_size=1)
+
+    def forward(self, x):
+        x = ((x / 255) - 0.5) / 0.5
+        xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
+        x = torch.cat([x, xm], dim=1)
+
+        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
+        x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
+        plow = self.classiflow(x)
+        plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
+
+        x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        hr = torch.nn.functional.gelu(self.decod1(hr))
+        hr = torch.cat([hr, x], dim=1)
+        hr = torch.nn.functional.gelu(self.decod2(hr))
+        hr = torch.cat([hr, x], dim=1)
+        hr = torch.nn.functional.gelu(self.decod3(hr))
+        hr = torch.nn.functional.gelu(self.decod4(hr))
+        p = self.classif(hr)
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+        return p + 0.2 * plow, hr
+
+
+class Sentinel(torch.nn.Module):
+    def __init__(self):
+        super(Sentinel, self).__init__()
         self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
         self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
         self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
@@ -137,7 +181,46 @@ class MyNet(torch.nn.Module):
 
         p = self.classif(s)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p
+        return p, s
+
+
+class MyNet(torch.nn.Module):
+    def __init__(self, baseline, sentinel):
+        super(MyNet, self).__init__()
+        self.baseline = torch.load(baseline)
+        self.sentinel = torch.load(sentinel)
+
+        self.compress = torch.nn.Conv2d(320, 64, kernel_size=1)
+
+        self.merge1 = torch.nn.Conv2d(320, 64, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(384, 64, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(384, 256, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.merge5 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
+
+    def forward(self, x, s):
+        with torch.no_grad():
+            px, hr = self.baseline(x)
+            ps, fs = self.sentinel(s)
+
+        fs = self.compress(fs)
+        fs = torch.nn.functional.interpolate(fs, size=(128, 128), mode="bilinear")
+
+        xs = torch.cat([hr, fs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge1(xs))
+        xs = torch.cat([hr, fs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge2(xs))
+        xs = torch.cat([hr, fs * xs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge3(xs))
+        xs = torch.cat([hr * xs, xs], dim=1)
+        xs = torch.nn.functional.gelu(self.merge4(xs))
+        xs = torch.nn.functional.gelu(self.merge5(xs))
+
+        p = self.classif(xs)
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+        return p + px * 0.5 + ps * 0.1
 
 
 if __name__ == "__main__":

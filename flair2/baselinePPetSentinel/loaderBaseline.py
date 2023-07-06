@@ -94,8 +94,14 @@ if __name__ == "__main__":
     net = torch.load("../baselinePP/build/model.pth")
 
     copynet = Baseline()
-    for module in net.__module__:
+    check = set()
+    for module in net._modules:
         print(module)
-        copynet.__module__[module] = net.__module__[module]
+        check.add(module)
+        copynet._modules[module] = net._modules[module]
+
+    for module in copynet._modules:
+        check.remove(module)
+    print("len(check)==", len(check))
 
     torch.save(copynet, "build/modelB.pth")
