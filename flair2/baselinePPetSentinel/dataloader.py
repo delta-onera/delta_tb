@@ -159,12 +159,7 @@ class Sentinel(torch.nn.Module):
         self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
         self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
         self.conv6 = torch.nn.Conv2d(200, 320, kernel_size=1)
-
-        self.merge1 = torch.nn.Conv2d(320, 320, kernel_size=3, padding=1)
-        self.merge2 = torch.nn.Conv2d(320, 320, kernel_size=3, padding=1)
-        self.merge3 = torch.nn.Conv2d(320, 320, kernel_size=1)
         self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
-
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
 
     def forward(self, s):
@@ -174,10 +169,6 @@ class Sentinel(torch.nn.Module):
         s = self.lrelu(self.conv4(s))
         s = self.lrelu(self.conv5(s))
         s = self.lrelu(self.conv6(s))
-
-        s = torch.nn.functional.gelu(self.merge1(s))
-        s = torch.nn.functional.gelu(self.merge2(s))
-        s = torch.nn.functional.gelu(self.merge3(s))
 
         p = self.classif(s)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
@@ -190,13 +181,15 @@ class MyNet(torch.nn.Module):
         self.baseline = torch.load(baseline)
         self.sentinel = torch.load(sentinel)
 
-        self.compress = torch.nn.Conv2d(320, 64, kernel_size=1)
+        self.compress = torch.nn.Conv2d(200, 64, kernel_size=1)
 
         self.merge1 = torch.nn.Conv2d(320, 64, kernel_size=1)
         self.merge2 = torch.nn.Conv2d(384, 64, kernel_size=1)
         self.merge3 = torch.nn.Conv2d(384, 256, kernel_size=1)
-        self.merge4 = torch.nn.Conv2d(512, 512, kernel_size=3)
-        self.merge5 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.merge4 = torch.nn.Conv2d(256, 256, kernel_size=1)
+        self.merge5 = torch.nn.Conv2d(512, 512, kernel_size=1)
+        self.merge6 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.merge7 = torch.nn.Conv2d(512, 512, kernel_size=3)
         self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
 
     def forward(self, x, s):
@@ -213,9 +206,11 @@ class MyNet(torch.nn.Module):
         xs = torch.nn.functional.gelu(self.merge2(xs))
         xs = torch.cat([hr, fs * xs, xs], dim=1)
         xs = torch.nn.functional.gelu(self.merge3(xs))
-        xs = torch.cat([hr * xs, xs], dim=1)
         xs = torch.nn.functional.gelu(self.merge4(xs))
+        xs = torch.cat([hr * xs, xs], dim=1)
         xs = torch.nn.functional.gelu(self.merge5(xs))
+        xs = torch.nn.functional.gelu(self.merge6(xs))
+        xs = torch.nn.functional.gelu(self.merge7(xs))
 
         p = self.classif(xs)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
