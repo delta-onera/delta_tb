@@ -223,6 +223,9 @@ if __name__ == "__main__":
 
     os.system("rm -rf build")
     os.system("mkdir build")
+    
+    os.system("/d/achanhon/miniconda3/bin/python -u loaderBaseline.py")
+    os.system("/d/achanhon/miniconda3/bin/python -u loaderSentinel.py")
     os.system("/d/achanhon/miniconda3/bin/python -u train.py")
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
