@@ -158,8 +158,8 @@ class Sentinel(torch.nn.Module):
         self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
         self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
         self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 320, kernel_size=1)
-        self.classif = torch.nn.Conv2d(320, 13, kernel_size=1)
+        self.conv6 = torch.nn.Conv2d(200, 200, kernel_size=1)
+        self.classif = torch.nn.Conv2d(200, 13, kernel_size=1)
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
 
     def forward(self, s):

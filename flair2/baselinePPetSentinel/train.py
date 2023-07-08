@@ -56,10 +56,10 @@ nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    x, _, y = dataset.getBatch(6)
-    x, y = x.cuda(), y.cuda()
+    x, s, y = dataset.getBatch(6)
+    x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-    z = net(x)
+    z = net(x, s)
 
     dice = diceloss(y, z)
     ce = crossentropy(y, z)

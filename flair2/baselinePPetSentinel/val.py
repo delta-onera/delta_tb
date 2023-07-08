@@ -15,10 +15,10 @@ print("val")
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for name in dataset.paths:
-        x, _, y = dataset.get(name)
-        x, y = x.cuda(), y.cuda()
+        x, s, y = dataset.get(name)
+        x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-        z = net(x.unsqueeze(0))
+        z = net(x.unsqueeze(0), s.unsqueeze(0))
         _, z = z[0].max(0)
         stats += dataloader.confusion(y, z)
 
