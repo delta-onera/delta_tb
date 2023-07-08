@@ -1,4 +1,5 @@
 import torch
+import dataloader
 
 
 class MyNet(torch.nn.Module):
@@ -54,7 +55,7 @@ class Sentinel(torch.nn.Module):
 if __name__ == "__main__":
     net = torch.load("../sentinelOnly/build/model.pth")
 
-    copynet = Sentinel()
+    copynet = dataloader.Sentinel()
     check = set()
     for module in net._modules:
         print(module)

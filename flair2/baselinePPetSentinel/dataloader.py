@@ -223,25 +223,10 @@ if __name__ == "__main__":
 
     os.system("rm -rf build")
     os.system("mkdir build")
-    
+
     os.system("/d/achanhon/miniconda3/bin/python -u loaderBaseline.py")
     os.system("/d/achanhon/miniconda3/bin/python -u loaderSentinel.py")
     os.system("/d/achanhon/miniconda3/bin/python -u train.py")
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
     quit()
-
-    net = MyNet()
-    print(net(torch.rand(2, 5, 512, 512), torch.rand(2, 200, 40, 40)).shape)
-    quit()
-
-    data = FLAIR2("train")
-    data.start()
-    x, s, y = data.getBatch()
-    y = y[0] / 13
-    x = x[0, 3, :, :] / 255
-    s = s[0, 3, :, :] / 4
-    torchvision.utils.save_image(x, "build/x.png")
-    torchvision.utils.save_image(y, "build/y.png")
-    torchvision.utils.save_image(s, "build/s.png")
-    os._exit(0)
