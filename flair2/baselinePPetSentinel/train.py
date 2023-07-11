@@ -52,7 +52,7 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(3).cuda()
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 50000
+nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
