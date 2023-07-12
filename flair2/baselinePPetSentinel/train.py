@@ -10,7 +10,7 @@ net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("val") # to force relying on the fusion ?
+dataset = dataloader.FLAIR2("train")  # to force relying on the fusion ?
 
 
 def crossentropy(y, z):

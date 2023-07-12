@@ -195,8 +195,7 @@ class MyNet(torch.nn.Module):
     def forward(self, x, s):
         with torch.no_grad():
             px, hr = self.baseline(x)
-        
-        _, fs = self.sentinel(s)
+            ps, fs = self.sentinel(s)
 
         fs = self.compress(fs)
         fs = torch.nn.functional.interpolate(fs, size=(128, 128), mode="bilinear")
@@ -216,7 +215,7 @@ class MyNet(torch.nn.Module):
         p = self.classif(xs)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
-        return p + px * 0.5
+        return p + px * 0.5 + 0.1 * ps
 
 
 if __name__ == "__main__":
