@@ -20,18 +20,18 @@ def compress(x):
     xm, xv = x.mean(3), x.var(3)
     tmp = [((x[:, :, :, t] - xm).abs().sum(), t) for t in range(T)]
     tmp = sorted(tmp)
-    xn = x[tmp[0][1]]
+    xn = x[:, :, :, tmp[0][1]]
 
     dx = (x[:, :, :, 1:] - x[:, :, :, :-1]).abs()
     dxm = dx.mean(3)
 
-    f2 = x[:, :, :, 0 : T // 2].mean()
-    f3 = x[:, :, :, T // 2 : -1].mean()
+    f2 = x[:, :, :, 0 : T // 2].mean(3)
+    f3 = x[:, :, :, T // 2 : -1].mean(3)
 
-    f4 = x[:, :, :, 0 : T // 4].mean()
-    f5 = x[:, :, :, T // 4 : T // 2].mean()
-    f6 = x[:, :, :, T // 2 : 3 * T // 4].mean()
-    f7 = x[:, :, :, 3 * T // 4 : -1].mean()
+    f4 = x[:, :, :, 0 : T // 4].mean(3)
+    f5 = x[:, :, :, T // 4 : T // 2].mean(3)
+    f6 = x[:, :, :, T // 2 : 3 * T // 4].mean(3)
+    f7 = x[:, :, :, 3 * T // 4 : -1].mean(3)
 
     F = torch.cat([xn, xm, xv, dxm, f2, f3, f4, f5, f6, f7], dim=0)
     assert F.shape == (100, H, W)
