@@ -6,7 +6,7 @@ def compress(x):
     x = numpy.transpose(x * 1.0, axes=(1, 2, 3, 0))
     x = torch.Tensor(x).cuda()
     B, H, W, T = x.shape
-    assert B == 10 and T > 20
+    assert B == 10
 
     for b in range(B):
         for t in range(T):
@@ -51,6 +51,8 @@ for name in l:
         done.add(paths[i]["sen"])
         sentinel = numpy.load(root + paths[i]["sen"])
 
+        if len(done) == 1:
+            print(sentinel.shape)
         sentinel = compress(sentinel)
         sentinel = sentinel.cpu().numpy()
 
