@@ -3,7 +3,7 @@ import numpy
 
 
 def compress(x):
-    x = numpy.transpose(x, axes=(1, 2, 3, 0))
+    x = numpy.transpose(x * 1.0, axes=(1, 2, 3, 0))
     x = torch.Tensor(x).cuda()
     B, H, W, T = x.shape
     assert B == 10 and T > 20
@@ -12,16 +12,18 @@ def compress(x):
         for t in range(T):
             tmp = x[b, :, :, t].flatten()
             tmp, _ = torch.sort(tmp)
-            I = int(99 * len(tmp))
+            I = int(0.01 * len(tmp))
             vmin, vmax = tmp[I], tmp[-I]
             x[b, :, :, t] = (x[b, :, :, t] - vmin) / (vmax - vmin)
 
     x = torch.clamp(x, 0, 1).half().float()
     xm, xv = x.mean(3), x.var(3)
-    dx = x[:, :, :, 1:] - x[:, :, :, :-1]
-    dxm = dx.mean(3), dx.var(3)
-    dx = dx.abs()
-    daxm = dx.mean(3), dx.var(3)
+    tmp = [((x[:, :, :, t] - xm).abs().sum(), t) for t in range(T)]
+    tmp = sorted(tmp)
+    xn = x[tmp[0][1]]
+
+    dx = (x[:, :, :, 1:] - x[:, :, :, :-1]).abs()
+    dxm = dx.mean(3)
 
     f2 = x[:, :, :, 0 : T // 2].mean()
     f3 = x[:, :, :, T // 2 : -1].mean()
@@ -31,7 +33,7 @@ def compress(x):
     f6 = x[:, :, :, T // 2 : 3 * T // 4].mean()
     f7 = x[:, :, :, 3 * T // 4 : -1].mean()
 
-    F = torch.cat([xm, xv, dxm, daxm, f2, f3, f4, f5, f6, f7], dim=0)
+    F = torch.cat([xn, xm, xv, dxm, f2, f3, f4, f5, f6, f7], dim=0)
     assert F.shape == (100, H, W)
     return F
 
