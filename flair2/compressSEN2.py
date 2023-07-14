@@ -54,6 +54,6 @@ for name in l:
         sentinel = compress(sentinel)
         sentinel = sentinel.cpu().numpy()
 
-        # numpy.save(root + paths[i]["sen"], sentinel)
+        numpy.save(root + paths[i]["sen"], sentinel)
 
 print("GOOOOOOOOOOOD")
