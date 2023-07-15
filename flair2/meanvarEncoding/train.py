@@ -5,12 +5,12 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet("build/modelB.pth", "build/modelS.pth")
+net = dataloader.MyNet("build/modelB.pth")
 net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("train")  # to force relying on the fusion ?
+dataset = dataloader.FLAIR2("train")
 
 
 def crossentropy(y, z):

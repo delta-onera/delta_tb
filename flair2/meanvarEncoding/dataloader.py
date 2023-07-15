@@ -69,8 +69,7 @@ class FLAIR2(threading.Thread):
         sentinel = readSEN(self.root + self.paths[k]["sen"])
         assert sentinel.shape[0:2] == (10, 20)
         row, col = self.paths[k]["coord"]
-        sen = sentinel[:, :, row : row + 40, col : col + 40]
-        sen = torch.Tensor(sen).flatten(0, 1)
+        sen = sentinel[:, row : row + 40, col : col + 40]
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
@@ -85,7 +84,7 @@ class FLAIR2(threading.Thread):
 
     def getBatch(self, batchsize=16):
         x = torch.zeros(batchsize, 5, 512, 512)
-        sen = torch.zeros(batchsize, 200, 40, 40)
+        sen = torch.zeros(batchsize, 100, 40, 40)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], sen[i], y[i] = self.getCrop()
@@ -150,72 +149,52 @@ class Baseline(torch.nn.Module):
         return p + 0.2 * plow, hr
 
 
-class Sentinel(torch.nn.Module):
-    def __init__(self):
-        super(Sentinel, self).__init__()
-        self.conv1 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv2 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv3 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
-        self.conv4 = torch.nn.Conv2d(200, 200, kernel_size=3, padding=1)
-        self.conv5 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.conv6 = torch.nn.Conv2d(200, 200, kernel_size=1)
-        self.classif = torch.nn.Conv2d(200, 13, kernel_size=1)
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.2, inplace=False)
-
-    def forward(self, s):
-        s = self.lrelu(self.conv1(s))
-        s = self.lrelu(self.conv2(s))
-        s = self.lrelu(self.conv3(s))
-        s = self.lrelu(self.conv4(s))
-        s = self.lrelu(self.conv5(s))
-        s = self.lrelu(self.conv6(s))
-
-        p = self.classif(s)
-        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        return p, s
-
-
 class MyNet(torch.nn.Module):
-    def __init__(self, baseline, sentinel):
+    def __init__(self, baseline):
         super(MyNet, self).__init__()
         self.baseline = torch.load(baseline)
-        self.sentinel = torch.load(sentinel)
 
-        self.compress = torch.nn.Conv2d(200, 64, kernel_size=1)
+        self.conv1 = torch.nn.Conv2d(100, 100, kernel_size=1)
+        self.conv2 = torch.nn.Conv2d(100, 100, kernel_size=1)
+        self.conv3 = torch.nn.Conv2d(100, 100, kernel_size=1)
 
-        self.merge1 = torch.nn.Conv2d(320, 64, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(384, 64, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(384, 256, kernel_size=1)
-        self.merge4 = torch.nn.Conv2d(256, 256, kernel_size=1)
-        self.merge5 = torch.nn.Conv2d(512, 512, kernel_size=1)
-        self.merge6 = torch.nn.Conv2d(512, 512, kernel_size=3)
-        self.merge7 = torch.nn.Conv2d(512, 512, kernel_size=3)
+        self.merge1 = torch.nn.Conv2d(260, 100, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(260, 100, kernel_size=1)
+
+        self.merge31 = torch.nn.Conv2d(260, 160, kernel_size=1)
+        self.merge32 = torch.nn.Conv2d(260, 100, kernel_size=3, padding=1)
+
+        self.merge4 = torch.nn.Conv2d(260, 392, kernel_size=1)
+        self.merge5 = torch.nn.Conv2d(392, 512, kernel_size=1)
         self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
+
+        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
     def forward(self, x, s):
         with torch.no_grad():
             px, hr = self.baseline(x)
-            ps, fs = self.sentinel(s)
 
-        fs = self.compress(fs)
-        fs = torch.nn.functional.interpolate(fs, size=(128, 128), mode="bilinear")
+        s = self.lrelu(self.conv1(s))
+        s = self.lrelu(self.conv2(s))
+        s = self.lrelu(self.conv3(s))
+        s = torch.nn.functional.interpolate(s, size=(128, 128), mode="bilinear")
 
-        xs = torch.cat([hr, fs], dim=1)
-        xs = torch.nn.functional.gelu(self.merge1(xs))
-        xs = torch.cat([hr, fs, xs], dim=1)
-        xs = torch.nn.functional.gelu(self.merge2(xs))
-        xs = torch.cat([hr, fs * xs, xs], dim=1)
-        xs = torch.nn.functional.gelu(self.merge3(xs))
+        xs = torch.cat([hr, s], dim=1)
+        xs = self.lrelu(self.merge1(xs))
+        xs = torch.cat([hr, s], dim=1)
+        xs = self.lrelu(self.merge2(xs))
+        xs = torch.cat([hr, s], dim=1)
+        hr = hr * torch.nn.functional.relu(self.merge31(xs))
+        s = torch.nn.functional.gelu(self.merge32(xs))
+        xs = torch.cat([hr, s], dim=1)
+
         xs = torch.nn.functional.gelu(self.merge4(xs))
-        xs = torch.cat([hr * xs, xs], dim=1)
         xs = torch.nn.functional.gelu(self.merge5(xs))
-        xs = torch.nn.functional.gelu(self.merge6(xs))
-        xs = torch.nn.functional.gelu(self.merge7(xs))
 
         p = self.classif(xs)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
-        return p + px * 0.5 + 0.1 * ps
+        return p + px * 0.5
 
 
 if __name__ == "__main__":
@@ -225,7 +204,6 @@ if __name__ == "__main__":
     os.system("mkdir build")
 
     os.system("/d/achanhon/miniconda3/bin/python -u loaderBaseline.py")
-    os.system("/d/achanhon/miniconda3/bin/python -u loaderSentinel.py")
     os.system("/d/achanhon/miniconda3/bin/python -u train.py")
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
