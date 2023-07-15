@@ -72,8 +72,8 @@ for i in range(nbbatchs):
         _, z = z.max(1)
         stats += dataloader.confusion(y, z)
 
-        if i < 10:
-            print(i, "/", nbbatchs, printloss)
+        if i < 1000:
+            print(i, "/", nbbatchs, printloss/(i+1))
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
             printloss = torch.zeros(3).cuda()
@@ -100,7 +100,7 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
     optimizer.step()
 
 os._exit(0)
