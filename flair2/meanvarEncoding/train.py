@@ -10,7 +10,7 @@ net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("trainval")
+dataset = dataloader.FLAIR2("trainval")  # to force relying on the fusion ?
 
 
 def crossentropy(y, z):
@@ -49,7 +49,7 @@ def diceloss(y, z):
 
 print("train")
 
-optimizer = torch.optim.SGD(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = torch.zeros(3).cuda()
 stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 100000
@@ -59,7 +59,7 @@ for i in range(nbbatchs):
     x, s, y = dataset.getBatch(6)
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-    z = net(x.clone(), s.clone())
+    z = net(x, s)
 
     dice = diceloss(y, z)
     ce = crossentropy(y, z)
@@ -72,8 +72,8 @@ for i in range(nbbatchs):
         _, z = z.max(1)
         stats += dataloader.confusion(y, z)
 
-        if i < 1000:
-            print(i, "/", nbbatchs, printloss/(i+1))
+        if i < 10:
+            print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
             printloss = torch.zeros(3).cuda()
@@ -100,7 +100,7 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     optimizer.step()
 
 os._exit(0)

@@ -69,6 +69,8 @@ class FLAIR2(threading.Thread):
         sentinel = readSEN(self.root + self.paths[k]["sen"])
         row, col = self.paths[k]["coord"]
         sen = torch.Tensor(sentinel[:, row : row + 40, col : col + 40])
+        sen = torch.nan_to_num(sen)
+        sen = torch.clamp(sen,0,1)
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
