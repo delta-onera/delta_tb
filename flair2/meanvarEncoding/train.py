@@ -10,7 +10,7 @@ net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("train")
+dataset = dataloader.FLAIR2("trainval")
 
 
 def crossentropy(y, z):
