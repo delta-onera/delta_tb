@@ -186,9 +186,8 @@ class MyNet(torch.nn.Module):
 
         s = torch.nn.functional.relu(self.merge31(xs))
         s = (s - 1) / 1000 * (s > 1).float() + s*(s<=1).float()
-        hr = hr * s
-        s = torch.nn.functional.gelu(self.merge32(xs))
-        xs = torch.cat([hr, s], dim=1)
+        xs = torch.nn.functional.gelu(self.merge32(xs))
+        xs = torch.cat([hr*s, xs], dim=1)
 
         xs = torch.nn.functional.gelu(self.merge4(xs))
         xs = torch.nn.functional.gelu(self.merge5(xs))
@@ -196,7 +195,7 @@ class MyNet(torch.nn.Module):
         p = self.classif(xs)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
-        return p + px * 0.5
+        return p + px
 
 
 if __name__ == "__main__":
