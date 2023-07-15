@@ -67,9 +67,8 @@ class FLAIR2(threading.Thread):
             x = numpy.stack([r, g, b, i, e], axis=0)
 
         sentinel = readSEN(self.root + self.paths[k]["sen"])
-        assert sentinel.shape[0:2] == (10, 20)
         row, col = self.paths[k]["coord"]
-        sen = sentinel[:, row : row + 40, col : col + 40]
+        sen = torch.Tensor(sentinel[:, row : row + 40, col : col + 40])
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
@@ -158,14 +157,14 @@ class MyNet(torch.nn.Module):
         self.conv2 = torch.nn.Conv2d(100, 100, kernel_size=1)
         self.conv3 = torch.nn.Conv2d(100, 100, kernel_size=1)
 
-        self.merge1 = torch.nn.Conv2d(260, 100, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(260, 100, kernel_size=1)
+        self.merge1 = torch.nn.Conv2d(356, 100, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(356, 100, kernel_size=1)
 
-        self.merge31 = torch.nn.Conv2d(260, 160, kernel_size=1)
-        self.merge32 = torch.nn.Conv2d(260, 100, kernel_size=3, padding=1)
+        self.merge31 = torch.nn.Conv2d(356, 256, kernel_size=1)
+        self.merge32 = torch.nn.Conv2d(356, 100, kernel_size=3, padding=1)
 
-        self.merge4 = torch.nn.Conv2d(260, 392, kernel_size=1)
-        self.merge5 = torch.nn.Conv2d(392, 512, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(356, 448, kernel_size=1)
+        self.merge5 = torch.nn.Conv2d(448, 512, kernel_size=1)
         self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
