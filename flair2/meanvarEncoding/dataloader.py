@@ -163,7 +163,7 @@ class MyNet(torch.nn.Module):
         self.merge31 = torch.nn.Conv2d(356, 256, kernel_size=1)
         self.merge32 = torch.nn.Conv2d(356, 100, kernel_size=3, padding=1)
 
-        self.merge4 = torch.nn.Conv2d(356, 448, kernel_size=1)
+        self.merge4 = torch.nn.Conv2d(356, 448, kernel_size=3)
         self.merge5 = torch.nn.Conv2d(448, 512, kernel_size=1)
         self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
 
@@ -183,7 +183,10 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([hr, s], dim=1)
         xs = self.lrelu(self.merge2(xs))
         xs = torch.cat([hr, s], dim=1)
-        hr = hr * torch.nn.functional.relu(self.merge31(xs))
+
+        s = torch.nn.functional.relu(self.merge31(xs))
+        s = (s - 1) / 32 * (s > 1).float() + s
+        hr = hr * s
         s = torch.nn.functional.gelu(self.merge32(xs))
         xs = torch.cat([hr, s], dim=1)
 
