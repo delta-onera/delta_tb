@@ -49,7 +49,7 @@ def diceloss(y, z):
 
 print("train")
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
 printloss = torch.zeros(3).cuda()
 stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 100000
