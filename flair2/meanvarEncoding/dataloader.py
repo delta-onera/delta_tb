@@ -185,7 +185,7 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([hr, s], dim=1)
 
         s = torch.nn.functional.relu(self.merge31(xs))
-        s = (s - 1) / 32 * (s > 1).float() + s
+        s = (s - 1) / 1000 * (s > 1).float() + s*(s<=1).float()
         hr = hr * s
         s = torch.nn.functional.gelu(self.merge32(xs))
         xs = torch.cat([hr, s], dim=1)
