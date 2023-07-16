@@ -2,57 +2,41 @@ import torch
 import numpy
 
 
-def bandbasedfilter(x):
-    B8a = x[7]*0.9+0.1*x[6]
-    B4 = x[2]
-    NDVI = (B8a - B4) / (B8a + B4)
-    NDWI = (x[1] - B8a) /(x[1] - B8a)
-    EVI = 2.5 * ((B8a - B4) / (B8a + 6 * B4 - 7.5 * x[0] + 1))
-    SAVI = ((B8a - B4) / (B8a + B4 + 0.5)) * (1.5)
-    NBR = (B8a - x[-1]) / (B8a + x[-1])
-    UAI = (x[-1] - B4) / (x[-1] + B4)
-    NDMI = (B8a - x[-2]) / (B8a + x[-2])
-    CI = (B8a - x[6]) / (B8a + x[6])
-    BSI = ((x[-2] + B4) - (B8a + x[0])) / (x[-2] + B4 +B8a + x[0])
-    NDSI = (x[1] - x[-2]) / (x[1] + x[-2])
-    NDCI = (x[0] - x[-2]) / (x[0] + x[-2])
-    LAI = 3.618 * ((B8a - B4) / (B8a + B4)) - 0.118
-    
-
 def compress(x):
-    x = numpy.transpose(x * 1.0, axes=(1, 2, 3, 0))
-    x = torch.Tensor(x).cuda()
-    B, H, W, T = x.shape
+    B2, B3, B4, B5, B6 = x[:, 0], x[:, 1], x[:, 2], x[:, 3], x[:, 4]
+    B7, B8, B8a, B11, B12 = x[:, 5], x[:, 6], x[:, 7], x[:, 8], x[:, 9]
+    B8 = (B8 + B8a) / 2
+
+    NDCI = (B2 - B11) / (B2 + B11)  # cloud
+    NDWI = (B3 - B8) / (B3 + B8)  # water
+    NDSI = (B3 - B11) / (B3 + B11)  # snow
+    UAI = (B12 - B4) / (B12 + B4)  # building
+
+    NDVI = (B8 - B4) / (B8 + B4)  # vegetation
+    EVI = 2.5 * ((B8 - B4) / (B8 + 6 * B4 - 7.5 * B2 + 1))  # vegetation again
+    BSI = ((B11 + B4) - (B8 + B2)) / (B11 + B4 + B8 + B2)  # vegetation again again
+    NDMI = (B8 - B11) / (B8 + B11)  # moisture
+    CI = (B8 - B7) / (B8 + B7)  # chlorophyll
+    LAI = 3.618 * ((B8 - B4) / (B8 + B4)) - 0.118  # leaf
+
+    f = [NDCI, NDWI, NDSI, UAI, NDVI]
+    f = f + [EVI, BSI, NDMI, CI, LAI]
+    f = torch.stack(f, dim=0).unsqueeze(0)
+
+    f = torch.nan_to_num(f)
+    f = torch.clamp(f, -1, 1)
+
+    _, B, T, H, W = f.shape
     assert B == 10
+    if T < 20:
+        print(T)
+    f = torch.nn.functional.interpolate(f, size=(20, H, W), mode="bilinear")
 
-    for b in range(B):
-        for t in range(T):
-            tmp = x[b, :, :, t].flatten()
-            tmp, _ = torch.sort(tmp)
-            I = int(0.01 * len(tmp))
-            vmin, vmax = tmp[I], tmp[-I]
-            x[b, :, :, t] = (x[b, :, :, t] - vmin) / (vmax - vmin)
-
-    x = torch.clamp(x, 0, 1).half().float()
-    xm, xv = x.mean(3), x.var(3)
-    tmp = [((x[:, :, :, t] - xm).abs().sum(), t) for t in range(T)]
-    tmp = sorted(tmp)
-    xn = x[:, :, :, tmp[0][1]]
-
-    dx = (x[:, :, :, 1:] - x[:, :, :, :-1]).abs()
-    dxm = dx.mean(3)
-
-    f2 = x[:, :, :, 0 : T // 2].mean(3)
-    f3 = x[:, :, :, T // 2 : -1].mean(3)
-
-    f4 = x[:, :, :, 0 : T // 4].mean(3)
-    f5 = x[:, :, :, T // 4 : T // 2].mean(3)
-    f6 = x[:, :, :, T // 2 : 3 * T // 4].mean(3)
-    f7 = x[:, :, :, 3 * T // 4 : -1].mean(3)
-
-    F = torch.cat([xn, xm, xv, dxm, f2, f3, f4, f5, f6, f7], dim=0)
-    assert F.shape == (100, H, W)
-    return F
+    f = f[0].half().float()
+    f = f.flatten(0, 1)
+    B, H, W = f.shape
+    assert B == 200
+    return f
 
 
 root = "/scratchf/CHALLENGE_IGN/FLAIR_2/"
@@ -70,7 +54,7 @@ for name in l:
 
         if len(done) == 1:
             print(sentinel.shape)
-        sentinel = compress(sentinel)
+        sentinel = compress(torch.Tensor(sentinel).cuda())
         sentinel = sentinel.cpu().numpy()
 
         numpy.save(root + paths[i]["sen"], sentinel)
