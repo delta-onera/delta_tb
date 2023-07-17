@@ -70,7 +70,7 @@ class FLAIR2(threading.Thread):
         row, col = self.paths[k]["coord"]
         sen = torch.Tensor(sentinel[:, row : row + 40, col : col + 40])
         sen = torch.nan_to_num(sen)
-        sen = torch.clamp(sen,0,1)
+        sen = torch.clamp(sen, 0, 1)
 
         if self.flag != "test":
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
@@ -85,7 +85,7 @@ class FLAIR2(threading.Thread):
 
     def getBatch(self, batchsize=16):
         x = torch.zeros(batchsize, 5, 512, 512)
-        sen = torch.zeros(batchsize, 100, 40, 40)
+        sen = torch.zeros(batchsize, 200, 40, 40)
         y = torch.zeros(batchsize, 512, 512)
         for i in range(batchsize):
             x[i], sen[i], y[i] = self.getCrop()
@@ -155,9 +155,9 @@ class MyNet(torch.nn.Module):
         super(MyNet, self).__init__()
         self.baseline = torch.load(baseline)
 
-        self.conv1 = torch.nn.Conv2d(100, 100, kernel_size=1)
-        self.conv2 = torch.nn.Conv2d(100, 100, kernel_size=1)
-        self.conv3 = torch.nn.Conv2d(100, 100, kernel_size=1)
+        self.conv1 = torch.nn.Conv2d(200, 512, kernel_size=1)
+        self.conv2 = torch.nn.Conv2d(512, 512, kernel_size=1)
+        self.conv3 = torch.nn.Conv2d(512, 100, kernel_size=1)
 
         self.merge1 = torch.nn.Conv2d(356, 100, kernel_size=1)
         self.merge2 = torch.nn.Conv2d(356, 100, kernel_size=1)
@@ -187,9 +187,9 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([hr, xs], dim=1)
 
         s = torch.nn.functional.relu(self.merge31(xs))
-        s = (s - 1) / 1000 * (s > 1).float() + s*(s<=1).float()
+        s = (s - 1) / 1000 * (s > 1).float() + s * (s <= 1).float()
         xs = torch.nn.functional.gelu(self.merge32(xs))
-        xs = torch.cat([hr*s, xs], dim=1)
+        xs = torch.cat([hr * s, xs], dim=1)
 
         xs = torch.nn.functional.gelu(self.merge4(xs))
         xs = torch.nn.functional.gelu(self.merge5(xs))
