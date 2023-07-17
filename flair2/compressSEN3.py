@@ -30,12 +30,15 @@ def compress(x):
     assert B == 10
     if T < 20:
         print(T)
-    f = torch.nn.functional.interpolate(f, size=(20, H, W), mode="bilinear")
+    f = torch.nn.functional.interpolate(f, size=(20, H, W), mode="trilinear")
 
     f = f[0].half().float()
     f = f.flatten(0, 1)
     B, H, W = f.shape
     assert B == 200
+
+    f = torch.nan_to_num(f)
+    f = torch.clamp(f, -1, 1)
     return f
 
 
@@ -50,7 +53,7 @@ for name in l:
             continue
         print(paths[i]["sen"])
         done.add(paths[i]["sen"])
-        sentinel = numpy.load(root + paths[i]["sen"])
+        sentinel = numpy.load(root + paths[i]["sen"]) * 1.0
 
         if len(done) == 1:
             print(sentinel.shape)
