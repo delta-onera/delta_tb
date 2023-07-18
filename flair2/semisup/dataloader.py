@@ -184,17 +184,18 @@ class MyNet(torch.nn.Module):
         with torch.no_grad():
             px, hr = self.baseline(x)
 
-        tmp = torch.zeros(s.shape[0], 32, 64, 40, 40)
-        for i in range(s.shape[0]):
-            tmp[i] = self.lrelu(self.conv1(s[i]))
-            tmp[i] = self.lrelu(self.conv2(tmp[i]))
-            tmp[i] = self.lrelu(self.conv3(tmp[i]))
-            tmp[i] = self.lrelu(self.conv4(tmp[i]))
-        sm = tmp.mean(1)
-        sv = tmp.var(1)
-        s = torch.cat([sm, sv], dim=1)
-        s = self.lrelu(self.conv5(tmp[i]))
-        s = self.lrelu(self.conv6(tmp[i]))
+        s = self.lrelu(self.conv1(s))
+        s = self.lrelu(self.conv2(s))
+        s = self.lrelu(self.conv3(s))
+        s = self.lrelu(self.conv4(s))
+
+        ss = s.mean(2)
+        s,_ = s.max(2)
+        s = torch.cat([s,ss],dim=1)
+
+        s = self.lrelu(self.conv5(s))
+        s = self.lrelu(self.conv6(s))
+        s = self.lrelu(self.conv7(s))
         s = torch.nn.functional.interpolate(s, size=(128, 128), mode="bilinear")
 
         xs = torch.cat([hr, s], dim=1)
@@ -204,14 +205,17 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([hr, xs], dim=1)
 
         s = torch.nn.functional.relu(self.merge31(xs))
-        s = (s - 1) / 1000 * (s > 1).float() + s * (s <= 1).float()
-        xs = torch.nn.functional.gelu(self.merge32(xs))
+        s = (s - 1) / 10 * (s > 1).float() + s * (s <= 1).float()
+        xs = torch.nn.functional.lrelu(self.merge32(xs))
         xs = torch.cat([hr * s, xs], dim=1)
 
-        xs = torch.nn.functional.gelu(self.merge4(xs))
-        xs = torch.nn.functional.gelu(self.merge5(xs))
+        xs = torch.nn.functional.lrelu(self.merge4(xs))
+        xs = torch.nn.functional.lrelu(self.merge5(xs))
 
         p = self.classif(xs)
+        xp = torch.nn.functional.lrelu(self.merge5(xs))
+
+
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
         return p + px
