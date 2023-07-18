@@ -89,7 +89,9 @@ class FLAIR2(threading.Thread):
         if k in self.trainpath:
             return torch.Tensor(x), sen, y
         else:
-            return torch.Tensor(x), sen, -torch.ones(512, 512)
+            tmp = torch.zeros(512, 512).cuda()
+            tmp[0][0] = -1
+            return torch.Tensor(x), sen, tmp
 
     def getCrop(self):
         assert self.isrunning

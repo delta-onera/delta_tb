@@ -61,7 +61,7 @@ for i in range(nbbatchs):
 
     z, semisup = net(x, s)
 
-    TR = [j for j in y.shape[0] if (y[j] == -1).float().mean() == 0]
+    TR = [j for j in y.shape[0] if y[j][0][0] != -1]
     if TR != []:
         dice = diceloss(y[TR], z[TR])
         ce = crossentropy(y[TR], z[TR])
@@ -74,7 +74,7 @@ for i in range(nbbatchs):
         printloss[1] += ce.clone().detach()
         printloss[2] += dice.clone().detach()
         printloss[3] += semisup.clone().detach()
-        
+
         if TR != []:
             _, z = z.max(1)
             stats += dataloader.confusion(y[TR], z[TR])

@@ -29,10 +29,10 @@ def compress(x):
     _, B, T, H, W = f.shape
     assert B == 10
     if T < 20:
-        print(T)
+        print("???", T)
     f = torch.nn.functional.interpolate(f, size=(32, H, W), mode="trilinear")
 
-    f = f[0].half().float()
+    f = f[0].float()
     f = torch.nan_to_num(f)
     f = torch.clamp(f, -1, 1)
     return f
