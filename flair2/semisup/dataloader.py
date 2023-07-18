@@ -40,17 +40,24 @@ def readSEN(path):
 class FLAIR2(threading.Thread):
     def __init__(self, flag="test", root="/d/achanhon/FLAIR_2/"):
         threading.Thread.__init__(self)
-        assert flag in ["train", "val", "trainval", "test"]
+        assert flag in ["train", "val", "all", "test"]
         self.root = root
         self.isrunning = False
         self.flag = flag
+
+        if flag == "all":
+            self.trainpath = torch.load(root + "alltrainpaths.pth")
+            self.testpath = torch.load(root + "alltestpaths.pth")
+            self.paths = self.trainpath.update(self.testpath)
+            self.trainpath = set(self.trainpath.keys)
+            self.testpath = set(self.testpath.keys)
         if flag == "test":
             self.paths = torch.load(root + "alltestpaths.pth")
-        else:
+        if flag in ["train", "val"]:
             self.paths = torch.load(root + "alltrainpaths.pth")
 
         tmp = sorted(self.paths.keys())
-        if flag == "train":
+        if flag in ["train", "all"]:
             tmp = [k for (i, k) in enumerate(tmp) if i % 4 != 0]
         if flag == "val":
             tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
@@ -72,12 +79,17 @@ class FLAIR2(threading.Thread):
         sen = torch.nan_to_num(sen)
         sen = torch.clamp(sen, 0, 1)
 
-        if self.flag != "test":
+        if self.flag in ["train", "val"]:
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
                 y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
             return torch.Tensor(x), sen, y
-        else:
+        if self.flag == "test":
             return torch.Tensor(x), sen
+
+        if k in self.trainpath:
+            return torch.Tensor(x), sen, y
+        else:
+            return torch.Tensor(x), sen, -torch.ones(512, 512)
 
     def getCrop(self):
         assert self.isrunning
@@ -169,56 +181,76 @@ class MyNet(torch.nn.Module):
         self.merge31 = torch.nn.Conv2d(320, 256, kernel_size=1)
         self.merge32 = torch.nn.Conv2d(320, 64, kernel_size=3, padding=1)
 
-        self.merge4 = torch.nn.Conv2d(320, 384, kernel_size=3)
+        self.merge4 = torch.nn.Conv2d(320, 384, kernel_size=3, padding=1)
         self.merge5 = torch.nn.Conv2d(384, 512, kernel_size=1)
         self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
 
         self.expand = torch.nn.Conv2d(13, 64, kernel_size=1)
         self.compress1 = torch.nn.Conv2d(512, 64, kernel_size=1)
         self.compress2 = torch.nn.Conv2d(64, 32, kernel_size=1)
-        self.compress3 = torch.nn.Conv2d(32, 10, kernel_size=1)
+        self.compress3 = torch.nn.Conv2d(32, 32, kernel_size=1)
+        self.compress4 = torch.nn.Conv2d(32, 16, kernel_size=1)
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
-    def forward(self, x, s):
+    def myrelu(self, t):
+        c1 = (t <= 0).float()
+        c2 = (t >= 1).float()
+        c3 = 1 - c1 - c2
+        return 0.1 * c1 * t + c2 * t + 0.1 * c3 * t * (1 + t * (18 - 9 * t))
+
+    def forward(self, x, s0):
         with torch.no_grad():
             px, hr = self.baseline(x)
 
-        s = self.lrelu(self.conv1(s))
-        s = self.lrelu(self.conv2(s))
-        s = self.lrelu(self.conv3(s))
-        s = self.lrelu(self.conv4(s))
+        s = self.myrelu(self.conv1(s0))
+        s = self.myrelu(self.conv2(s))
+        s = self.myrelu(self.conv3(s))
+        s = self.myrelu(self.conv4(s))
 
         ss = s.mean(2)
-        s,_ = s.max(2)
-        s = torch.cat([s,ss],dim=1)
+        s, _ = s.max(2)
+        s = torch.cat([s, ss], dim=1)
 
-        s = self.lrelu(self.conv5(s))
-        s = self.lrelu(self.conv6(s))
-        s = self.lrelu(self.conv7(s))
+        s = self.myrelu(self.conv5(s))
+        s = self.myrelu(self.conv6(s))
+        s = self.myrelu(self.conv7(s))
         s = torch.nn.functional.interpolate(s, size=(128, 128), mode="bilinear")
 
         xs = torch.cat([hr, s], dim=1)
-        xs = self.lrelu(self.merge1(xs))
+        xs = self.myrelu(self.merge1(xs))
         xs = torch.cat([hr, xs], dim=1)
-        xs = self.lrelu(self.merge2(xs))
+        xs = self.myrelu(self.merge2(xs))
         xs = torch.cat([hr, xs], dim=1)
 
         s = torch.nn.functional.relu(self.merge31(xs))
         s = (s - 1) / 10 * (s > 1).float() + s * (s <= 1).float()
-        xs = torch.nn.functional.lrelu(self.merge32(xs))
+        xs = self.myrelu(self.merge32(xs))
         xs = torch.cat([hr * s, xs], dim=1)
 
-        xs = torch.nn.functional.lrelu(self.merge4(xs))
-        xs = torch.nn.functional.lrelu(self.merge5(xs))
+        xs = self.myrelu(self.merge4(xs))
+        xs = self.myrelu(self.merge5(xs))
 
         p = self.classif(xs)
-        xp = torch.nn.functional.lrelu(self.merge5(xs))
-
-
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        p = p + px
 
-        return p + px
+        xp = torch.nn.functional.relu(self.expand(p))
+        xp = (xp - 1) / 10 * (xp > 1).float() + xp * (xp <= 1).float()
+        xs = self.myrelu(self.compress1(xs)) * xp
+        xs = self.myrelu(self.compress2(xs))
+        xs = torch.nn.functional.max_pool2d(xs, kernel_size=2)
+        xs = self.myrelu(self.compress3(xs))
+        xs = torch.nn.functional.interpolate(xs, size=(40, 40), mode="bilinear")
+        s = self.compress4(xs)
+        s = s * 0.1 + 0.9 * torch.clamp(s, -1, 1)
+
+        loss = ((s - s0.mean(2)) ** 2).flatten().mean()
+        losses = (s.unsqueeze(2) - s0) ** 2
+        losses, _ = losses.min(2)
+        loss = loss + losses.flatten().mean()
+
+        return p, loss
 
 
 if __name__ == "__main__":

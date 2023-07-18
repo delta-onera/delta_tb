@@ -10,7 +10,7 @@ net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("trainval")  # to force relying on the fusion ?
+dataset = dataloader.FLAIR2("all")  # to force relying on the fusion ?
 
 
 def crossentropy(y, z):
@@ -50,36 +50,43 @@ def diceloss(y, z):
 print("train")
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-printloss = torch.zeros(3).cuda()
+printloss = torch.zeros(4).cuda()
 stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    x, s, y = dataset.getBatch(6)
+    x, s, y = dataset.getBatch(10)
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-    z = net(x, s)
+    z, semisup = net(x, s)
 
-    dice = diceloss(y, z)
-    ce = crossentropy(y, z)
-    loss = ce + dice
+    TR = [j for j in y.shape[0] if (y[j] == -1).float().mean() == 0]
+    if TR != []:
+        dice = diceloss(y[TR], z[TR])
+        ce = crossentropy(y[TR], z[TR])
+    else:
+        ce, dice = torch.zeros(1).cuda(), torch.zeros(1).cuda()
+    loss = ce + dice + semisup
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()
         printloss[1] += ce.clone().detach()
         printloss[2] += dice.clone().detach()
-        _, z = z.max(1)
-        stats += dataloader.confusion(y, z)
+        printloss[3] += semisup.clone().detach()
+        
+        if TR != []:
+            _, z = z.max(1)
+            stats += dataloader.confusion(y[TR], z[TR])
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
             print(i, "/", nbbatchs, printloss / 100)
-            printloss = torch.zeros(3).cuda()
+            printloss = torch.zeros(4).cuda()
         if i >= 1000 and i % 300 == 299:
             print(i, "/", nbbatchs, printloss / 300)
-            printloss = torch.zeros(3).cuda()
+            printloss = torch.zeros(4).cuda()
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
