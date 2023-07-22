@@ -48,9 +48,9 @@ class FLAIR2(threading.Thread):
         if flag == "all":
             self.trainpath = torch.load(root + "alltrainpaths.pth")
             self.testpath = torch.load(root + "alltestpaths.pth")
-            self.paths = self.trainpath.update(self.testpath)
-            self.trainpath = set(self.trainpath.keys)
-            self.testpath = set(self.testpath.keys)
+            self.paths = {**self.testpath, **self.trainpath}
+            self.trainpath = set(self.trainpath.keys())
+            self.testpath = set(self.testpath.keys())
         if flag == "test":
             self.paths = torch.load(root + "alltestpaths.pth")
         if flag in ["train", "val"]:
@@ -77,7 +77,7 @@ class FLAIR2(threading.Thread):
         row, col = self.paths[k]["coord"]
         sen = torch.Tensor(sentinel[:, row : row + 40, col : col + 40])
         sen = torch.nan_to_num(sen)
-        sen = torch.clamp(sen, 0, 1)
+        sen = torch.clamp(sen, -2, 2)
 
         if self.flag in ["train", "val"]:
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
@@ -89,7 +89,7 @@ class FLAIR2(threading.Thread):
         if k in self.trainpath:
             return torch.Tensor(x), sen, y
         else:
-            tmp = torch.zeros(512, 512).cuda()
+            tmp = torch.zeros(512, 512)
             tmp[0][0] = -1
             return torch.Tensor(x), sen, tmp
 
@@ -205,33 +205,33 @@ class MyNet(torch.nn.Module):
         with torch.no_grad():
             px, hr = self.baseline(x)
 
-        s = self.myrelu(self.conv1(s0))
-        s = self.myrelu(self.conv2(s))
-        s = self.myrelu(self.conv3(s))
-        s = self.myrelu(self.conv4(s))
+        s = self.lrelu(self.conv1(s0))
+        s = self.lrelu(self.conv2(s))
+        s = self.lrelu(self.conv3(s))
+        s = self.lrelu(self.conv4(s))
 
         ss = s.mean(2)
         s, _ = s.max(2)
         s = torch.cat([s, ss], dim=1)
 
-        s = self.myrelu(self.conv5(s))
-        s = self.myrelu(self.conv6(s))
-        s = self.myrelu(self.conv7(s))
+        s = self.lrelu(self.conv5(s))
+        s = self.lrelu(self.conv6(s))
+        s = self.lrelu(self.conv7(s))
         s = torch.nn.functional.interpolate(s, size=(128, 128), mode="bilinear")
 
         xs = torch.cat([hr, s], dim=1)
-        xs = self.myrelu(self.merge1(xs))
+        xs = self.lrelu(self.merge1(xs))
         xs = torch.cat([hr, xs], dim=1)
-        xs = self.myrelu(self.merge2(xs))
+        xs = self.lrelu(self.merge2(xs))
         xs = torch.cat([hr, xs], dim=1)
 
         s = torch.nn.functional.relu(self.merge31(xs))
         s = (s - 1) / 10 * (s > 1).float() + s * (s <= 1).float()
-        xs = self.myrelu(self.merge32(xs))
+        xs = self.lrelu(self.merge32(xs))
         xs = torch.cat([hr * s, xs], dim=1)
 
-        xs = self.myrelu(self.merge4(xs))
-        xs = self.myrelu(self.merge5(xs))
+        xs = self.lrelu(self.merge4(xs))
+        xs = self.lrelu(self.merge5(xs))
 
         p = self.classif(xs)
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
@@ -239,10 +239,10 @@ class MyNet(torch.nn.Module):
 
         xp = torch.nn.functional.relu(self.expand(p))
         xp = (xp - 1) / 10 * (xp > 1).float() + xp * (xp <= 1).float()
-        xs = self.myrelu(self.compress1(xs)) * xp
-        xs = self.myrelu(self.compress2(xs))
+        xs = self.lrelu(self.compress1(xs)) * xp
+        xs = self.lrelu(self.compress2(xs))
         xs = torch.nn.functional.max_pool2d(xs, kernel_size=2)
-        xs = self.myrelu(self.compress3(xs))
+        xs = self.lrelu(self.compress3(xs))
         xs = torch.nn.functional.interpolate(xs, size=(40, 40), mode="bilinear")
         s = self.compress4(xs)
         s = s * 0.1 + 0.9 * torch.clamp(s, -1, 1)
