@@ -231,9 +231,7 @@ class MyNet(torch.nn.Module):
         xs = self.lrelu(self.merge5(xs))
 
         p = self.classif(xs)
-        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-        p = p + px
-
+        
         xp = torch.nn.functional.relu(self.expand(p))
         xp = (xp - 1) / 10 * (xp > 1).float() + xp * (xp <= 1).float()
         xs = self.lrelu(self.compress1(xs)) * xp
@@ -249,6 +247,8 @@ class MyNet(torch.nn.Module):
         losses, _ = losses.min(2)
         loss = loss + losses.flatten().mean()
 
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        p = p + px
         return p, loss
 
 
