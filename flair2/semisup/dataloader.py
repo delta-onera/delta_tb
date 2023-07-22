@@ -188,7 +188,7 @@ class MyNet(torch.nn.Module):
         self.compress1 = torch.nn.Conv2d(512, 64, kernel_size=1)
         self.compress2 = torch.nn.Conv2d(64, 32, kernel_size=1)
         self.compress3 = torch.nn.Conv2d(32, 32, kernel_size=1)
-        self.compress4 = torch.nn.Conv2d(32, 16, kernel_size=1)
+        self.compress4 = torch.nn.Conv2d(32, 10, kernel_size=1)
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
