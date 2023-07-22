@@ -75,20 +75,17 @@ class FLAIR2(threading.Thread):
 
         sentinel = readSEN(self.root + self.paths[k]["sen"])
         row, col = self.paths[k]["coord"]
-        sen = torch.Tensor(sentinel[:, row : row + 40, col : col + 40])
+        sen = torch.Tensor(sentinel[:, :, row : row + 40, col : col + 40])
         sen = torch.nan_to_num(sen)
         sen = torch.clamp(sen, -2, 2)
 
-        if self.flag in ["train", "val"]:
+        if self.flag in ["train", "val"] or k in self.trainpath:
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
                 y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
             return torch.Tensor(x), sen, y
         if self.flag == "test":
             return torch.Tensor(x), sen
-
-        if k in self.trainpath:
-            return torch.Tensor(x), sen, y
-        else:
+        if self.flag == "all":
             tmp = torch.zeros(512, 512)
             tmp[0][0] = -1
             return torch.Tensor(x), sen, tmp

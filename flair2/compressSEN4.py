@@ -35,6 +35,8 @@ def compress(x):
     f = f[0].float()
     f = torch.nan_to_num(f)
     f = torch.clamp(f, -1, 1)
+    B, T, H, W = f.shape
+    assert B==10 and T==32
     return f
 
 

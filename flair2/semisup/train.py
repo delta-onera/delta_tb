@@ -61,7 +61,7 @@ for i in range(nbbatchs):
 
     z, semisup = net(x, s)
 
-    TR = [j for j in y.shape[0] if y[j][0][0] != -1]
+    TR = [j for j in y.shape[0] if y[j][0][0] >= 0]
     if TR != []:
         dice = diceloss(y[TR], z[TR])
         ce = crossentropy(y[TR], z[TR])
