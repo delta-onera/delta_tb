@@ -79,7 +79,7 @@ class FLAIR2(threading.Thread):
         sen = torch.nan_to_num(sen)
         sen = torch.clamp(sen, -2, 2)
 
-        if self.flag in ["train", "val"] or k in self.trainpath:
+        if self.flag in ["train", "val"] or (self.flag=="all" and k in self.trainpath):
             with rasterio.open(self.root + self.paths[k]["label"]) as src:
                 y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
             return torch.Tensor(x), sen, y
