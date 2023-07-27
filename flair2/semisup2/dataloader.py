@@ -203,21 +203,21 @@ class MyNet(torch.nn.Module):
         xs = self.lrelu(self.merge2(xs))
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs))
-        xs = torch.cat([x, xs], dim=1)
 
-        f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
-        f = torch.cat([f, hr], dim=1)
-        tmp = self.lrelu(self.decod1(f))
-        f = torch.cat([f, hr, tmp], dim=1)
-        tmp = self.lrelu(self.decod2(f))
-        f = torch.cat([f, hr, tmp], dim=1)
-        tmp = self.lrelu(self.decod3(f))
-        f = torch.cat([f, hr, tmp], dim=1)
-        tmp = self.lrelu(self.decod4(f))
-        f = torch.cat([f, hr, tmp], dim=1)
+        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
+        f = torch.cat([f1, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod1(f))
+        f = torch.cat([f1, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod2(f))
+        f = torch.cat([f1, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod3(f))
+        f = torch.cat([f1, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod4(f))
+        f = torch.cat([f1, f2, hr], dim=1)
         p = self.classif(f)
 
-        return p, xs
+        return p, torch.cat([x, xs], dim=1)
 
     def forward(self, x, s, mode=1):
         assert 1 <= mode <= 4
