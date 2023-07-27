@@ -10,7 +10,7 @@ net = net.cuda()
 net.eval()
 
 print("load data")
-dataset = dataloader.FLAIR2("train")  # to force relying on the fusion ?
+dataset = dataloader.FLAIR2("train")
 
 
 def crossentropy(y, z):
@@ -50,13 +50,13 @@ def diceloss(y, z):
 print("train")
 
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-printloss = torch.zeros(4).cuda()
+printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 210000
 dataset.start()
 
-batchsize = [12, 12, 12, 12, 8]
-mode = 2
+batchsize = [12, 12, 8, 12, 6]
+mode = 4
 
 for i in range(nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
@@ -94,11 +94,11 @@ for i in range(nbbatchs):
         if i < 10:
             print(i, "/", nbbatchs, printloss)
         if i < 1000 and i % 100 == 99:
-            print(i, "/", nbbatchs, printloss / 100)
-            printloss = torch.zeros(4).cuda()
+            print(i, "/", nbbatchs, [a / 100 for a in printloss])
+            printloss = [0, 0, 0, 0]
         if i >= 1000 and i % 300 == 299:
-            print(i, "/", nbbatchs, printloss / 300)
-            printloss = torch.zeros(4).cuda()
+            print(i, "/", nbbatchs, [a / 300 for a in printloss])
+            printloss = [0, 0, 0, 0]
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
@@ -107,15 +107,6 @@ for i in range(nbbatchs):
             print(i, "perf", perf)
             if perf[0] > 90:
                 os._exit(0)
-
-    if i == 100000:
-        mode = 3
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-        torch.save(net, "build/baseline.pth")
-    if i == 200000:
-        mode = 4
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
-        torch.save(net, "build/fused.pth")
 
     if i % 100000 > nbbatchs * 0.1:
         loss = loss * 0.7
@@ -128,11 +119,19 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
-
     if mode != 4:
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     else:
         torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
     optimizer.step()
+
+    if i == 100000:
+        mode = 3
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+        torch.save(net, "build/baseline.pth")
+    if i == 200000:
+        mode = 4
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
+        torch.save(net, "build/fused.pth")
 
 os._exit(0)
