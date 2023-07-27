@@ -50,11 +50,11 @@ class FLAIR2(threading.Thread):
 
             tmp = sorted(self.trainpath.keys())
             tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
-            self.valpath = {k: self.paths[k] for k in tmp}
+            self.valpath = {k: self.trainpath[k] for k in tmp}
 
             tmp = sorted(self.trainpath.keys())
             tmp = [k for (i, k) in enumerate(tmp) if i % 4 != 0]
-            self.trainpath = {k: self.paths[k] for k in tmp}
+            self.trainpath = {k: self.trainpath[k] for k in tmp}
 
             self.testpath = torch.load(root + "alltestpaths.pth")
             self.testpath.update(self.valpath)
@@ -242,6 +242,7 @@ class MyNet(torch.nn.Module):
             p, xs = self.forwardClassifier(x, hr, self.forwardSentinel(s))
 
             xs = self.compress(xs)
+            xs = torch.nn.functional.interpolate(xs, size=(40, 40), mode="bilinear")
             xs = self.expand(xs)
             ps = torch.nn.functional.interpolate(p, size=(40, 40), mode="bilinear")
             ps = self.expand2(ps)
@@ -251,11 +252,15 @@ class MyNet(torch.nn.Module):
             xs = self.lrelu(self.generate2(xs))
             xs = self.generate3(xs)
             xs = xs * 0.1 + 0.9 * torch.clamp(xs, -1, 1)
+            assert xs.shape[1:] == (10, 40, 40)
 
             loss = ((xs - s.mean(2)) ** 2).flatten().mean()
-            losses = (xs.unsqueeze(2) - s) ** 2
-            losses, _ = losses.min(2)
-            loss = loss + losses.flatten().mean()
+            tmp = (xs.unsqueeze(2) - s) ** 2
+            assert tmp.shape[1:] == (10, 32, 40, 40)
+            losses = torch.zeros(tmp.shape[0]).cuda()
+            for i in range(tmp.shape[0]):
+                losses[i] = min([tmp[i, :, j, :, :].mean() for j in range(32)])
+            loss = loss + losses.mean()
 
             p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
             return p + 0.1 * plow, loss
@@ -267,7 +272,6 @@ if __name__ == "__main__":
     os.system("rm -rf build")
     os.system("mkdir build")
 
-    os.system("/d/achanhon/miniconda3/bin/python -u loaderBaseline.py")
     os.system("/d/achanhon/miniconda3/bin/python -u train.py")
     os.system("/d/achanhon/miniconda3/bin/python -u val.py")
     os.system("/d/achanhon/miniconda3/bin/python -u test.py")
