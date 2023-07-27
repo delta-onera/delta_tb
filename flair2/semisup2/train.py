@@ -56,7 +56,7 @@ nbbatchs = 210000
 dataset.start()
 
 batchsize = [12, 12, 8, 12, 6]
-mode = 4
+mode = 2
 
 for i in range(nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
