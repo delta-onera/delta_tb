@@ -15,7 +15,7 @@ print("val")
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for name in dataset.paths:
-        x, _, y = dataset.get(name)
+        x, y = dataset.get(name)
         x, y = x.cuda(), y.cuda()
 
         z = net(x.unsqueeze(0))

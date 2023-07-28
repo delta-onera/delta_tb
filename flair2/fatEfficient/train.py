@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet()
+net = dataloader.FatEfficientNet()
 net = net.cuda()
 net.eval()
 
@@ -56,7 +56,7 @@ nbbatchs = 100000
 dataset.start()
 
 for i in range(nbbatchs):
-    x, _, y = dataset.getBatch(6)
+    x, y = dataset.getBatch(6)
     x, y = x.cuda(), y.cuda()
 
     z = net(x)
