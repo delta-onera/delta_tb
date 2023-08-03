@@ -9,10 +9,23 @@ originalnet = torch.load("../semisup2/build/model.pth")
 originalnet = originalnet.cuda()
 originalnet.eval()
 
+
+def convertHalf(m):
+    m.half()
+    for module in m.modules():
+        if module != m:
+            convertHalf(module)
+
+
 net = torch.load("../semisup2/build/model.pth")
 net = net.cuda()
 net.eval()
+print(net.backbone[0][0].weight.dtype)
 net.half()
+print(net.backbone[0][0].weight.dtype)
+convertHalf(net)
+print(net.backbone[0][0].weight.dtype)
+
 
 print("load data")
 dataset = dataloader.FLAIR2("train")
