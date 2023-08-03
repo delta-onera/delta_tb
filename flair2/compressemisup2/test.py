@@ -5,7 +5,8 @@ import PIL
 from PIL import Image
 
 assert torch.cuda.is_available()
-
+torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
+torch.backends.cudnn.benchmark = True
 
 def number6(i):
     s = str(i)
