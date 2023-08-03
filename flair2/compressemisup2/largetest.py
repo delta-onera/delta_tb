@@ -9,11 +9,26 @@ torch.backends.cudnn.enabled = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
 torch.backends.cudnn.benchmark = True
 
+
 def number6(i):
     s = str(i)
     while len(s) < 6:
         s = "0" + s
     return s
+
+
+class DeepEnsemble(torch.nn.Module):
+    def __init__(self, m1, m2, m3):
+        super(DeepEnsemble, self).__init__()
+        self.m1 = torch.load(m1)
+        self.m2 = torch.load(m2)
+        self.m3 = torch.load(m3)
+
+    def forwardRGB(self, x, s):
+        p1 = self.m1(x, s, half=True)
+        p2 = self.m2(x, s, half=True)
+        p3 = self.m3(x, s, half=True)
+        return p1 + p2 + p3
 
 
 print("load model")
