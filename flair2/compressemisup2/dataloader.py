@@ -169,10 +169,13 @@ class MyNet(torch.nn.Module):
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
-    def forwardRGB(self, x):
+    def forwardRGB(self, x, half=False):
         x = ((x / 255) - 0.5) / 0.5
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
-        x = torch.cat([x, xm], dim=1)
+        if half:
+            x = torch.cat([x, xm], dim=1).half()
+        else:
+            x = torch.cat([x, xm], dim=1)
 
         hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
         x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
@@ -197,6 +200,10 @@ class MyNet(torch.nn.Module):
         return s
 
     def forwardClassifier(self, x, hr, s, half=False):
+        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        if half:
+            x, hr, f1 = x.half(), hr.half(), f1.half()
+
         xs = torch.cat([x, s], dim=1)
         xs = self.lrelu(self.merge1(xs))
         xs = torch.cat([x, xs], dim=1)
@@ -204,12 +211,10 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs)).float()
 
-        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
         f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
         if half:
-            f = torch.cat([f1.half(), f2.half(), hr.half()], dim=1)
-        else:
-            f = torch.cat([f1, f2, hr], dim=1)
+            f2 = f2.half()
+        f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
         f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod2(f))
@@ -223,7 +228,7 @@ class MyNet(torch.nn.Module):
         return p, torch.cat([x, xs], dim=1)
 
     def forward(self, x, s, half=False):
-        plow, x, hr = self.forwardRGB(x)
+        plow, x, hr = self.forwardRGB(x, half)
         s = self.forwardSentinel(s)
         p, _ = self.forwardClassifier(x.float(), hr.float(), s, half)
         p = p.float()

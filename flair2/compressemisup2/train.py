@@ -9,26 +9,24 @@ originalnet = torch.load("../semisup2/build/model.pth")
 originalnet = originalnet.cuda()
 originalnet.eval()
 
-
-def convertHalf(m):
-    m.half()
-    for module in m.modules():
-        if module != m:
-            convertHalf(module)
-
-
 net = torch.load("../semisup2/build/model.pth")
 net = net.cuda()
 net.eval()
-print(net.backbone[0][0].weight.dtype)
 net.half()
-print(net.backbone[0][0].weight.dtype)
-convertHalf(net)
-print(net.backbone[0][0].weight.dtype)
-
 
 print("load data")
 dataset = dataloader.FLAIR2("train")
+
+
+def myclipgrad(m, lr=0.000001):
+    if hasattr(m, "grad") and m.grad is not None:
+        tmp = torch.nan_to_num(m.grad)
+        tmp = torch.clamp(tmp, -0.0001, 0.0001)
+        tmp = m.data - lr * tmp
+        m.data = torch.nan_to_num(tmp)
+    for module in m.modules():
+        if m != module:
+            myclipgrad(module)
 
 
 def crossentropy(y, z):
@@ -67,7 +65,7 @@ def diceloss(y, z):
 
 print("train")
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.000005)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 2000
@@ -90,14 +88,13 @@ for i in range(nbbatchs):
     loss = 0.5 * dice + 0.5 * ce + reg
 
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
-    optimizer.step()
+    myclipgrad(net)
 
     with torch.no_grad():
         printloss[0] += float(loss)
         printloss[1] += float(ce)
         printloss[2] += float(dice)
-        printloss[2] += float(reg)
+        printloss[3] += float(reg)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
