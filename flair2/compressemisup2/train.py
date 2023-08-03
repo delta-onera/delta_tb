@@ -5,9 +5,14 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet()
-net = net.cuda()
+originalnet = torch.load("../semisup2/build/model.pth")
+originalnet = originalnet.cuda()
+originalnet.eval()
+
+net = torch.load("../semisup2/build/model.pth")
+net = originalnet.cuda()
 net.eval()
+net.bfloat16()
 
 print("load data")
 dataset = dataloader.FLAIR2("train")
@@ -49,47 +54,38 @@ def diceloss(y, z):
 
 print("train")
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000005)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 210000
+nbbatchs = 10000
 dataset.start()
 
-batchsize = [12, 12, 8, 12, 6]
-mode = 2
-
 for i in range(nbbatchs):
-    x, s, y = dataset.getBatch(batchsize[mode])
-    x, s, y = x.cuda(), s.cuda(), y.cuda()
+    x, s, _ = dataset.getBatch(6)
+    x, s = x.cuda(), s.cuda()
 
-    TR = [j for j in range(y.shape[0]) if y[j][0][0] >= 0]
-    if TR == []:
-        i = i - 1
-        continue
+    with torch.no_grad():
+        originalz, _ = originalnet(x, s)
+        _, y = originalz.max(1)
 
-    if mode == 2:
-        z = net(x, s, mode=2)
-    else:
-        z, semisup = net(x, s, mode=mode)
+    optimizer.zero_grad()
 
-    dice = diceloss(y[TR], z[TR])
-    ce = crossentropy(y[TR], z[TR])
+    with torch.autocast(device_type="gpu", dtype=torch.bfloat16):
+        z, _ = net(x, s)
+        dice = diceloss(y, z)
+        ce = crossentropy(y, z)
+        reg = ((z - originalz) ** 2).mean()
+        loss = 0.5 * dice + 0.5 * ce + reg
 
-    if mode == 2:
-        loss = ce + dice
-    else:
-        loss = ce + dice + semisup
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
+    optimizer.step()
 
     with torch.no_grad():
         printloss[0] += float(loss)
         printloss[1] += float(ce)
         printloss[2] += float(dice)
-        if mode != 2:
-            printloss[3] += float(semisup)
-
-        if TR != []:
-            _, z = z.max(1)
-            stats += dataloader.confusion(y[TR], z[TR])
+        printloss[2] += float(reg)
 
         if i < 10:
             print(i, "/", nbbatchs, printloss)
@@ -107,31 +103,5 @@ for i in range(nbbatchs):
             print(i, "perf", perf)
             if perf[0] > 90:
                 os._exit(0)
-
-    if i % 100000 > nbbatchs * 0.1:
-        loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.2:
-        loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.5:
-        loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.8:
-        loss = loss * 0.7
-
-    optimizer.zero_grad()
-    loss.backward()
-    if mode != 4:
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-    else:
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
-    optimizer.step()
-
-    if i == 100000:
-        mode = 3
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-        torch.save(net, "build/baseline.pth")
-    if i == 200000:
-        mode = 4
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
-        torch.save(net, "build/fused.pth")
 
 os._exit(0)
