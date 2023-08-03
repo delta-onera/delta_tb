@@ -24,7 +24,7 @@ class DeepEnsemble(torch.nn.Module):
         self.m2 = torch.load(m2)
         self.m3 = torch.load(m3)
 
-    def forwardRGB(self, x, s):
+    def forward(self, x, s):
         p1 = self.m1(x, s, half=True)
         p2 = self.m2(x, s, half=True)
         p3 = self.m3(x, s, half=True)
@@ -32,7 +32,7 @@ class DeepEnsemble(torch.nn.Module):
 
 
 print("load model")
-net = torch.load("build/model.pth")
+net = DeepEnsemble("build/model.pth", "build/model.pth", "build/model.pth")
 net = net.cuda()
 net.eval()
 
@@ -46,7 +46,7 @@ with torch.no_grad():
         x, s = dataset.get(name)
         x, s = x.half().cuda(), s.half().cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0), half=True)
+        z = net(x.unsqueeze(0), s.unsqueeze(0))
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
