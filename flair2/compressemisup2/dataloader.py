@@ -176,7 +176,7 @@ class MyNet(torch.nn.Module):
 
         hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
         x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
-        plow = self.classiflow(x)
+        plow = self.classiflow(x).float()
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
 
         return plow, x, hr
@@ -202,9 +202,11 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge2(xs))
         xs = torch.cat([x, xs], dim=1)
-        xs = self.lrelu(self.merge3(xs))
+        xs = self.lrelu(self.merge3(xs)).float()
 
-        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        f1 = torch.nn.functional.interpolate(
+            x.float(), size=(128, 128), mode="bilinear"
+        )
         f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
         f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
@@ -219,51 +221,13 @@ class MyNet(torch.nn.Module):
 
         return p, torch.cat([x, xs], dim=1)
 
-    def forward(self, x, s, mode=1):
-        assert 1 <= mode <= 4
-
-        if mode == 1:
-            plow, x, hr = self.forwardRGB(x)
-            s = self.forwardSentinel(s)
-            p, _ = self.forwardClassifier(x, hr, s)
-            p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-            return p + 0.1 * plow
-
-        if mode == 2:
-            plow, _, _ = self.forwardRGB(x)
-            return plow
-
-        if mode >= 3:
-            if mode == 3:
-                with torch.no_grad():
-                    plow, x, hr = self.forwardRGB(x)
-            else:
-                plow, x, hr = self.forwardRGB(x)
-            p, xs = self.forwardClassifier(x, hr, self.forwardSentinel(s))
-
-            xs = self.compress(xs)
-            xs = torch.nn.functional.interpolate(xs, size=(40, 40), mode="bilinear")
-            xs = self.expand(xs)
-            ps = torch.nn.functional.interpolate(p, size=(40, 40), mode="bilinear")
-            ps = self.expand2(ps)
-            xs = ps * xs
-
-            xs = self.lrelu(self.generate1(xs))
-            xs = self.lrelu(self.generate2(xs))
-            xs = self.generate3(xs)
-            xs = xs * 0.1 + 0.9 * torch.clamp(xs, -1, 1)
-            assert xs.shape[1:] == (10, 40, 40)
-
-            loss = ((xs - s.mean(2)) ** 2).flatten().mean()
-            tmp = (xs.unsqueeze(2) - s) ** 2
-            assert tmp.shape[1:] == (10, 32, 40, 40)
-            losses = torch.zeros(tmp.shape[0]).cuda()
-            for i in range(tmp.shape[0]):
-                losses[i] = min([tmp[i, :, j, :, :].mean() for j in range(32)])
-            loss = loss + losses.mean()
-
-            p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-            return p + 0.1 * plow, loss
+    def forward(self, x, s):
+        plow, x, hr = self.forwardRGB(x)
+        s = self.forwardSentinel(s)
+        p, _ = self.forwardClassifier(x, hr, s)
+        p = p.float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        return p + 0.1 * plow
 
 
 if __name__ == "__main__":

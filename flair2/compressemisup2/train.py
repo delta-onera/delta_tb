@@ -10,9 +10,10 @@ originalnet = originalnet.cuda()
 originalnet.eval()
 
 net = torch.load("../semisup2/build/model.pth")
-net = originalnet.cuda()
+net = net.cuda()
 net.eval()
-net.bfloat16()
+with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+    net.bfloat16()
 
 print("load data")
 dataset = dataloader.FLAIR2("train")
@@ -57,7 +58,7 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.000005)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 10000
+nbbatchs = 2000
 dataset.start()
 
 for i in range(nbbatchs):
@@ -65,13 +66,13 @@ for i in range(nbbatchs):
     x, s = x.cuda(), s.cuda()
 
     with torch.no_grad():
-        originalz, _ = originalnet(x, s)
+        originalz = originalnet(x, s)
         _, y = originalz.max(1)
 
     optimizer.zero_grad()
 
-    with torch.autocast(device_type="gpu", dtype=torch.bfloat16):
-        z, _ = net(x, s)
+    with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+        z = net(x, s)
         dice = diceloss(y, z)
         ce = crossentropy(y, z)
         reg = ((z - originalz) ** 2).mean()
