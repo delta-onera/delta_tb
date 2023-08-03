@@ -99,10 +99,5 @@ for i in range(nbbatchs):
 
         if i % 1000 == 999:
             torch.save(net, "build/model.pth")
-            perf = dataloader.perf(stats)
-            stats = torch.zeros((13, 13)).cuda()
-            print(i, "perf", perf)
-            if perf[0] > 90:
-                os._exit(0)
 
 os._exit(0)
