@@ -12,8 +12,7 @@ originalnet.eval()
 net = torch.load("../semisup2/build/model.pth")
 net = net.cuda()
 net.eval()
-with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-    net.bfloat16()
+net.half()
 
 print("load data")
 dataset = dataloader.FLAIR2("train")
@@ -71,12 +70,11 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
 
-    with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-        z = net(x, s)
-        dice = diceloss(y, z)
-        ce = crossentropy(y, z)
-        reg = ((z - originalz) ** 2).mean()
-        loss = 0.5 * dice + 0.5 * ce + reg
+    z = net(x.half(), s.half(), half=True)
+    dice = diceloss(y, z)
+    ce = crossentropy(y, z)
+    reg = ((z - originalz) ** 2).mean()
+    loss = 0.5 * dice + 0.5 * ce + reg
 
     loss.backward()
     torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)

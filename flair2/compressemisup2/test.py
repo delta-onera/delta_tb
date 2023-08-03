@@ -27,10 +27,9 @@ stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for name in dataset.paths:
         x, s = dataset.get(name)
-        x, s = x.cuda(), s.cuda()
+        x, s = x.half().cuda(), s.half().cuda()
 
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            z = net(x.unsqueeze(0), s.unsqueeze(0))
+        z = net(x.unsqueeze(0), s.unsqueeze(0), half=True)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
