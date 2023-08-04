@@ -129,38 +129,38 @@ import torchvision
 class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
-        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        tmp = torchvision.models.convnext_small(weights="DEFAULT").features
         with torch.no_grad():
             old = tmp[0][0].weight / 2
-            tmp[0][0] = torch.nn.Conv2d(
-                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
-            )
+            oldb = tmp[0][0].bias
+            tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=(4, 4), stride=(4, 4))
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+            tmp[0][0].bias = oldb
         del tmp[7]
         del tmp[6]
         self.backbone = tmp
-        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(384, 13, kernel_size=1)
 
         ks = (2, 1, 1)
         self.conv1 = torch.nn.Conv3d(10, 32, kernel_size=ks, stride=ks, padding=0)
         self.conv2 = torch.nn.Conv3d(32, 64, kernel_size=ks, stride=ks, padding=0)
         self.conv3 = torch.nn.Conv3d(64, 92, kernel_size=(3, 3, 3))
         self.conv4 = torch.nn.Conv3d(92, 128, kernel_size=ks, stride=ks, padding=0)
-        self.conv5 = torch.nn.Conv2d(256, 160, kernel_size=3)
-        self.conv6 = torch.nn.Conv2d(160, 160, kernel_size=3)
-        self.conv7 = torch.nn.Conv2d(160, 160, kernel_size=3)
+        self.conv5 = torch.nn.Conv2d(256, 128, kernel_size=3)
+        self.conv6 = torch.nn.Conv2d(128, 128, kernel_size=3)
+        self.conv7 = torch.nn.Conv2d(128, 128, kernel_size=3)
 
-        self.merge1 = torch.nn.Conv2d(320, 512, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(672, 768, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(928, 160, kernel_size=1)
+        self.merge1 = torch.nn.Conv2d(512, 256, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(640, 512, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(896, 128, kernel_size=1)
 
-        self.decod1 = torch.nn.Conv2d(368, 208, kernel_size=1)
-        self.decod2 = torch.nn.Conv2d(416, 208, kernel_size=1)
-        self.decod3 = torch.nn.Conv2d(416, 208, kernel_size=3, padding=1)
-        self.decod4 = torch.nn.Conv2d(416, 304, kernel_size=3, padding=1)
-        self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
+        self.decod1 = torch.nn.Conv2d(608, 128, kernel_size=1)
+        self.decod2 = torch.nn.Conv2d(608, 128, kernel_size=1)
+        self.decod3 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
+        self.decod4 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(608, 13, kernel_size=1)
 
-        self.compress = torch.nn.Conv2d(320, 2, kernel_size=1)
+        self.compress = torch.nn.Conv2d(512, 2, kernel_size=1)
         self.expand = torch.nn.Conv2d(2, 64, kernel_size=1)
         self.expand2 = torch.nn.Conv2d(13, 64, kernel_size=1)
         self.generate1 = torch.nn.Conv2d(64, 128, kernel_size=1)
@@ -170,12 +170,14 @@ class MyNet(torch.nn.Module):
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
     def forwardRGB(self, x):
-        x = ((x / 255) - 0.5) / 0.5
+        x = ((x / 255) - 0.5) / 0.25
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
 
-        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
-        x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
+        hr = self.backbone[1](self.backbone[0](x))  # 96
+        x = self.backbone[5](
+            self.backbone[4](self.backbone[3](self.backbone[2](hr)))
+        )  # 384
         plow = self.classiflow(x)
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
 
@@ -267,6 +269,10 @@ class MyNet(torch.nn.Module):
 
 
 if __name__ == "__main__":
+    # net = MyNet()
+    # net = net.cuda()
+    # print(net(torch.rand(2, 5, 512, 512).cuda(), torch.rand(2, 10, 32, 40, 40).cuda()).shape)
+    # quit()
     import os
 
     os.system("rm -rf build")
