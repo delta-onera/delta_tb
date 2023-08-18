@@ -18,21 +18,19 @@ def number6(i):
 
 
 class DeepEnsemble(torch.nn.Module):
-    def __init__(self, m1, m2, m3):
+    def __init__(self, m1, m2):
         super(DeepEnsemble, self).__init__()
         self.m1 = torch.load(m1)
         self.m2 = torch.load(m2)
-        self.m3 = torch.load(m3)
 
     def forward(self, x, s):
-        p1 = self.m1(x, s, half=True)
-        p2 = self.m2(x, s, half=True)
-        p3 = self.m3(x, s, half=True)
-        return p1 + p2 + p3
+        p1 = self.m1(x, s)
+        p2 = self.m2(x, s)
+        return 1.1 * p1 + p2
 
 
 print("load model")
-net = DeepEnsemble("build/model.pth", "build/model.pth", "build/model.pth")
+net = DeepEnsemble("../semisup2/build/model.pth", "../semisup2bis/build/model.pth")
 net = net.cuda()
 net.eval()
 
@@ -44,7 +42,7 @@ stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for name in dataset.paths:
         x, s = dataset.get(name)
-        x, s = x.half().cuda(), s.half().cuda()
+        x, s = x.cuda(), s.cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
         _, z = z[0].max(0)
