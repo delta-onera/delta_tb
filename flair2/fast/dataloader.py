@@ -217,8 +217,8 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs))
 
-        f1 = self.expand4(x, size=(128, 128), mode="nearest")
-        f2 = self.expand4(xs, size=(128, 128), mode="nearest")
+        f1 = self.expand4(x)
+        f2 = self.expand4(xs)
         f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
         f = torch.cat([f1, f2, hr], dim=1)
