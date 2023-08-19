@@ -169,6 +169,11 @@ class MyNet(torch.nn.Module):
 
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
+        self.stride = []
+        for i in range(4):
+            for j in range(4):
+                self.stride.append((i, j))
+
     def forwardRGB(self, x):
         x = ((x / 255) - 0.5) / 0.5
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
@@ -196,6 +201,14 @@ class MyNet(torch.nn.Module):
         s = self.lrelu(self.conv7(s))
         return s
 
+    def expand4(self, x):
+        B, ch, H, W = x.shape
+        dt = x.dtype
+        z = torch.zeros((B, ch, H * 4, W * 4), dtype=dt)
+        for i, j in self.stride:
+            z[:, :, i::4, j::4] = x
+        return z
+
     def forwardClassifier(self, x, hr, s):
         xs = torch.cat([x, s], dim=1)
         xs = self.lrelu(self.merge1(xs))
@@ -204,8 +217,8 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs))
 
-        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="nearest")
-        f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="nearest")
+        f1 = self.expand4(x, size=(128, 128), mode="nearest")
+        f2 = self.expand4(xs, size=(128, 128), mode="nearest")
         f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
         f = torch.cat([f1, f2, hr], dim=1)
