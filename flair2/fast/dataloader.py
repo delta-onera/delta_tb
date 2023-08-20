@@ -204,7 +204,7 @@ class MyNet(torch.nn.Module):
     def expand4(self, x):
         B, ch, H, W = x.shape
         dt = x.dtype
-        z = torch.zeros((B, ch, H * 4, W * 4), dtype=dt)
+        z = torch.zeros((B, ch, H * 4, W * 4), dtype=dt).cuda()
         for i, j in self.stride:
             z[:, :, i::4, j::4] = x
         return z
