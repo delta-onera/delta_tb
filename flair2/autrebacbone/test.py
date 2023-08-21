@@ -15,7 +15,7 @@ def number6(i):
 
 
 print("load model")
-net = torch.load("build/model.pth")
+net = torch.load("build/baseline.pth")
 net = net.cuda()
 net.eval()
 
@@ -29,7 +29,7 @@ with torch.no_grad():
         x, s = dataset.get(name)
         x, s = x.cuda(), s.cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0))
+        z = net(x.unsqueeze(0), s.unsqueeze(0),mode=2)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
