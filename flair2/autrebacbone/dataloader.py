@@ -154,7 +154,7 @@ class MyNet(torch.nn.Module):
         self.merge2 = torch.nn.Conv2d(2024, 512, kernel_size=1)
         self.merge3 = torch.nn.Conv2d(2024, 112, kernel_size=1)
 
-        self.decod1 = torch.nn.Conv2d(352, 112, kernel_size=1)
+        self.decod1 = torch.nn.Conv2d(336, 112, kernel_size=1)
         self.decod2 = torch.nn.Conv2d(448, 112, kernel_size=1)
         self.decod3 = torch.nn.Conv2d(448, 112, kernel_size=3, padding=1)
         self.decod4 = torch.nn.Conv2d(448, 112, kernel_size=3, padding=1)
