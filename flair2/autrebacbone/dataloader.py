@@ -129,38 +129,38 @@ import torchvision
 class MyNet(torch.nn.Module):
     def __init__(self):
         super(MyNet, self).__init__()
-        tmp = torchvision.models.convnext_small(weights="DEFAULT").features
+        tmp = torchvision.models.regnet_y_16gf(
+            weights=torchvision.models.RegNet_Y_16GF_Weights.IMAGENET1K_V2
+        )
         with torch.no_grad():
-            old = tmp[0][0].weight / 2
-            oldb = tmp[0][0].bias
-            tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=(4, 4), stride=(4, 4))
-            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
-            tmp[0][0].bias = oldb
-        del tmp[7]
-        del tmp[6]
-        self.backbone = tmp
-        self.classiflow = torch.nn.Conv2d(384, 13, kernel_size=1)
+            old = tmp.stem[0].weight / 2
+            tmp.stem[0] = torch.nn.Conv2d(6, 32, kernel_size=3, stride=2, padding=1)
+            tmp.stem[0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        del tmp.trunk_output.block4
+        del tmp.fc
+        self.reg = tmp
+        self.classiflow = torch.nn.Conv2d(1232, 13, kernel_size=1)
 
         ks = (2, 1, 1)
         self.conv1 = torch.nn.Conv3d(10, 32, kernel_size=ks, stride=ks, padding=0)
         self.conv2 = torch.nn.Conv3d(32, 64, kernel_size=ks, stride=ks, padding=0)
         self.conv3 = torch.nn.Conv3d(64, 92, kernel_size=(3, 3, 3))
         self.conv4 = torch.nn.Conv3d(92, 128, kernel_size=ks, stride=ks, padding=0)
-        self.conv5 = torch.nn.Conv2d(256, 128, kernel_size=3)
-        self.conv6 = torch.nn.Conv2d(128, 128, kernel_size=3)
-        self.conv7 = torch.nn.Conv2d(128, 128, kernel_size=3)
+        self.conv5 = torch.nn.Conv2d(256, 256, kernel_size=3)
+        self.conv6 = torch.nn.Conv2d(256, 256, kernel_size=3)
+        self.conv7 = torch.nn.Conv2d(256, 280, kernel_size=3)
 
-        self.merge1 = torch.nn.Conv2d(512, 256, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(640, 512, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(896, 128, kernel_size=1)
+        self.merge1 = torch.nn.Conv2d(1512, 512, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(2024, 512, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(2024, 112, kernel_size=1)
 
-        self.decod1 = torch.nn.Conv2d(608, 128, kernel_size=1)
-        self.decod2 = torch.nn.Conv2d(608, 128, kernel_size=1)
-        self.decod3 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
-        self.decod4 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
-        self.classif = torch.nn.Conv2d(608, 13, kernel_size=1)
+        self.decod1 = torch.nn.Conv2d(352, 112, kernel_size=1)
+        self.decod2 = torch.nn.Conv2d(448, 112, kernel_size=1)
+        self.decod3 = torch.nn.Conv2d(448, 112, kernel_size=3, padding=1)
+        self.decod4 = torch.nn.Conv2d(448, 112, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(448, 13, kernel_size=1)
 
-        self.compress = torch.nn.Conv2d(512, 2, kernel_size=1)
+        self.compress = torch.nn.Conv2d(112, 2, kernel_size=1)
         self.expand = torch.nn.Conv2d(2, 64, kernel_size=1)
         self.expand2 = torch.nn.Conv2d(13, 64, kernel_size=1)
         self.generate1 = torch.nn.Conv2d(64, 128, kernel_size=1)
@@ -171,13 +171,11 @@ class MyNet(torch.nn.Module):
 
     def forwardRGB(self, x):
         x = ((x / 255) - 0.5) / 0.25
-        xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
+        xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
         x = torch.cat([x, xm], dim=1)
 
-        hr = self.backbone[1](self.backbone[0](x))  # 96
-        x = self.backbone[5](
-            self.backbone[4](self.backbone[3](self.backbone[2](hr)))
-        )  # 384
+        hr = self.reg.trunk_output.block1(self.reg.stem(x))  # 224
+        x = self.reg.trunk_output.block3(self.reg.trunk_output.block2(hr))  # 1232
         plow = self.classiflow(x)
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
 
@@ -206,20 +204,19 @@ class MyNet(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs))
 
-        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
-        f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
-        f = torch.cat([f1, f2, hr], dim=1)
+        f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
+        f = torch.cat([f, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
-        f = torch.cat([f1, f2, hr], dim=1)
+        f = torch.cat([f, f2, hr], dim=1)
         f2 = self.lrelu(self.decod2(f))
-        f = torch.cat([f1, f2, hr], dim=1)
+        f = torch.cat([f, f2, hr], dim=1)
         f2 = self.lrelu(self.decod3(f))
-        f = torch.cat([f1, f2, hr], dim=1)
+        f = torch.cat([f, f2, hr], dim=1)
         f2 = self.lrelu(self.decod4(f))
-        f = torch.cat([f1, f2, hr], dim=1)
+        f = torch.cat([f, f2, hr], dim=1)
         p = self.classif(f)
 
-        return p, torch.cat([x, xs], dim=1)
+        return p, xs
 
     def forward(self, x, s, mode=1):
         assert 1 <= mode <= 4
@@ -269,10 +266,6 @@ class MyNet(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    # net = MyNet()
-    # net = net.cuda()
-    # print(net(torch.rand(2, 5, 512, 512).cuda(), torch.rand(2, 10, 32, 40, 40).cuda()).shape)
-    # quit()
     import os
 
     os.system("rm -rf build")
