@@ -199,9 +199,9 @@ class MyNet(torch.nn.Module):
     def forwardClassifier(self, x, hr, s):
         xs = torch.cat([x, s], dim=1)
         xs = self.lrelu(self.merge1(xs))
-        xs = torch.cat([x, xs], dim=1)
+        xs = torch.cat([x, s, xs], dim=1)
         xs = self.lrelu(self.merge2(xs))
-        xs = torch.cat([x, xs], dim=1)
+        xs = torch.cat([x, s, xs], dim=1)
         xs = self.lrelu(self.merge3(xs))
 
         f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
