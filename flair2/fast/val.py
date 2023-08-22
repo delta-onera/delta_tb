@@ -1,5 +1,6 @@
 import torch
 import dataloader
+import sys
 
 assert torch.cuda.is_available()
 
@@ -7,6 +8,8 @@ print("load model")
 net = torch.load("build/model.pth")
 net = net.cuda()
 net.eval()
+if len(sys.argv) > 1:
+    net.half()
 
 print("load data")
 dataset = dataloader.FLAIR2("val")
@@ -18,7 +21,11 @@ with torch.no_grad():
         x, s, y = dataset.get(name)
         x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0))
+        if len(sys.argv) == 1:
+            z = net(x.unsqueeze(0), s.unsqueeze(0))
+        else:
+            z = net(x.unsqueeze(0).half(), s.unsqueeze(0).half())
+
         _, z = z[0].max(0)
         stats += dataloader.confusion(y, z)
 

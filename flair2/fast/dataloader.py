@@ -175,8 +175,10 @@ class MyNet(torch.nn.Module):
                 self.stride.append((i, j))
 
     def forwardRGB(self, x):
-        x = ((x / 255) - 0.5) / 0.5
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
+        xm = xm.to(dtype=x.dtype)
+        x = ((x / 255) - 0.5) / 0.5
+        x = x.to(dtype=xm.dtype)
         x = torch.cat([x, xm], dim=1)
 
         hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
