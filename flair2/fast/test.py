@@ -7,6 +7,10 @@ import sys
 import time
 
 assert torch.cuda.is_available()
+torch.backends.cudnn.enabled = True
+torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.allow_tf16=True
 
 
 def number6(i):

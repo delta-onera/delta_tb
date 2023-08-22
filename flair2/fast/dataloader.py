@@ -221,7 +221,6 @@ class MyNet(torch.nn.Module):
 
         f1 = self.expand4(x)
         f2 = self.expand4(xs)
-        assert f1.dtype == torch.float16
         f = torch.cat([f1, f2, hr], dim=1)
         f2 = self.lrelu(self.decod1(f))
         f = torch.cat([f1, f2, hr], dim=1)
