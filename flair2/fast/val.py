@@ -9,6 +9,7 @@ net = torch.load("build/model.pth")
 net = net.cuda()
 net.eval()
 if len(sys.argv) > 1:
+    print("forward in half")
     net.half()
 
 print("load data")
