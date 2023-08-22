@@ -42,7 +42,7 @@ with torch.no_grad():
         if len(sys.argv) == 1:
             z = net(x.unsqueeze(0), s.unsqueeze(0))
         else:
-            # z = net(x.unsqueeze(0).half(), s.unsqueeze(0).half())
+            #z = net(x.unsqueeze(0).half(), s.unsqueeze(0).half())
             z = torch.rand(1, 13, 512, 512)
         _, z = z[0].max(0)
 
