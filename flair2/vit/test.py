@@ -29,7 +29,7 @@ with torch.no_grad():
         x, s = dataset.get(name)
         x, s = x.cuda(), s.cuda()
 
-        with torch.autocast(device_type="gpu", dtype=torch.bfloat16):
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
             z = net(x.unsqueeze(0), s.unsqueeze(0))
 
         _, z = z[0].max(0)
