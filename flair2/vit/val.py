@@ -18,7 +18,9 @@ with torch.no_grad():
         x, s, y = dataset.get(name)
         x, s, y = x.cuda(), s.cuda(), y.cuda()
 
-        z = net(x.unsqueeze(0), s.unsqueeze(0))
+        with torch.autocast(device_type="gpu", dtype=torch.bfloat16):
+            z = net(x.unsqueeze(0), s.unsqueeze(0))
+
         _, z = z[0].max(0)
         stats += dataloader.confusion(y, z)
 

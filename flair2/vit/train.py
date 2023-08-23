@@ -67,18 +67,21 @@ for i in range(nbbatchs):
         i = i - 1
         continue
 
-    if mode == 2:
-        z = net(x, s, mode=2)
-    else:
-        z, semisup = net(x, s, mode=mode)
+    optimizer.zero_grad()
+    with torch.autocast(device_type="gpu", dtype=torch.bfloat16):
+        if mode == 2:
+            z = net(x, s, mode=2)
+        else:
+            z, semisup = net(x, s, mode=mode)
 
-    dice = diceloss(y[TR], z[TR])
-    ce = crossentropy(y[TR], z[TR])
+        dice = diceloss(y[TR], z[TR])
+        ce = crossentropy(y[TR], z[TR])
 
-    if mode == 2:
-        loss = ce + dice
-    else:
-        loss = ce + dice + semisup
+        if mode == 2:
+            loss = ce + dice
+        else:
+            loss = ce + dice + semisup
+    loss.backward()
 
     with torch.no_grad():
         printloss[0] += float(loss)
@@ -117,8 +120,6 @@ for i in range(nbbatchs):
     if i % 100000 > nbbatchs * 0.8:
         loss = loss * 0.7
 
-    optimizer.zero_grad()
-    loss.backward()
     if mode != 4:
         torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     else:
