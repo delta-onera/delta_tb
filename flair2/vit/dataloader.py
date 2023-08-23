@@ -131,9 +131,9 @@ class MyNet(torch.nn.Module):
         super(MyNet, self).__init__()
         tmp = torchvision.models.maxvit_t(weights="DEFAULT")
         with torch.no_grad():
-            old = tmp.stem[0].weight / 2
-            tmp.stem[0] = torch.nn.Conv2d(6, 64, kernel_size=3, stride=2, padding=1)
-            tmp.stem[0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+            old = tmp.stem[0][0].weight / 2
+            tmp.stem[0][0] = torch.nn.Conv2d(6, 64, kernel_size=3, stride=2, padding=1)
+            tmp.stem[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
         del tmp.blocks[3]
         del tmp.classifier
         self.vit = tmp
