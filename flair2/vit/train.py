@@ -68,7 +68,7 @@ for i in range(nbbatchs):
         continue
 
     optimizer.zero_grad()
-    with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+    with torch.autocast(device_type="cuda", dtype=torch.float16):
         if mode == 2:
             z = net(x, s, mode=2)
         else:
