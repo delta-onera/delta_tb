@@ -55,7 +55,7 @@ stats = torch.zeros((13, 13)).cuda()
 nbbatchs = 210000
 dataset.start()
 
-batchsize = [12, 12, 8, 12, 6]
+batchsize = [8, 8, 4, 8, 4]
 mode = 2
 
 for i in range(nbbatchs):
