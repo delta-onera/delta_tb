@@ -205,16 +205,16 @@ class MyNet(torch.nn.Module):
         xs = self.lrelu(self.merge3(xs))
 
         f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
-        f = torch.cat([f, hr], dim=1)
-        f2 = self.lrelu(self.decod1(f))
-        f = torch.cat([f, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod2(f))
-        f = torch.cat([f, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod3(f))
-        f = torch.cat([f, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod4(f))
-        f = torch.cat([f, f2, hr], dim=1)
-        p = self.classif(f)
+        f2 = torch.cat([f, hr], dim=1)
+        f2 = self.lrelu(self.decod1(f2))
+        f2 = torch.cat([f, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod2(f2))
+        f2 = torch.cat([f, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod3(f2))
+        f2 = torch.cat([f, f2, hr], dim=1)
+        f2 = self.lrelu(self.decod4(f2))
+        f2 = torch.cat([f, f2, hr], dim=1)
+        p = self.classif(f2)
 
         return p, xs
 
