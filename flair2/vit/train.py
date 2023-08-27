@@ -58,7 +58,7 @@ dataset.start()
 batchsize = [8, 8, 4, 8, 4]
 mode = 2
 
-for i in range(100000-2,nbbatchs):
+for i in range(nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
