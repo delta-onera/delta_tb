@@ -126,18 +126,17 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
-class MyNet(torch.nn.Module):
+class MyNet4(torch.nn.Module):
     def __init__(self):
-        super(MyNet, self).__init__()
-        tmp = torchvision.models.maxvit_t(weights="DEFAULT")
+        super(MyNet4, self).__init__()
+        tmp = torchvision.models.swin_s(weights="DEFAULT").features
+        del tmp[7:]
         with torch.no_grad():
-            old = tmp.stem[0][0].weight / 2
-            tmp.stem[0][0] = torch.nn.Conv2d(6, 64, kernel_size=3, stride=2, padding=1)
-            tmp.stem[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
-        del tmp.blocks[3]
-        del tmp.classifier
+            old = tmp[0][0].weight / 2
+            tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=4, stride=4)
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
         self.vit = tmp
-        self.classiflow = torch.nn.Conv2d(256, 13, kernel_size=1)
+        self.classiflow = torch.nn.Conv2d(384, 13, kernel_size=1)
 
         ks = (2, 1, 1)
         self.conv1 = torch.nn.Conv3d(10, 32, kernel_size=ks, stride=ks, padding=0)
@@ -148,17 +147,17 @@ class MyNet(torch.nn.Module):
         self.conv6 = torch.nn.Conv2d(256, 256, kernel_size=3)
         self.conv7 = torch.nn.Conv2d(256, 256, kernel_size=3)
 
-        self.merge1 = torch.nn.Conv2d(512, 512, kernel_size=1)
-        self.merge2 = torch.nn.Conv2d(1024, 512, kernel_size=1)
-        self.merge3 = torch.nn.Conv2d(1024, 192, kernel_size=1)
+        self.merge1 = torch.nn.Conv2d(640, 640, kernel_size=1)
+        self.merge2 = torch.nn.Conv2d(1024, 640, kernel_size=1)
+        self.merge3 = torch.nn.Conv2d(1024, 128, kernel_size=1)
 
-        self.decod1 = torch.nn.Conv2d(512, 192, kernel_size=1)
-        self.decod2 = torch.nn.Conv2d(512, 192, kernel_size=1)
-        self.decod3 = torch.nn.Conv2d(512, 192, kernel_size=3, padding=1)
-        self.decod4 = torch.nn.Conv2d(512, 192, kernel_size=3, padding=1)
-        self.classif = torch.nn.Conv2d(512, 13, kernel_size=1)
+        self.decod1 = torch.nn.Conv2d(608, 128, kernel_size=1)
+        self.decod2 = torch.nn.Conv2d(608, 128, kernel_size=1)
+        self.decod3 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
+        self.decod4 = torch.nn.Conv2d(608, 128, kernel_size=3, padding=1)
+        self.classif = torch.nn.Conv2d(608, 13, kernel_size=1)
 
-        self.compress = torch.nn.Conv2d(192, 2, kernel_size=1)
+        self.compress = torch.nn.Conv2d(128, 2, kernel_size=1)
         self.expand = torch.nn.Conv2d(2, 64, kernel_size=1)
         self.expand2 = torch.nn.Conv2d(13, 64, kernel_size=1)
         self.generate1 = torch.nn.Conv2d(64, 128, kernel_size=1)
@@ -168,38 +167,21 @@ class MyNet(torch.nn.Module):
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
     def forwardRGB(self, x):
+        xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
+        xm = xm.to(dtype=x.dtype)
         x = ((x / 255) - 0.5) / 0.25
-        xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
+        x = x.to(dtype=xm.dtype)
         x = torch.cat([x, xm], dim=1)
 
-        x = torch.nn.functional.interpolate(x, size=(448, 448), mode="bilinear")
-        x1 = x[:, :, 0:224, 0:224]
-        x2 = x[:, :, 0:224, 224:448]
-        x3 = x[:, :, 224:448, 0:224]
-        x4 = x[:, :, 224:448, 224:448]
+        hr = self.vit[0:2](x)
+        x = self.vit[2:](hr)
 
-        hr1 = self.vit.blocks[0](self.vit.stem(x1))
-        hr2 = self.vit.blocks[0](self.vit.stem(x2))
-        hr3 = self.vit.blocks[0](self.vit.stem(x3))
-        hr4 = self.vit.blocks[0](self.vit.stem(x4))
+        hr = torch.transpose(hr, (2, 3))
+        hr = torch.transpose(hr, (1, 2))
+        x = torch.transpose(x, (2, 3))
+        x = torch.transpose(x, (1, 2))
 
-        x1 = self.vit.blocks[2](self.vit.blocks[1](hr1))
-        x2 = self.vit.blocks[2](self.vit.blocks[1](hr2))
-        x3 = self.vit.blocks[2](self.vit.blocks[1](hr3))
-        x4 = self.vit.blocks[2](self.vit.blocks[1](hr4))
-
-        hr12 = torch.cat([hr1, hr2], dim=3)
-        hr34 = torch.cat([hr3, hr4], dim=3)
-        hr = torch.cat([hr12, hr34], dim=2)
-
-        x12 = torch.cat([x1, x2], dim=3)
-        x34 = torch.cat([x3, x4], dim=3)
-        x = torch.cat([x12, x34], dim=2)
-
-        hr = torch.nn.functional.interpolate(hr, size=(128, 128), mode="bilinear")
-        x = torch.nn.functional.interpolate(x, size=(32, 32), mode="bilinear")
-
-        plow = self.classiflow(x)
+        plow = self.classiflow(x).float()
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
         return plow, x, hr
 
@@ -221,13 +203,15 @@ class MyNet(torch.nn.Module):
     def forwardClassifier(self, x, hr, s):
         xs = torch.cat([x, s], dim=1)
         xs = self.lrelu(self.merge1(xs))
-        xs = torch.cat([x, s, xs], dim=1)
+        xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge2(xs))
-        xs = torch.cat([x, s, xs], dim=1)
-        xs = self.lrelu(self.merge3(xs))
+        xs = torch.cat([x, xs], dim=1)
+        xs = self.lrelu(self.merge3(xs)).float()
 
         f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
+        x = x.float()
         x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        x, f = x.to(dtype=hr.dtype), f.to(dtype=hr.dtype)
         f = torch.cat([f, x, hr], dim=1)
         f = self.lrelu(self.decod1(f))
         f = torch.cat([f, x, hr], dim=1)
@@ -248,6 +232,7 @@ class MyNet(torch.nn.Module):
             plow, x, hr = self.forwardRGB(x)
             s = self.forwardSentinel(s)
             p, _ = self.forwardClassifier(x, hr, s)
+            p = p.float()
             p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
             return p + 0.1 * plow
 
