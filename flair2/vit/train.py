@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet()
+net = dataloader.MyNet4()
 net = net.cuda()
 net.eval()
 
@@ -58,7 +58,7 @@ dataset.start()
 batchsize = [8, 8, 4, 8, 4]
 mode = 2
 
-for i in range(nbbatchs):
+for i in range(100000-2,nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 

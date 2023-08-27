@@ -130,7 +130,7 @@ class MyNet4(torch.nn.Module):
     def __init__(self):
         super(MyNet4, self).__init__()
         tmp = torchvision.models.swin_s(weights="DEFAULT").features
-        del tmp[7:]
+        del tmp[6:]
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=4, stride=4)
@@ -176,10 +176,10 @@ class MyNet4(torch.nn.Module):
         hr = self.vit[0:2](x)
         x = self.vit[2:](hr)
 
-        hr = torch.transpose(hr, (2, 3))
-        hr = torch.transpose(hr, (1, 2))
-        x = torch.transpose(x, (2, 3))
-        x = torch.transpose(x, (1, 2))
+        hr = torch.transpose(hr, 2, 3)
+        hr = torch.transpose(hr, 1, 2)
+        x = torch.transpose(x, 2, 3)
+        x = torch.transpose(x, 1, 2)
 
         plow = self.classiflow(x).float()
         plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
