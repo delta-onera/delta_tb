@@ -59,11 +59,14 @@ for i in range(nbbatchs):
     x, y = dataset.getBatch(6)
     x, y = x.cuda(), y.cuda()
 
-    z = net(x)
+    optimizer.zero_grad()
+    with torch.autocast(device_type="cuda", dtype=torch.float16):
+        z = net(x)
 
-    dice = diceloss(y, z)
-    ce = crossentropy(y, z)
-    loss = ce + dice
+        dice = diceloss(y, z)
+        ce = crossentropy(y, z)
+        loss = ce + dice
+    loss.backward()
 
     with torch.no_grad():
         printloss[0] += loss.clone().detach()
@@ -98,8 +101,6 @@ for i in range(nbbatchs):
     if i > nbbatchs * 0.8:
         loss = loss * 0.7
 
-    optimizer.zero_grad()
-    loss.backward()
     torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
     optimizer.step()
 
