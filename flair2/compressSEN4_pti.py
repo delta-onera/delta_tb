@@ -41,7 +41,7 @@ def compress(x):
     return f
 
 
-root = "/scratchf/CHALLENGE_IGN/FLAIR_2/"
+root = "~/FLAIR_2/"
 l = ["alltestpaths.pth", "alltrainpaths.pth"]
 done = set()
 for name in l:
