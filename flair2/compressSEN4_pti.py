@@ -1,6 +1,6 @@
 import torch
 import numpy
-import times
+import time
 
 
 def compress(x):
