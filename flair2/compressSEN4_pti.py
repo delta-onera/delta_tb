@@ -37,13 +37,14 @@ def compress(x):
     f = torch.nan_to_num(f)
     f = torch.clamp(f, -1, 1)
     B, T, H, W = f.shape
-    assert B==10 and T==32
+    assert B == 10 and T == 32
     return f
 
 
 root = "/d/achanhon/FLAIR_2/"
 l = ["alltestpaths.pth", "alltrainpaths.pth"]
 done = set()
+T0 = time.time()
 for name in l:
     paths = torch.load(root + name)
     print(len(paths))
@@ -61,4 +62,4 @@ for name in l:
 
         numpy.save(root + paths[i]["sen"], sentinel)
 
-print("GOOOOOOOOOOOD")
+print("GOOOOOOOOOOOD", time.time() - T0)
