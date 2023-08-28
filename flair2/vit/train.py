@@ -68,19 +68,18 @@ for i in range(nbbatchs):
         continue
 
     optimizer.zero_grad()
-    with torch.autocast(device_type="cuda", dtype=torch.float16):
-        if mode == 2:
-            z = net(x, s, mode=2)
-        else:
-            z, semisup = net(x, s, mode=mode)
+    if mode == 2:
+        z = net(x, s, mode=2)
+    else:
+        z, semisup = net(x, s, mode=mode)
 
-        dice = diceloss(y[TR], z[TR])
-        ce = crossentropy(y[TR], z[TR])
+    dice = diceloss(y[TR], z[TR])
+    ce = crossentropy(y[TR], z[TR])
 
-        if mode == 2:
-            loss = ce + dice
-        else:
-            loss = ce + dice + semisup
+    if mode == 2:
+        loss = ce + dice
+    else:
+        loss = ce + dice + semisup
     loss.backward()
 
     with torch.no_grad():
