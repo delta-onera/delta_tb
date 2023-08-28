@@ -1,5 +1,6 @@
 import torch
 import numpy
+import times
 
 
 def compress(x):
@@ -47,6 +48,8 @@ for name in l:
     paths = torch.load(root + name)
     print(len(paths))
     for i in paths:
+        print(paths[i])
+        quit()
         if paths[i]["sen"] in done:
             continue
         print(paths[i]["sen"])
