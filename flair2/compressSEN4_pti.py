@@ -41,7 +41,7 @@ def compress(x):
     return f
 
 
-root = "~/FLAIR_2/"
+root = "/d/achanhon/FLAIR_2/"
 l = ["alltestpaths.pth", "alltrainpaths.pth"]
 done = set()
 for name in l:
