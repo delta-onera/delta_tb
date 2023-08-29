@@ -3,6 +3,7 @@ import dataloader
 import numpy
 import PIL
 from PIL import Image
+import time
 
 
 class MyNet3(torch.nn.Module):
@@ -243,6 +244,7 @@ class DeepEnsemble(torch.nn.Module):
         return p1 + 0.9 * p2 + p3 + p4 + p5
 
 
+T0 = time.time()
 print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
@@ -271,3 +273,5 @@ with torch.no_grad():
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         z = PIL.Image.fromarray(z)
         z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
+
+print("done", time.time() - T0)
