@@ -226,19 +226,21 @@ def number6(i):
 
 
 class DeepEnsemble(torch.nn.Module):
-    def __init__(self, m1, m2, m3, m4):
+    def __init__(self, m1, m2, m3, m4, m5):
         super(DeepEnsemble, self).__init__()
         self.m1 = torch.load(m1)
         self.m2 = torch.load(m2)
         self.m3 = torch.load(m3)
         self.m4 = torch.load(m4)
+        self.m5 = torch.load(m5)
 
     def forward(self, x, s):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
         p3 = self.m3(x, s)
         p4 = self.m4(x, s)
-        return p1 + 0.9 * p2 + p3 + p4
+        p5 = self.m5(x, s)
+        return p1 + 0.9 * p2 + p3 + p4 + p5
 
 
 print("load model")
@@ -247,6 +249,7 @@ net = DeepEnsemble(
     "../semisup2bis/build/model.pth",
     "../fast/build/model_converted.pth",
     "../autrebacbone/build/model_converted.pth",
+    "../vit/build/model.pth",
 )
 net = net.cuda()
 net.eval()
