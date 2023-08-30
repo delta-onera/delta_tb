@@ -236,12 +236,12 @@ class DeepEnsemble(torch.nn.Module):
         self.m5 = torch.load(m5)
 
     def forward(self, x, s):
-        p1 = self.m1(x, s)
-        p2 = self.m2(x, s)
-        p3 = self.m3(x, s)
-        p4 = self.m4(x, s)
-        p5 = self.m5(x, s)
-        return p1 + 0.9 * p2 + p3 + p4 + p5
+        p1 = torch.nn.functional.softmax(self.m1(x, s), dim=1)
+        p5 = torch.nn.functional.softmax(self.m5(x, s), dim=1)
+        p2 = torch.nn.functional.softmax(self.m2(x, s), dim=1)
+        p3 = torch.nn.functional.softmax(self.m3(x, s), dim=1)
+        p4 = torch.nn.functional.softmax(self.m4(x, s), dim=1)
+        return p1 + p2 + p3 + p4 + p5
 
 
 T0 = time.time()
