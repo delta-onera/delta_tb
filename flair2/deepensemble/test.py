@@ -241,7 +241,21 @@ class DeepEnsemble(torch.nn.Module):
         p2 = self.m2(x, s)
         p3 = self.m3(x, s)
         p4 = self.m4(x, s)
-        return p1 + p2 + p3 + p4 + p5
+
+        v1 = p1.max(1)[0].unsqueeze(1)
+        v2 = p2.max(1)[0].unsqueeze(1)
+        v3 = p3.max(1)[0].unsqueeze(1)
+        v4 = p4.max(1)[0].unsqueeze(1)
+        v5 = p5.max(1)[0].unsqueeze(1)
+
+        w1 = (v1 == p1).float()
+        w2 = (v2 == p2).float()
+        w3 = (v3 == p3).float()
+        w4 = (v4 == p4).float()
+        w5 = (v5 == p5).float()
+
+        p = torch.nn.functional.softmax(p1 + p2 + p3 + p4 + p5, dim=1)
+        return w1 + w2 + w3 + w4 + w5 + p
 
 
 T0 = time.time()
