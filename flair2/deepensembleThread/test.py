@@ -263,12 +263,14 @@ net.half()
 
 print("load data")
 dataset = dataloader.FLAIR2()
+N = dataset.paths
+dataset.start()
 
 print("test")
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
-    for name in dataset.paths:
-        x, s = dataset.get(name)
+    for iiii in range(N):
+        name, x, s = dataset.asynchroneGet()
         x, s = x.half().cuda(), s.half().cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
