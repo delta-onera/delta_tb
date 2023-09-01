@@ -263,7 +263,7 @@ net.half()
 
 print("load data")
 dataset = dataloader.FLAIR2()
-N = dataset.paths
+N = len(dataset.paths)
 dataset.start()
 
 print("test")
