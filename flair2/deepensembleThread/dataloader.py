@@ -44,7 +44,7 @@ class FLAIR2(threading.Thread):
         self.isrunning = False
         self.paths = torch.load(root + "alltestpaths.pth")
         
-        self.q = queue.Queue(maxsize=1000)
+        self.q = queue.Queue(maxsize=100)
 
     def get(self, k):
         assert k in self.paths
