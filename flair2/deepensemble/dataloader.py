@@ -1,9 +1,6 @@
 import torch
 import numpy
-import queue
-import threading
 import rasterio
-import random
 from functools import lru_cache
 
 
@@ -37,40 +34,10 @@ def readSEN(path):
     return numpy.load(path)
 
 
-class FLAIR2(threading.Thread):
-    def __init__(self, flag="test", root="/d/achanhon/FLAIR_2/"):
-        threading.Thread.__init__(self)
-        assert flag in ["train", "val", "test"]
+class FLAIR2:
+    def __init__(self, root="/d/achanhon/FLAIR_2/"):
         self.root = root
-        self.isrunning = False
-        self.flag = flag
-
-        if flag == "train":
-            self.trainpath = torch.load(root + "alltrainpaths.pth")
-
-            tmp = sorted(self.trainpath.keys())
-            tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
-            self.valpath = {k: self.trainpath[k] for k in tmp}
-
-            tmp = sorted(self.trainpath.keys())
-            tmp = [k for (i, k) in enumerate(tmp) if i % 4 != 0]
-            self.trainpath = {k: self.trainpath[k] for k in tmp}
-
-            self.testpath = torch.load(root + "alltestpaths.pth")
-            self.testpath.update(self.valpath)
-
-            self.paths = {**self.testpath, **self.trainpath}
-            self.trainpath = set(self.trainpath.keys())
-            self.testpath = set(self.testpath.keys())
-
-        if flag == "test":
-            self.paths = torch.load(root + "alltestpaths.pth")
-
-        if flag == "val":
-            self.paths = torch.load(root + "alltrainpaths.pth")
-            tmp = sorted(self.paths.keys())
-            tmp = [k for (i, k) in enumerate(tmp) if i % 4 == 0]
-            self.paths = {k: self.paths[k] for k in tmp}
+        self.paths = torch.load(root + "alltestpaths.pth")
 
     def get(self, k):
         assert k in self.paths
@@ -88,39 +55,7 @@ class FLAIR2(threading.Thread):
         sen = torch.nan_to_num(sen)
         sen = torch.clamp(sen, -2, 2)
 
-        if self.flag == "test":
-            return torch.Tensor(x), sen
-        if self.flag == "val" or k in self.trainpath:
-            with rasterio.open(self.root + self.paths[k]["label"]) as src:
-                y = torch.Tensor(numpy.clip(src.read(1), 1, 13) - 1)
-            return torch.Tensor(x), sen, y
-        else:
-            tmp = torch.zeros(512, 512)
-            tmp[0][0] = -1
-            return torch.Tensor(x), sen, tmp
-
-    def getCrop(self):
-        assert self.isrunning
-        return self.q.get(block=True)
-
-    def getBatch(self, batchsize=16):
-        x = torch.zeros(batchsize, 5, 512, 512)
-        sen = torch.zeros(batchsize, 10, 32, 40, 40)
-        y = torch.zeros(batchsize, 512, 512)
-        for i in range(batchsize):
-            x[i], sen[i], y[i] = self.getCrop()
-        return x, sen, y
-
-    def run(self):
-        assert self.isrunning == False
-        self.isrunning = True
-        self.q = queue.Queue(maxsize=100)
-
-        while True:
-            I = list(self.paths.keys())
-            random.shuffle(I)
-            for i in I:
-                self.q.put(self.get(i), block=True)
+        return torch.Tensor(x), sen
 
 
 import torchvision

@@ -227,22 +227,24 @@ def number6(i):
 
 
 class DeepEnsemble(torch.nn.Module):
-    def __init__(self, m1, m2, m3, m4, m5):
+    def __init__(self, m1, m2, m3, m4, m5, m6):
         super(DeepEnsemble, self).__init__()
         self.m1 = torch.load(m1)
         self.m2 = torch.load(m2)
         self.m3 = torch.load(m3)
         self.m4 = torch.load(m4)
         self.m5 = torch.load(m5)
+        self.m6 = torch.load(m6)
 
     def forward(self, x, s):
         p1 = self.m1(x, s)
-        p5 = self.m5(x, s)
         p2 = self.m2(x, s)
         p3 = self.m3(x, s)
         p4 = self.m4(x, s)
+        p5 = self.m5(x, s)
+        p6 = self.m6(x, s)
 
-        return p1 + p2 + p3 + p4 + p5
+        return p1 + p2 + p3 + p4 + p5 + p6
 
 
 T0 = time.time()
@@ -251,15 +253,16 @@ net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../semisup2bis/build/model.pth",
     "../fast/build/model_converted.pth",
+    "../fastbis/build/model_converted.pth",
     "../autrebacbone/build/model_converted.pth",
-    "../vit/build/model.pth",
+    "../autrebackbonebis/build/model_converted.pth",
 )
 net = net.cuda()
 net.eval()
 net.half()
 
 print("load data")
-dataset = dataloader.FLAIR2("test")
+dataset = dataloader.FLAIR2()
 
 print("test")
 stats = torch.zeros((13, 13)).cuda()
