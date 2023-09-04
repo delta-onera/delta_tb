@@ -284,5 +284,6 @@ with torch.no_grad():
         # z = PIL.Image.fromarray(z)
         # z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
 
+print("almost done", time.time() - T0)
 writter.join()
 print("done", time.time() - T0)
