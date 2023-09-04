@@ -266,18 +266,8 @@ dataset = dataloader.FLAIR2()
 N = len(dataset.paths)
 dataset.start()
 
-import asyncio
-from io import BytesIO
-import aiofiles
-
-
-async def asynchronous_save_image(path, image):
-    buffer = BytesIO()
-    image.save(buffer, compression="tiff_lzw")
-
-    async with aiofiles.open(path, "wb") as file:
-        await file.write(buffer.getvalue())
-
+writter = dataloader.ImageWritter(N)
+writter.start()
 
 print("test")
 stats = torch.zeros((13, 13)).cuda()
@@ -290,9 +280,9 @@ with torch.no_grad():
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
-        z = PIL.Image.fromarray(z)
+        writter.asynchronePush("build/PRED_" + number6(name) + ".tif", z)
+        # z = PIL.Image.fromarray(z)
         # z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
 
-        asyncio.run(asynchronous_save_image("build/PRED_" + number6(name) + ".tif", z))
-
+writter.join()
 print("done", time.time() - T0)
