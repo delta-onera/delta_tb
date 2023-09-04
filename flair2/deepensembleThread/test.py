@@ -280,7 +280,6 @@ async def asynchronous_save_image(path, image):
 
 
 print("test")
-imagewrittersubprocesses = []
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for iiii in range(N):
@@ -294,8 +293,6 @@ with torch.no_grad():
         z = PIL.Image.fromarray(z)
         # z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
 
-        subprocess = asynchronous_save_image("build/PRED_" + number6(name) + ".tif", z)
-        imagewrittersubprocesses.append(subprocess)
+        asyncio.run(asynchronous_save_image("build/PRED_" + number6(name) + ".tif", z))
 
-asyncio.gather(*subprocess)
 print("done", time.time() - T0)
