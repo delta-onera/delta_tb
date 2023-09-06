@@ -266,6 +266,9 @@ dataset = dataloader.FLAIR2()
 N = len(dataset.paths)
 dataset.start()
 
+writter = dataloader.ImageWritter(N)
+writter.start()
+
 print("test")
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
@@ -277,7 +280,10 @@ with torch.no_grad():
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
-        z = PIL.Image.fromarray(z)
-        z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
+        writter.asynchronePush("build/PRED_" + number6(name) + ".tif", z)
+        # z = PIL.Image.fromarray(z)
+        # z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
 
+print("almost done", time.time() - T0)
+writter.join()
 print("done", time.time() - T0)

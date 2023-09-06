@@ -43,7 +43,7 @@ class FLAIR2(threading.Thread):
         self.root = root
         self.isrunning = False
         self.paths = torch.load(root + "alltestpaths.pth")
-        
+
         self.q = queue.Queue(maxsize=100)
 
     def get(self, k):
@@ -71,10 +71,37 @@ class FLAIR2(threading.Thread):
     def run(self):
         assert self.isrunning == False
         self.isrunning = True
-        
+
         for name in self.paths:
             x, s = self.get(name)
-            self.q.put((name,x,s), block=True)
+            self.q.put((name, x, s), block=True)
+
+
+import PIL
+from PIL import Image
+
+
+def number6(i):
+    s = str(i)
+    while len(s) < 6:
+        s = "0" + s
+    return s
+
+
+class ImageWritter(threading.Thread):
+    def __init__(self, N):
+        threading.Thread.__init__(self)
+        self.q = queue.Queue(maxsize=10000)
+        self.N = N
+
+    def asynchronePush(self, path, image):
+        self.q.put((path, image), block=True)
+
+    def run(self):
+        for n in range(self.N):
+            path, image = self.q.get(block=True)
+            image = PIL.Image.fromarray(image)
+            image.save(path, compression="tiff_lzw")
 
 
 import torchvision
