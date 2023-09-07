@@ -229,12 +229,12 @@ def number6(i):
 class DeepEnsemble(torch.nn.Module):
     def __init__(self, m1, m2, m3, m4, m5, m6):
         super(DeepEnsemble, self).__init__()
-        self.m1 = torch.load(m1)
-        self.m2 = torch.load(m2)
-        self.m3 = torch.load(m3)
-        self.m4 = torch.load(m4)
-        self.m5 = torch.load(m5)
-        self.m6 = torch.load(m6)
+        self.m1 = torch.load(m1).half()
+        self.m2 = torch.load(m2).half()
+        self.m3 = torch.load(m3).half()
+        self.m4 = torch.load(m4).half()
+        self.m5 = torch.load(m5).half()
+        self.m6 = torch.load(m6).half()
 
     def forward(self, x, s):
         p1 = self.m1(x, s)
@@ -246,7 +246,7 @@ class DeepEnsemble(torch.nn.Module):
 
         p = p1 + p2 + p3 + p4 + p5 + p6
         p[:, 7, :, :] *= 1.1
-        p[:, 11, :, :] *= 1.05
+        p[:, 11, :, :] *= 1.1
         return p
 
 
