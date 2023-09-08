@@ -244,9 +244,10 @@ class DeepEnsemble(torch.nn.Module):
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
 
-        p = p1 + p2 * 0.9 + p3 + p4 + p5 * 0.9 + p6 * 0.9
+        p = p1 + p2 + p3 + p4 + p5 + p6
 
         p[:, 7, :, :] *= 1.1
+        p[:, 9, :, :] *= 1.1
         return p
 
 
