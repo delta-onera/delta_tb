@@ -286,7 +286,7 @@ with torch.no_grad():
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         writter.asynchronePush(
-            "/scratchl/achanhon/PREDFLAIR2/PRED_" + number6(name) + ".tif", z
+            "/scratchm/achanhon/PREDFLAIR2/PRED_" + number6(name) + ".tif", z
         )
 
 print("processing image done", time.time() - T0)
