@@ -42,7 +42,7 @@ def compress(x):
 
 
 class FLAIR2(threading.Thread):
-    def __init__(self, hackforsentinel, root="/d/achanhon/FLAIR_2/"):
+    def __init__(self, root="/scratchm/achanhon/FLAIR_2/"):
         threading.Thread.__init__(self)
         self.root = root
         self.isrunning = False
@@ -329,7 +329,6 @@ class MyNet4(torch.nn.Module):
 if __name__ == "__main__":
     import os
 
-    os.system("rm -rf build")
-    os.system("mkdir build")
-    os.system("/d/achanhon/miniconda3/bin/python -u test.py")
-    quit()
+    os.system("rm -rf /scratchl/achanhon/PREDFLAIR2")
+    os.system("mkdir /scratchl/achanhon/PREDFLAIR2")
+    os.system("/stck/achanhon/miniconda3/bin/python -u test.py")
