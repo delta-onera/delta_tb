@@ -257,10 +257,10 @@ print("load model")
 net = DeepEnsemble(
     "/scratchm/achanhon/FLAIR_2/MODELS/model.pth",
     "/scratchm/achanhon/FLAIR_2/MODELS/model2.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model3.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model4.pth",
     "/scratchm/achanhon/FLAIR_2/MODELS/model5.pth",
     "/scratchm/achanhon/FLAIR_2/MODELS/model6.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model3.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model4.pth",
 )
 net = net.cuda()
 net.eval()
