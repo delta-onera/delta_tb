@@ -246,17 +246,21 @@ class DeepEnsemble(torch.nn.Module):
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
 
-        return p1 + p2 + p3 + p4 + p5 + p6
+        p = p1 + p2 + p3 + p4 + p5 + p6
+
+        p[:, 7, :, :] *= 1.125
+        p[:, 9, :, :] *= 1.1
+        return p
 
 
 print("load model")
 net = DeepEnsemble(
-    "../semisup2/build/model.pth",
-    "../semisup2bis/build/model.pth",
-    "../vit/build/model.pth",
-    "../vitbis/build/model.pth",
-    "../autrebacbone/build/model_converted.pth",
-    "../autrebackbonebis/build/model_converted.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model2.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model3.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model4.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model5.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/model6.pth",
 )
 net = net.cuda()
 net.eval()
@@ -281,7 +285,9 @@ with torch.no_grad():
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
-        writter.asynchronePush("build/PRED_" + number6(name) + ".tif", z)
+        writter.asynchronePush(
+            "/scratchl/achanhon/PREDFLAIR2/PRED_" + number6(name) + ".tif", z
+        )
 
 print("processing image done", time.time() - T0)
 writter.join()
