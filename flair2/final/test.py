@@ -255,12 +255,12 @@ class DeepEnsemble(torch.nn.Module):
 
 print("load model")
 net = DeepEnsemble(
-    "/scratchm/achanhon/FLAIR_2/MODELS/model.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model2.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model5.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model6.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model3.pth",
-    "/scratchm/achanhon/FLAIR_2/MODELS/model4.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/eff1.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/eff2.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/vit1.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/vit2.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/conv1.pth",
+    "/scratchm/achanhon/FLAIR_2/MODELS/conv2.pth",
 )
 net = net.cuda()
 net.eval()
