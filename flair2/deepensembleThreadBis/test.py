@@ -244,7 +244,7 @@ class DeepEnsemble(torch.nn.Module):
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
 
-        # pp = p1 + p2 + p3 + p4 + p5 + p6
+        pp = p1 + p2 + p3 + p4 + p5 + p6
         p = (
             p1 * p1.abs().sqrt()
             + p2 * p2.abs().sqrt()
@@ -253,8 +253,8 @@ class DeepEnsemble(torch.nn.Module):
             + p5 * p5.abs().sqrt()
             + p6 * p6.abs().sqrt()
         )
-        # p = p.abs().sqrt() * p.sign()
-        # p = 0.2 * p + 0.8 * pp
+        p = torch.pow(p.abs(),1.5) * p.sign()
+        p = 0.3 * p + 0.7 * pp
 
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
