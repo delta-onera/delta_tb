@@ -52,10 +52,10 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 210000
+nbbatchs = 320000
 dataset.start()
 
-batchsize = [12, 12, 8, 12, 6]
+batchsize = [32, 32, 32, 64, 16]
 mode = 2
 
 for i in range(nbbatchs):
@@ -129,7 +129,7 @@ for i in range(nbbatchs):
         mode = 3
         optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
         torch.save(net, "build/baseline.pth")
-    if i == 200000:
+    if i == 300000:
         mode = 4
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
         torch.save(net, "build/fused.pth")
