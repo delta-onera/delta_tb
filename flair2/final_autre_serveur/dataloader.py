@@ -47,7 +47,7 @@ class FLAIR2(threading.Thread):
         self.root = root
         self.isrunning = False
         self.paths = torch.load(root + "alltestpaths.pth")
-        self.q = queue.Queue(maxsize=5000)
+        self.q = queue.Queue(maxsize=500)
 
         print("preprocess ALL SENTINEL")
         self.ALLSENTINELRAM = {}
@@ -96,7 +96,7 @@ from PIL import Image
 class ImageWritter(threading.Thread):
     def __init__(self, N):
         threading.Thread.__init__(self)
-        self.q = queue.Queue(maxsize=10000)
+        self.q = queue.Queue(maxsize=100)
         self.N = N
 
     def asynchronePush(self, path, image):
