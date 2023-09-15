@@ -329,6 +329,6 @@ class MyNet4(torch.nn.Module):
 if __name__ == "__main__":
     import os
 
-    os.system("rm -rf /scratchm/achanhon/PREDFLAIR2/")
-    os.system("mkdir /scratchm/achanhon/PREDFLAIR2/")
-    os.system("/stck/achanhon/miniconda3/bin/python -u test.py")
+    os.system("rm -rf /d/achanhon/Desktop/PREDFLAIR2/")
+    os.system("mkdir /d/achanhon/Desktop/PREDFLAIR2/")
+    os.system("/d/achanhon/miniconda3/bin/python -u test.py")
