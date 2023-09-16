@@ -247,7 +247,7 @@ class DeepEnsemble(torch.nn.Module):
         p = p1 + p2 + p3 + p4 + p5 + p6
         pp = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
         pp,_ = pp.max(0)
-        p = p+pp*0.1
+        p = p+pp*0.3
         
 
         p[:, 7, :, :] *= 1.125
