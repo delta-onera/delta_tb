@@ -245,7 +245,8 @@ class DeepEnsemble(torch.nn.Module):
         p6 = self.m6(x, s)
 
         p = p1 + p2 + p3 + p4 + p5 + p6
-        pp = torch.maximum(p1,p2,p3,p4,p5,p6)
+        pp = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
+        pp,_ = pp.max(0)
         p = p+pp*0.1
         
 
