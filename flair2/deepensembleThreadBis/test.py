@@ -244,10 +244,17 @@ class DeepEnsemble(torch.nn.Module):
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
 
+        p1 = torch.nn.functional.leaky_relu(p1)
+        p2 = torch.nn.functional.leaky_relu(p2)
+        p3 = torch.nn.functional.leaky_relu(p3)
+        p4 = torch.nn.functional.leaky_relu(p4)
+        p5 = torch.nn.functional.leaky_relu(p5)
+        p6 = torch.nn.functional.leaky_relu(p6)
+
         p = p1 + p2 + p3 + p4 + p5 + p6
-        pp = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
-        pp,_ = pp.max(0)
-        p = p+pp*0.3
+        #pp = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
+        #pp,_ = pp.max(0)
+        #p = p+pp*0.3
         
 
         p[:, 7, :, :] *= 1.125
