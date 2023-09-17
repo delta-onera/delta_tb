@@ -249,7 +249,7 @@ class DeepEnsemble(torch.nn.Module):
         np = torch.nn.functional.relu(-p)
         np = np+np*np #increase inhibition effect
 
-        final = (pp-np).sum(0)
+        p = (pp-np).sum(0)
 
         #pp1 = torch.nn.functional.relu(p1)
         #pp2 = torch.nn.functional.relu(p2)
