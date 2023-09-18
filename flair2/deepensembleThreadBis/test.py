@@ -244,36 +244,16 @@ class DeepEnsemble(torch.nn.Module):
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
 
-        p = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
+        p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
         pp = torch.nn.functional.relu(p)
         np = torch.nn.functional.relu(-p)
-        np = 2*np+np*np #increase inhibition effect
+        np = np + np * np  # increase inhibition effect
 
-        p = (pp-np).sum(0)
-
-        #pp1 = torch.nn.functional.relu(p1)
-        #pp2 = torch.nn.functional.relu(p2)
-        #pp3 = torch.nn.functional.relu(p3)
-        #pp4 = torch.nn.functional.relu(p4)
-        #pp5 = torch.nn.functional.relu(p5)
-        #pp6 = torch.nn.functional.relu(p6)
-
-        #np1 = p1-pp1
-        #np2 = p2-pp2
-        #np3 = p3-pp3
-        #np4 = p4-pp4
-        #np5 = p5-pp5
-        #np6 = p6-pp6
-
-
-        #p = pp1 + pp2 + pp3 + pp4 + pp5 + pp6 - np1*np1 - np2*np2 - np3*np3 - np4*np4 - np5*np5 - np6*np6 + np1+np2+np3+np4+np5+np6
-        #pp = torch.stack([p1,p2,p3,p4,p5,p6],dim=0)
-        #pp,_ = pp.max(0)
-        #p = p+pp*0.3
-        
+        p = (pp - np).sum(0)
 
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
+        p[:, 10, :, :] *= 1.1
         return p
 
 
