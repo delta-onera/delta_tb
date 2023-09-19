@@ -281,7 +281,7 @@ writter.start()
 
 print("test")
 
-histo = torch.zeros(22).float().cuda()
+histo = torch.zeros(42).float().cuda()
 
 
 def fillHisto(x):
