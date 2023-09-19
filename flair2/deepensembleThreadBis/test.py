@@ -281,15 +281,15 @@ writter.start()
 
 print("test")
 
-# histo = torch.zeros(22).float().cuda()
+histo = torch.zeros(22).float().cuda()
 
 
 def fillHisto(x):
-    histo[0] += (x <= -2).float().sum() / 1000
-    for i in range(20):
-        tmp = ((-2 + i / 5 < x).long() * (x <= -1.9 + i / 5).float()).sum()
+    histo[0] += (x <= -4).float().sum() / 1000
+    for i in range(40):
+        tmp = ((-4 + i / 5 < x).long() * (x <= -4 + (i+1) / 5).float()).sum()
         histo[i + 1] += tmp / 1000
-    histo[-1] += (x > -2).float().sum() / 1000
+    histo[-1] += (x > 4).float().sum() / 1000
 
 
 stats = torch.zeros((13, 13)).cuda()
@@ -299,16 +299,14 @@ with torch.no_grad():
         x, s = x.half().cuda(), s.half().cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
-        # fillHisto(z)
+        fillHisto(z)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         writter.asynchronePush("build/PRED_" + number6(name) + ".tif", z)
-        # z = PIL.Image.fromarray(z)
-        # z.save("build/PRED_" + number6(name) + ".tif", compression="tiff_lzw")
-
+        
 print("almost done", time.time() - T0)
 writter.join()
 print("done", time.time() - T0)
 
-# print(histo / histo.sum())
+print(histo / histo.sum())
