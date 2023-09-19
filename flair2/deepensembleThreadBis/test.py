@@ -253,7 +253,7 @@ class DeepEnsemble(torch.nn.Module):
 
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
-        p[:, 10, :, :] *= 1.1
+        p[:, 10, :, :] *= 1.5
         return p
 
 
@@ -280,6 +280,18 @@ writter = dataloader.ImageWritter(N)
 writter.start()
 
 print("test")
+
+histo = torch.zeros(22).float().cuda()
+
+
+def fillHisto(x):
+    histo[0] += (x <= -2).float().sum() / 1000
+    for i in range(20):
+        tmp = ((-2 + i / 5 < x).long() * (x <= -1.9 + i / 5).float()).sum()
+        histo[i + 1] += tmp / 1000
+    histo[-1] += (x > -2).float().sum() / 1000
+
+
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for iiii in range(N):
@@ -287,6 +299,7 @@ with torch.no_grad():
         x, s = x.half().cuda(), s.half().cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
+        fillHisto(z)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
@@ -297,3 +310,5 @@ with torch.no_grad():
 print("almost done", time.time() - T0)
 writter.join()
 print("done", time.time() - T0)
+
+print(histo / histo.sum())
