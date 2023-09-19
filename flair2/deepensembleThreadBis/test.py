@@ -253,7 +253,7 @@ class DeepEnsemble(torch.nn.Module):
 
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
-        p[:, 10, :, :] *= 1.5
+        p[:, 10, :, :] *= 1.1
         return p
 
 
@@ -299,7 +299,7 @@ with torch.no_grad():
         x, s = x.half().cuda(), s.half().cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
-        fillHisto(z)
+        # fillHisto(z)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
