@@ -281,7 +281,7 @@ writter.start()
 
 print("test")
 
-histo = torch.zeros(22).float().cuda()
+# histo = torch.zeros(22).float().cuda()
 
 
 def fillHisto(x):
@@ -311,4 +311,4 @@ print("almost done", time.time() - T0)
 writter.join()
 print("done", time.time() - T0)
 
-print(histo / histo.sum())
+# print(histo / histo.sum())
