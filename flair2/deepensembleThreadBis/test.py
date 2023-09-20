@@ -261,11 +261,11 @@ class DeepEnsemble(torch.nn.Module):
 T0 = time.time()
 print("load model")
 net = DeepEnsemble(
-    "../semisup2/build/model.pth",
+    "../semisup3/build/snapshotpourtest.pth",
     "../fast/build/model_converted.pth",
-    "../vit/build/model.pth",
     "../autrebacbone/build/model_converted.pth",
-    "../autrebackbonebis/build/model_converted.pth",
+    "../autrebacbonebis/build/model_converted.pth",
+    "../vit/build/model.pth",
     "../vitbis/build/model.pth",
 )
 
