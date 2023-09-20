@@ -280,18 +280,6 @@ writter = dataloader.ImageWritter(N)
 writter.start()
 
 print("test")
-
-histo = torch.zeros(42).float().cuda()
-
-
-def fillHisto(x):
-    histo[0] += (x <= -4).float().sum() / 1000
-    for i in range(40):
-        tmp = ((-4 + i / 5 < x).long() * (x <= -4 + (i+1) / 5).float()).sum()
-        histo[i + 1] += tmp / 1000
-    histo[-1] += (x > 4).float().sum() / 1000
-
-
 stats = torch.zeros((13, 13)).cuda()
 with torch.no_grad():
     for iiii in range(N):
@@ -299,14 +287,11 @@ with torch.no_grad():
         x, s = x.half().cuda(), s.half().cuda()
 
         z = net(x.unsqueeze(0), s.unsqueeze(0))
-        fillHisto(z)
         _, z = z[0].max(0)
 
         z = numpy.uint8(numpy.clip(z.cpu().numpy(), 0, 12))
         writter.asynchronePush("build/PRED_" + number6(name) + ".tif", z)
-        
+
 print("almost done", time.time() - T0)
 writter.join()
 print("done", time.time() - T0)
-
-print(histo / histo.sum())
