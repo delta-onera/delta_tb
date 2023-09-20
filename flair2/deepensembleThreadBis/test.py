@@ -264,7 +264,7 @@ net = DeepEnsemble(
     "../semisup3/build/snapshotpourtest.pth",
     "../fast/build/model_converted.pth",
     "../autrebacbone/build/model_converted.pth",
-    "../autrebacbonebis/build/model_converted.pth",
+    "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",
 )
