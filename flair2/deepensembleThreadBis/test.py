@@ -254,14 +254,14 @@ class DeepEnsemble(torch.nn.Module):
 
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
-        p[:, 10, :, :] *= 1.1
+        p[:, 10, :, :] *= 1.11
         return p
 
 
 T0 = time.time()
 print("load model")
 net = DeepEnsemble(
-    "../semisup3/build/snapshotpourtest.pth",
+    "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
     "../autrebacbone/build/model_converted.pth",
     "../autrebackbonebis/build/model_converted.pth",
