@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet()
+net = dataloader.MyNet5()
 net = net.cuda()
 net.eval()
 
