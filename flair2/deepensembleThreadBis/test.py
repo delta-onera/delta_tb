@@ -268,6 +268,7 @@ net = DeepEnsemble(
     "../autrebackbonebis/build/model_converted.pth",
     "../vitbis/build/model.pth",
 )
+
 net = net.cuda()
 net.eval()
 net.half()
