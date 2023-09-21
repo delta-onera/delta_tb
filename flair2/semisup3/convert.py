@@ -168,7 +168,7 @@ class MyLittleNet(torch.nn.Module):
         p = self.classiflow(x).float()
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
 
-        return p, x, hr
+        return p
 
 
 f = torch.load("build/model.pth")

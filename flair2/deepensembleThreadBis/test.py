@@ -213,6 +213,36 @@ class MyNet2(torch.nn.Module):
         return p + 0.1 * plow
 
 
+class MyLittleNet(torch.nn.Module):
+    def __init__(self):
+        super(MyLittleNet, self).__init__()
+        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        with torch.no_grad():
+            old = tmp[0][0].weight / 2
+            tmp[0][0] = torch.nn.Conv2d(
+                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        del tmp[7]
+        del tmp[6]
+        self.backbone = tmp
+        self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
+
+    def forward(self, x):
+        xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
+        xm = xm.to(dtype=x.dtype)
+        x = ((x / 255) - 0.5) / 0.25
+        x = x.to(dtype=xm.dtype)
+        x = torch.cat([x, xm], dim=1)
+
+        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))
+        x = self.backbone[5](self.backbone[4](self.backbone[3](hr)))
+        p = self.classiflow(x).float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+        return p
+
+
 assert torch.cuda.is_available()
 torch.backends.cudnn.enabled = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
@@ -266,7 +296,7 @@ net = DeepEnsemble(
     "../autrebacbone/build/model_converted.pth",
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
-    "../vitbis/build/model.pth",
+    "../semisup3/build/model_converted.pth",
 )
 
 net = net.cuda()
