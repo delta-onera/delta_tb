@@ -228,7 +228,7 @@ class MyLittleNet(torch.nn.Module):
         self.backbone = tmp
         self.classiflow = torch.nn.Conv2d(160, 13, kernel_size=1)
 
-    def forward(self, x):
+    def forward(self, x, s):
         xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
         xm = xm.to(dtype=x.dtype)
         x = ((x / 255) - 0.5) / 0.25
@@ -272,7 +272,7 @@ class DeepEnsemble(torch.nn.Module):
         p3 = self.m3(x, s)
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
-        p6 = self.m6(x, s)
+        p6 = self.m6(x, s) * 0.1
 
         p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
         # p = torch.stack([p1, p2, p3, p4], dim=0)
