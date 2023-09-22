@@ -146,7 +146,7 @@ class MyNet5(torch.nn.Module):
         self.conv2 = torch.nn.Conv3d(32, 64, kernel_size=ks, stride=ks, padding=0)
         self.conv3 = torch.nn.Conv3d(64, 92, kernel_size=(3, 3, 3))
         self.conv4 = torch.nn.Conv3d(92, 128, kernel_size=ks, stride=ks, padding=0)
-        self.conv5 = torch.nn.Conv2d(128, 128, kernel_size=3)
+        self.conv5 = torch.nn.Conv2d(256, 128, kernel_size=3)
         self.conv6 = torch.nn.Conv2d(128, 128, kernel_size=3)
         self.conv7 = torch.nn.Conv2d(128, 128, kernel_size=3)
 
