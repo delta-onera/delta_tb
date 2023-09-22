@@ -298,6 +298,7 @@ net = DeepEnsemble(
     "../autrebackbonebis/build/model_converted.pth",
     "../semisup2bis/build/model_converted.pth",
 )
+######################### 63.07
 
 net = net.cuda()
 net.eval()
