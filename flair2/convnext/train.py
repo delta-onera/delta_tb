@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet5()
+net = torch.load("baseline")
 net = net.cuda()
 net.eval()
 
@@ -52,11 +52,11 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 210000
+nbbatchs = 110000
 dataset.start()
 
 batchsize = [12, 12, 8, 12, 6]
-mode = 2
+mode = 3
 
 for i in range(nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
@@ -126,10 +126,6 @@ for i in range(nbbatchs):
     optimizer.step()
 
     if i == 100000:
-        mode = 3
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-        torch.save(net, "build/baseline.pth")
-    if i == 200000:
         mode = 4
         optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
         torch.save(net, "build/fused.pth")
