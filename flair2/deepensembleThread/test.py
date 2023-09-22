@@ -262,7 +262,8 @@ net = DeepEnsemble(
     "../fast/build/model_converted.pth",
     "../autrebacbone/build/model_converted.pth",
     "../autrebackbonebis/build/model_converted.pth",
-    "../vit/build/model.pth",
+    # "../vit/build/model.pth",
+    "../vitbis/build/model.pth",
 )
 net = net.cuda()
 net.eval()

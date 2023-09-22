@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet()
+net = torch.load("build/fused.pth")
 net = net.cuda()
 net.eval()
 
@@ -49,14 +49,14 @@ def diceloss(y, z):
 
 print("train")
 
-optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 220000
+nbbatchs = 20000
 dataset.start()
 
 batchsize = [32, 32, 32, 48, 16]
-mode = 2
+mode = 4
 
 for i in range(nbbatchs):
     x, s, y = dataset.getBatch(batchsize[mode])
@@ -125,13 +125,5 @@ for i in range(nbbatchs):
         torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
     optimizer.step()
 
-    if i == 100000:
-        mode = 3
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-        torch.save(net, "build/baseline.pth")
-    if i == 200000:
-        mode = 4
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
-        torch.save(net, "build/fused.pth")
-
+        
 os._exit(0)
