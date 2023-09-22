@@ -5,7 +5,8 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = torch.load("baseline")
+net = torch.load("build/baseline.pth")
+net.conv5 = torch.nn.Conv2d(256, 128, kernel_size=3)
 net = net.cuda()
 net.eval()
 
