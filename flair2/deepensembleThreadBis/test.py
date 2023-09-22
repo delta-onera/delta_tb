@@ -270,8 +270,8 @@ class DeepEnsemble(torch.nn.Module):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
         p3 = self.m3(x, s)
-        p4 = self.m4(x, s)
-        p5 = self.m5(x, s) * 0.8
+        p4 = self.m4(x, s) * 0.8
+        p5 = self.m5(x, s)
         p6 = self.m6(x, s) * 0.5
 
         p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
