@@ -140,7 +140,7 @@ class MyNet6(torch.nn.Module):
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
 
         self.backbone = tmp
-        self.decod = torch.nn.Conv2d(208, 48, kernel_size=2, padding=1)
+        self.decod = torch.nn.Conv2d(208, 48, kernel_size=1)
         self.classiflow = torch.nn.Conv2d(256, 13, kernel_size=1)
         self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
