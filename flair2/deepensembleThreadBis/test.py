@@ -281,7 +281,7 @@ class DeepEnsemble(torch.nn.Module):
         np = np + np * np  # increase inhibition effect
 
         p = (pp - np).sum(0)
-
+    
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
         p[:, 10, :, :] *= 1.1
@@ -292,7 +292,7 @@ T0 = time.time()
 print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
-    "../fast/build/model_converted.pth",
+    "../fastbis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",
     "../autrebackbonebis/build/model_converted.pth",
