@@ -319,7 +319,7 @@ class MyNet4(torch.nn.Module):
         p = p.float()
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
         return p + 0.1 * plow
-    
+
 
 class MyNet5(torch.nn.Module):
     def __init__(self):
@@ -403,8 +403,10 @@ class MyNet5(torch.nn.Module):
         xs = torch.cat([x, xs], dim=1)
         xs = self.lrelu(self.merge3(xs)).float()
 
-        f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
-        f1 = torch.nn.functional.interpolate(x.float(), size=(128, 128), mode="bilinear")
+        f = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear").half()
+        f1 = torch.nn.functional.interpolate(
+            x.float(), size=(128, 128), mode="bilinear"
+        ).half()
         f2 = torch.cat([f1, f, hr], dim=1)
         f2 = self.lrelu(self.decod1(f2))
         f2 = torch.cat([f2, hr], dim=1)
@@ -419,12 +421,11 @@ class MyNet5(torch.nn.Module):
         return p
 
     def forward(self, x, s):
-            plow, x, hr = self.forwardRGB(x)
-            s = self.forwardSentinel(s)
-            p = self.forwardClassifier(x, hr, s).float()
-            p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
-            return p + 0.1 * plow
-
+        plow, x, hr = self.forwardRGB(x)
+        s = self.forwardSentinel(s)
+        p = self.forwardClassifier(x, hr, s).float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        return p + 0.1 * plow
 
 
 if __name__ == "__main__":
