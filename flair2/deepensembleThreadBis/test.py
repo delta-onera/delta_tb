@@ -243,6 +243,36 @@ class MyLittleNet(torch.nn.Module):
         return p
 
 
+class MyLittleNet2(torch.nn.Module):
+    def __init__(self):
+        super(MyLittleNet2, self).__init__()
+        tmp = torchvision.models.swin_s(weights="DEFAULT").features
+        del tmp[6:]
+        with torch.no_grad():
+            old = tmp[0][0].weight / 2
+            tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=4, stride=4)
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+        self.vit = tmp
+        self.classiflow = torch.nn.Conv2d(384, 13, kernel_size=1)
+
+    def forward(self, x):
+        xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
+        xm = xm.to(dtype=x.dtype)
+        x = ((x / 255) - 0.5) / 0.25
+        x = x.to(dtype=xm.dtype)
+        x = torch.cat([x, xm], dim=1)
+
+        hr = self.vit[0:2](x)
+        x = self.vit[2:](hr)
+        x = torch.transpose(x, 2, 3)
+        x = torch.transpose(x, 1, 2)
+
+        p = self.classiflow(x).float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+
+        return p
+
+
 assert torch.cuda.is_available()
 torch.backends.cudnn.enabled = True
 torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = True
@@ -269,7 +299,7 @@ class DeepEnsemble(torch.nn.Module):
     def forward(self, x, s):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
-        p3 = self.m3(x, s)
+        p3 = self.m3(x, s) * 0.5
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
         p6 = self.m6(x, s) * 0.5
@@ -281,7 +311,7 @@ class DeepEnsemble(torch.nn.Module):
         np = np + np * np  # increase inhibition effect
 
         p = (pp - np).sum(0)
-    
+
         p[:, 7, :, :] *= 1.125
         p[:, 9, :, :] *= 1.1
         p[:, 10, :, :] *= 1.1
@@ -293,7 +323,7 @@ print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
-    "../vit/build/model.pth",
+    "../vit/build/model_converted.pth",
     "../vitbis/build/model.pth",
     "../autrebackbonebis/build/model_converted.pth",
     "../semisup2bis/build/model_converted.pth",
