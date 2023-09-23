@@ -299,13 +299,12 @@ class DeepEnsemble(torch.nn.Module):
     def forward(self, x, s):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
-        p3 = self.m3(x, s) * 0.5
+        p3 = self.m3(x, s)
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
-        p6 = self.m6(x, s) * 0.5
+        p6 = self.m6(x, s)
 
         p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
-        # p = torch.stack([p1, p2, p3, p4], dim=0)
         pp = torch.nn.functional.relu(p)
         np = torch.nn.functional.relu(-p)
         np = np + np * np  # increase inhibition effect
@@ -323,10 +322,10 @@ print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
-    "../vit/build/model_converted.pth",
-    "../vitbis/build/model.pth",
+    "../convnext/build/model.pth",
     "../autrebackbonebis/build/model_converted.pth",
-    "../semisup2bis/build/model_converted.pth",
+    "../vit/build/model.pth",
+    "../vitbis/build/model.pth",  # "../semisup2bis/build/model_converted.pth",
 )
 
 net = net.cuda()
