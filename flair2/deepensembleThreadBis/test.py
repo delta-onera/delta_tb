@@ -255,7 +255,7 @@ class MyLittleNet2(torch.nn.Module):
         self.vit = tmp
         self.classiflow = torch.nn.Conv2d(384, 13, kernel_size=1)
 
-    def forward(self, x):
+    def forward(self, x, s):
         xm = torch.ones(x.shape[0], 1, 512, 512).cuda()
         xm = xm.to(dtype=x.dtype)
         x = ((x / 255) - 0.5) / 0.25
