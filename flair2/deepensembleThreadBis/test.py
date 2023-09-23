@@ -331,10 +331,32 @@ net = DeepEnsemble(
 )#63.07
 """
 
+"""
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
-    "../semisup2bis/build/model_converted.pth", #0.7
+    "../semisup2bis/build/model_converted.pth", #0.6
+    "../autrebackbonebis/build/model_converted.pth",
+    "../vit/build/model.pth",
+    "../vitbis/build/model.pth",
+)#63.06
+"""
+
+"""
+net = DeepEnsemble(
+    "../semisup2/build/model.pth",
+    "../fast/build/model_converted.pth",
+    "../semisup2bis/build/model_converted.pth", #0.4
+    "../autrebackbonebis/build/model_converted.pth",
+    "../vit/build/model.pth",
+    "../vitbis/build/model.pth",
+)#63.04
+"""
+
+net = DeepEnsemble(
+    "../semisup2/build/model.pth",
+    "../fast/build/model_converted.pth",
+    "../semisup2bis/build/model_converted.pth",  # 0.7
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",
