@@ -132,7 +132,6 @@ class MyNet6(torch.nn.Module):
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
         del tmp[7]
         del tmp[6]
-        del tmp[5]
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
@@ -140,48 +139,30 @@ class MyNet6(torch.nn.Module):
             )
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
 
-            old = tmp[3][0].block[0][0].weight
-            tmp[3][0].block[0][0] = torch.nn.Conv2d(48, 192, kernel_size=3, padding=1, bias=False)
-            tmp[3][0].block[0][0].weight= torch.nn.Parameter(old)
+        self.decod = torch.nn.Conv2d(208, 48, kernel_size=2, padding=1)
+        self.classiflow = torch.nn.Conv2d(256, 13, kernel_size=1)
+        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
 
-            old = tmp[4][0].block[1][0].weight
-            tmp[4][0].block[1][0] = torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, groups=256, bias=False)
-            tmp[4][0].block[1][0].weight= torch.nn.Parameter(old)
-            
-        self.classiflow = torch.nn.Conv2d(128, 13, kernel_size=1)
-
-    def forward(self, x,s):
+    def forward(self, x, s):
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         xm.to(dtype=x.dtype)
         x = ((x / 255) - 0.5) / 0.5
         x.to(dtype=xm.dtype)
         x = torch.cat([x, xm], dim=1)
 
-        x = self.backbone(x)
-        plow = self.classiflow(x)
-        plow = torch.nn.functional.interpolate(plow, size=(512, 512), mode="bilinear")
+        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))  # 48
+        x = self.backbone[5](self.backbone[4](self.backbone[3](hr))).float()  # 160
+        x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
+        x = x.to(dtype=hr.dtype)
 
-        xs = torch.cat([x, s], dim=1)
-        xs = self.lrelu(self.merge1(xs))
-        xs = torch.cat([x, xs], dim=1)
-        xs = self.lrelu(self.merge2(xs))
-        xs = torch.cat([x, xs], dim=1)
-        xs = self.lrelu(self.merge3(xs))
+        f = torch.cat([x, hr], dim=1)
+        f = self.lrelu(self.decod(f))
+        f = torch.cat([f, x, hr], dim=1)
 
-        f1 = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
-        f2 = torch.nn.functional.interpolate(xs, size=(128, 128), mode="bilinear")
-        f = torch.cat([f1, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod1(f))
-        f = torch.cat([f1, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod2(f))
-        f = torch.cat([f1, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod3(f))
-        f = torch.cat([f1, f2, hr], dim=1)
-        f2 = self.lrelu(self.decod4(f))
-        f = torch.cat([f1, f2, hr], dim=1)
-        p = self.classif(f)
-
+        p = self.classiflow(f).float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
         return p
+
 
 if __name__ == "__main__":
     import os
