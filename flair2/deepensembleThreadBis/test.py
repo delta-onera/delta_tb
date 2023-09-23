@@ -333,10 +333,10 @@ net = DeepEnsemble(
 
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
-    "../fast/build/model_converted.pth",
+    "../convnext/build/model.pth",
     "../semisup2bis/build/model_converted.pth",
     "../autrebackbonebis/build/model_converted.pth",
-    "../convnext/build/model.pth",
+    "../vit/build/model.pth",
     "../vitbis/build/model.pth",
 )
 
