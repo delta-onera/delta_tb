@@ -299,7 +299,7 @@ class DeepEnsemble(torch.nn.Module):
     def forward(self, x, s):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
-        p3 = self.m3(x, s)
+        p3 = self.m3(x, s)*0.5
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
@@ -322,7 +322,7 @@ print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
-    "../convnext/build/model.pth",
+    "../semisup2bis/build/model_converted.pth",
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",  # "../semisup2bis/build/model_converted.pth",
