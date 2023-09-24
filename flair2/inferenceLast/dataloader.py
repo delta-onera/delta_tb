@@ -344,7 +344,7 @@ class MyNet6(torch.nn.Module):
         xm.to(dtype=x.dtype)
         x = ((x / 255) - 0.5) / 0.5
         x.to(dtype=xm.dtype)
-        x = torch.cat([x, xm], dim=1)
+        x = torch.cat([x, xm], dim=1).half()
 
         hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))  # 48
         x = self.backbone[5](self.backbone[4](self.backbone[3](hr))).float()  # 160
