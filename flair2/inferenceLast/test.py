@@ -265,12 +265,12 @@ class DeepEnsemble(torch.nn.Module):
         self.m4 = torch.load(m4).half()
         self.m5 = torch.load(m5).half()
         self.m6 = torch.load(m6).half()
-        print(type(m1))
-        print(type(m2))
-        print(type(m3))
-        print(type(m4))
-        print(type(m5))
-        print(type(m6))
+        print(type(self.m1))
+        print(type(self.m2))
+        print(type(self.m3))
+        print(type(self.m4))
+        print(type(self.m5))
+        print(type(self.m6))
 
     def forward(self, x, s):
         p1 = self.m1(x, s)
@@ -279,7 +279,6 @@ class DeepEnsemble(torch.nn.Module):
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
-        
 
         p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
         pp = torch.nn.functional.relu(p)
