@@ -126,12 +126,10 @@ class FLAIR2(threading.Thread):
 import torchvision
 
 
-class MyNet6(torch.nn.Module):
+class MyNet7(torch.nn.Module):
     def __init__(self):
-        super(MyNet6, self).__init__()
+        super(MyNet7, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-        del tmp[7]
-        del tmp[6]
         with torch.no_grad():
             old = tmp[0][0].weight / 2
             tmp[0][0] = torch.nn.Conv2d(
@@ -140,9 +138,7 @@ class MyNet6(torch.nn.Module):
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
 
         self.backbone = tmp
-        self.decod = torch.nn.Conv2d(208, 48, kernel_size=1)
-        self.classiflow = torch.nn.Conv2d(256, 13, kernel_size=1)
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
+        self.classiflow = torch.nn.Conv2d(1280, 13, kernel_size=1)
 
     def forward(self, x, s):
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
@@ -151,16 +147,8 @@ class MyNet6(torch.nn.Module):
         x.to(dtype=xm.dtype)
         x = torch.cat([x, xm], dim=1)
 
-        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))  # 48
-        x = self.backbone[5](self.backbone[4](self.backbone[3](hr))).float()  # 160
-        x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
-        x = x.to(dtype=hr.dtype)
-
-        f = torch.cat([x, hr], dim=1)
-        f = self.lrelu(self.decod(f))
-        f = torch.cat([f, x, hr], dim=1)
-
-        p = self.classiflow(f).float()
+        x = self.backbone(x)
+        p = self.classiflow(x).float()
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
         return p
 
