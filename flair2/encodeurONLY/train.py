@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet6()
+net = dataloader.MyNet7()
 net = net.cuda()
 net.eval()
 
@@ -109,6 +109,11 @@ for i in range(nbbatchs):
 
     optimizer.zero_grad()
     loss.backward()
+
+    for p in net.parameters():
+        p.grad = torch.nan_to_num(p.grad, 0, 1, -1)
+        p.grad = torch.clamp(p.grad, -1, 1)
+
     optimizer.step()
 
 os._exit(0)
