@@ -257,7 +257,7 @@ def number6(i):
 
 
 class DeepEnsemble(torch.nn.Module):
-    def __init__(self, m1, m2, m3, m4, m5, m6):
+    def __init__(self, m1, m2, m3, m4, m5, m6, m7):
         super(DeepEnsemble, self).__init__()
         self.m1 = torch.load(m1).half()
         self.m2 = torch.load(m2).half()
@@ -265,22 +265,25 @@ class DeepEnsemble(torch.nn.Module):
         self.m4 = torch.load(m4).half()
         self.m5 = torch.load(m5).half()
         self.m6 = torch.load(m6).half()
+        self.m7 = torch.load(m7).half()
         print(type(self.m1))
         print(type(self.m2))
         print(type(self.m3))
         print(type(self.m4))
         print(type(self.m5))
         print(type(self.m6))
+        print(type(self.m7))
 
     def forward(self, x, s):
         p1 = self.m1(x, s)
         p2 = self.m2(x, s)
-        p3 = self.m3(x, s) * 0.5
+        p3 = self.m3(x, s)
         p4 = self.m4(x, s)
         p5 = self.m5(x, s)
         p6 = self.m6(x, s)
+        p7 = self.m7(x, s) * 0.5
 
-        p = torch.stack([p1, p2, p3, p4, p5, p6], dim=0)
+        p = torch.stack([p1, p2, p3, p4, p5, p6, p7], dim=0)
         pp = torch.nn.functional.relu(p)
         np = torch.nn.functional.relu(-p)
         np = np + np * np  # increase inhibition effect
@@ -303,6 +306,7 @@ net = DeepEnsemble(
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",
+    "../semisup2bis/build/model_converted.pth",
 )
 
 net = net.cuda()
