@@ -5,7 +5,7 @@ import dataloader
 assert torch.cuda.is_available()
 
 print("define model")
-net = dataloader.MyNet4()
+net = dataloader.MyNet6()
 net = net.cuda()
 net.eval()
 
@@ -52,14 +52,12 @@ print("train")
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 printloss = [0, 0, 0, 0]
 stats = torch.zeros((13, 13)).cuda()
-nbbatchs = 210000
+nbbatchs = 100000
 dataset.start()
 
-batchsize = [8, 8, 4, 8, 4]
-mode = 2
 
 for i in range(nbbatchs):
-    x, s, y = dataset.getBatch(batchsize[mode])
+    x, s, y = dataset.getBatch(6)
     x, s, y = x.cuda(), s.cuda(), y.cuda()
 
     TR = [j for j in range(y.shape[0]) if y[j][0][0] >= 0]
@@ -67,27 +65,17 @@ for i in range(nbbatchs):
         i = i - 1
         continue
 
-    optimizer.zero_grad()
-    if mode == 2:
-        z = net(x, s, mode=2)
-    else:
-        z, semisup = net(x, s, mode=mode)
+    z = net(x, s)
 
     dice = diceloss(y[TR], z[TR])
     ce = crossentropy(y[TR], z[TR])
 
-    if mode == 2:
-        loss = ce + dice
-    else:
-        loss = ce + dice + semisup
-    loss.backward()
+    loss = ce + dice
 
     with torch.no_grad():
         printloss[0] += float(loss)
         printloss[1] += float(ce)
         printloss[2] += float(dice)
-        if mode != 2:
-            printloss[3] += float(semisup)
 
         if TR != []:
             _, z = z.max(1)
@@ -110,28 +98,22 @@ for i in range(nbbatchs):
             if perf[0] > 90:
                 os._exit(0)
 
-    if i % 100000 > nbbatchs * 0.1:
+    if i > nbbatchs * 0.1:
         loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.2:
+    if i > nbbatchs * 0.2:
         loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.5:
+    if i > nbbatchs * 0.5:
         loss = loss * 0.7
-    if i % 100000 > nbbatchs * 0.8:
+    if i > nbbatchs * 0.8:
         loss = loss * 0.7
 
-    if mode != 4:
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 1)
-    else:
-        torch.nn.utils.clip_grad_norm_(net.parameters(), 0.1)
+    optimizer.zero_grad()
+    loss.backward()
+
+    for p in net.parameters():
+        p.grad = torch.nan_to_num(p.grad, 0, 1, -1)
+        p.grad = torch.clamp(p.grad, -1, 1)
+
     optimizer.step()
-
-    if i == 100000:
-        mode = 3
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
-        torch.save(net, "build/baseline.pth")
-    if i == 200000:
-        mode = 4
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.000001)
-        torch.save(net, "build/fused.pth")
 
 os._exit(0)
