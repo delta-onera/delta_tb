@@ -299,7 +299,7 @@ print("load model")
 net = DeepEnsemble(
     "../semisup2/build/model.pth",
     "../fast/build/model_converted.pth",
-    "../lastchance/build/model.pth",
+    "../encodeurONLY/build/model.pth",
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
     "../vitbis/build/model.pth",

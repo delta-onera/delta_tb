@@ -360,6 +360,33 @@ class MyNet6(torch.nn.Module):
         return p
 
 
+class MyNet7(torch.nn.Module):
+    def __init__(self):
+        super(MyNet7, self).__init__()
+        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        with torch.no_grad():
+            old = tmp[0][0].weight / 2
+            tmp[0][0] = torch.nn.Conv2d(
+                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+            )
+            tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
+
+        self.backbone = tmp
+        self.classiflow = torch.nn.Conv2d(1280, 13, kernel_size=1)
+
+    def forward(self, x, s):
+        xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
+        xm.to(dtype=x.dtype)
+        x = ((x / 255) - 0.5) / 0.5
+        x.to(dtype=xm.dtype)
+        x = torch.cat([x, xm], dim=1).half()
+
+        x = self.backbone(x)
+        p = self.classiflow(x).float()
+        p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
+        return p
+
+
 if __name__ == "__main__":
     import os
 
