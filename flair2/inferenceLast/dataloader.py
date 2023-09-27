@@ -324,38 +324,25 @@ class MyNet4(torch.nn.Module):
 class MyNet6(torch.nn.Module):
     def __init__(self):
         super(MyNet6, self).__init__()
-        tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-        del tmp[7]
-        del tmp[6]
+        tmp = torchvision.models.swin_s(weights="DEFAULT").features
         with torch.no_grad():
             old = tmp[0][0].weight / 2
-            tmp[0][0] = torch.nn.Conv2d(
-                6, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
-            )
+            tmp[0][0] = torch.nn.Conv2d(6, 96, kernel_size=4, stride=4)
             tmp[0][0].weight = torch.nn.Parameter(torch.cat([old, old], dim=1))
-
-        self.backbone = tmp
-        self.decod = torch.nn.Conv2d(208, 48, kernel_size=1)
-        self.classiflow = torch.nn.Conv2d(256, 13, kernel_size=1)
-        self.lrelu = torch.nn.LeakyReLU(negative_slope=0.1, inplace=False)
+        self.vit = tmp
+        self.classiflow = torch.nn.Conv2d(768, 13, kernel_size=1)
 
     def forward(self, x, s):
         xm = torch.zeros(x.shape[0], 1, 512, 512).cuda()
         xm.to(dtype=x.dtype)
-        x = ((x / 255) - 0.5) / 0.5
+        x = ((x / 255) - 0.5) / 0.25
         x.to(dtype=xm.dtype)
         x = torch.cat([x, xm], dim=1).half()
 
-        hr = self.backbone[2](self.backbone[1](self.backbone[0](x)))  # 48
-        x = self.backbone[5](self.backbone[4](self.backbone[3](hr))).float()  # 160
-        x = torch.nn.functional.interpolate(x, size=(128, 128), mode="bilinear")
-        x = x.to(dtype=hr.dtype)
-
-        f = torch.cat([x, hr], dim=1)
-        f = self.lrelu(self.decod(f))
-        f = torch.cat([f, x, hr], dim=1)
-
-        p = self.classiflow(f).float()
+        x = self.vit(x)
+        x = torch.transpose(x, 2, 3)
+        x = torch.transpose(x, 1, 2)
+        p = self.classiflow(x).float()
         p = torch.nn.functional.interpolate(p, size=(512, 512), mode="bilinear")
         return p
 

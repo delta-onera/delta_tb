@@ -305,7 +305,7 @@ net = DeepEnsemble(
     "../encodeurONLY/build/model.pth",
     "../autrebackbonebis/build/model_converted.pth",
     "../vit/build/model.pth",
-    "../vitbis/build/model.pth",
+    "../encodeurVIT/build/model.pth",
     "../semisup2bis/build/model_converted.pth",
 )
 
