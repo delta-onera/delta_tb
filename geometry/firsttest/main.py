@@ -33,7 +33,7 @@ image = image.unsqueeze(0)
 allfeatures = torch.zeros(64, 1250, 1250)
 for r in range(10):
     for c in range(10):
-        x = image[:, 1000 * r : 1000 * (r + 1), 1000 * c : 1000 * (c + 1)]
+        x = image[:, :, 1000 * r : 1000 * (r + 1), 1000 * c : 1000 * (c + 1)]
         z = net(x)[0].cpu()
         allfeatures[:, 125 * r : 125 * (r + 1), 125 * c : 125 * (c + 1)] = z
 
