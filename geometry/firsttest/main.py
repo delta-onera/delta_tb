@@ -48,7 +48,7 @@ normalizednorms = allfeatures.abs().mean(0)
 
 seuil = list(normalizednorms.flatten().cpu().numpy())
 seuil = sorted(seuil)
-seuil = seuil[90 * len(seuil) // 100]
+seuil = seuil[99 * len(seuil) // 100]
 
 image1250 = torch.nn.functional.interpolate(image, size=1250, mode="bilinear")
 image1250 = image1250[0] / 255
