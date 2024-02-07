@@ -19,7 +19,7 @@ class FeatureExtractor(torch.nn.Module):
         with torch.no_grad():
             x = x.cuda().half() / 255.0
             x = (x - 0.5) / 0.25
-            return features(x)
+            return self.features(x)
 
 
 net = FeatureExtractor()
@@ -28,13 +28,14 @@ image = PIL.Image.open("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56865.tif")
 image = numpy.asarray(image.convert("RGB").copy())
 image = torch.Tensor(image)
 image = torch.stack([image[:, :, 0], image[:, :, 1], image[:, :, 2]], dim=0)
+image = image.unsqueeze(0)
 
 allfeatures = torch.zeros(64, 1250, 1250)
 for r in range(10):
     for c in range(10):
         x = image[:, 1000 * r : 1000 * (r + 1), 1000 * c : 1000 * (c + 1)]
-        z = net(x.unsqueeze(0))[0].cpu()
-        output[:, 125 * r : 125 * (r + 1), 125 * c : 125 * (c + 1)]
+        z = net(x)[0].cpu()
+        allfeatures[:, 125 * r : 125 * (r + 1), 125 * c : 125 * (c + 1)] = z
 
 print("extract stats")
 allfeatures.cuda()
@@ -49,7 +50,7 @@ seuil = list(normalizednorms.flatten().cpu().numpy())
 seuil = sorted(seuil)
 seuil = seuil[90 * len(seuil) // 100]
 
-image1250 = torch.nn.functional.interpolate(image, size=1250, mode="bilinear")
+image1250 = torch.nn.functional.interpolate(image, size=1250, mode="bilinear")[0]
 torchvision.utils.save_image(image1250, "build/image.png")
 
 image1250 *= (normalizednorms > seuil).float().unsqueeze(0)
