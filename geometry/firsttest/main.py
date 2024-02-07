@@ -26,7 +26,7 @@ net = FeatureExtractor()
 
 image = PIL.Image.open("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56865.tif")
 image = numpy.asarray(image.convert("RGB").copy())
-image = torch.Tensor(image)
+image = torch.Tensor(image).clone()
 image = torch.stack([image[:, :, 0], image[:, :, 1], image[:, :, 2]], dim=0)
 image = image.unsqueeze(0)
 
@@ -50,7 +50,8 @@ seuil = list(normalizednorms.flatten().cpu().numpy())
 seuil = sorted(seuil)
 seuil = seuil[90 * len(seuil) // 100]
 
-image1250 = torch.nn.functional.interpolate(image, size=1250, mode="bilinear")[0]
+image1250 = torch.nn.functional.interpolate(image, size=1250, mode="bilinear")
+image1250 = image1250[0] / 255
 torchvision.utils.save_image(image1250, "build/image.png")
 
 image1250 *= (normalizednorms > seuil).float().unsqueeze(0)
