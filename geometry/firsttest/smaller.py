@@ -45,25 +45,28 @@ with torch.no_grad():
     print("extract stats")
     allfeatures.cuda().half()
     norm = torch.sqrt((allfeatures**2).sum(0).unsqueeze(0)).half()
-    allfeatures = allfeatures / (norm + 1)
+    allfeatures = allfeatures / (norm + 0.0001)
 
     allfeatures = allfeatures.flatten(1)
     assert allfeatures.shape == (128, 310 * 310)
 
     GRAM = torch.matmul(torch.transpose(allfeatures, 0, 1), allfeatures)
     del allfeatures
-    torch.fill_diagonal(GRAM, -1)
+    torch.diagonal(GRAM).fill_(-1)
     assert GRAM.shape == (310 * 310, 310 * 310)
 
     maxGRAM, _ = GRAM.max(1)
-    assert GRAM.shape == (310 * 310)
+    assert GRAM.shape[0] == 310 * 310
     del GRAM
 
+    seuil = sorted(list(maxGRAM.cpu().numpy()))
+    seuil = seuil[1000]
     maxGRAM = maxGRAM.view(310, 310)
+    print((maxGRAM < seuil).float().sum())
 
     image620 = torch.nn.functional.interpolate(image, size=310, mode="bilinear")
     image620 = image620[0] / 255
     torchvision.utils.save_image(image620, "build/image.png")
 
-    image620 *= (maxGRAM < 0).float().unsqueeze(0)
+    image620 *= (maxGRAM <= seuil).float().unsqueeze(0)
     torchvision.utils.save_image(image620, "build/amer.png")
