@@ -20,6 +20,13 @@ class FeatureExtractor(torch.nn.Module):
         return self.features(x)
 
 
+def computeDist(A):
+    A_expanded = A.unsqueeze(1)
+    A_diff = A_expanded - A_expanded.permute(0, 2, 1)
+    D = A_diff.pow(2)
+    return D.mean(0)
+
+
 with torch.no_grad():
     net = FeatureExtractor()
 
@@ -44,13 +51,14 @@ with torch.no_grad():
 
     print("extract stats")
     allfeatures.cuda().half()
-    norm = torch.sqrt((allfeatures**2).sum(0).unsqueeze(0)).half()
-    allfeatures = allfeatures / (norm + 0.0001)
+    # norm = torch.sqrt((allfeatures**2).sum(0).unsqueeze(0)).half()
+    # allfeatures = allfeatures / (norm + 0.0001)
 
     allfeatures = allfeatures.flatten(1)
     assert allfeatures.shape == (128, 310 * 310)
 
-    GRAM = torch.matmul(torch.transpose(allfeatures, 0, 1), allfeatures)
+    # GRAM = torch.matmul(torch.transpose(allfeatures, 0, 1), allfeatures)
+    GRAM = computeDist(allfeatures)
     del allfeatures
     torch.diagonal(GRAM).fill_(-1)
     assert GRAM.shape == (310 * 310, 310 * 310)
@@ -60,9 +68,9 @@ with torch.no_grad():
     del GRAM
 
     seuil = sorted(list(maxGRAM.cpu().numpy()))
-    seuil = seuil[1000]
+    seuil = seuil[-100]
     maxGRAM = maxGRAM.view(310, 310)
-    print((maxGRAM < seuil).float().sum())
+    print((maxGRAM > seuil).float().sum())
 
     image620 = torch.nn.functional.interpolate(image, size=310, mode="bilinear")
     image620 = image620[0] / 255
