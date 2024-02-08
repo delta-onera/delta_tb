@@ -20,12 +20,6 @@ class FeatureExtractor(torch.nn.Module):
         return self.features(x)
 
 
-def computeDist(A):
-    A_expanded = A.unsqueeze(1)
-    A_diff = A_expanded - A_expanded.permute(0, 2, 1)
-    D = A_diff.pow(2) 
-    return D.mean(0)
-
 with torch.no_grad():
     net = FeatureExtractor()
 
@@ -49,27 +43,29 @@ with torch.no_grad():
     allfeatures = allfeatures[0]
 
     print("extract stats")
-    allfeatures.cuda().half()
+    allfeatures = allfeatures.cuda().half()
+    tmp = torch.ones(1, 310, 310).cuda().half()
+    allfeatures = torch.cat([allfeatures, tmp], dim=0)
+
     norm = torch.sqrt((allfeatures**2).sum(0).unsqueeze(0)).half()
-    meannorm = norm.flatten().mean()
+    allfeatures /= norm
 
     allfeatures = allfeatures.flatten(1)
-    assert allfeatures.shape == (128, 310 * 310)
+    assert allfeatures.shape == (129, 310 * 310)
 
-    #GRAM = torch.matmul(torch.transpose(allfeatures, 0, 1), allfeatures)
-    GRAM = computeDist( allfeatures)
+    GRAM = torch.matmul(allfeatures.transpose(0, 1), allfeatures)
     del allfeatures
-    torch.diagonal(GRAM).fill_(-1)
+    torch.diagonal(GRAM).fill_(-10)
     assert GRAM.shape == (310 * 310, 310 * 310)
 
     maxGRAM, _ = GRAM.max(1)
     assert GRAM.shape[0] == 310 * 310
     del GRAM
-    
+
     seuil = sorted(list(maxGRAM.cpu().numpy()))
-    seuil = seuil[-100]
-    maxGRAM = maxGRAM.view(310, 310)
-    print((maxGRAM>seuil).float().sum())
+    seuil = float(seuil[100])
+    maxGRAM = maxGRAM.view(310, 310).cpu()
+    print((maxGRAM < seuil).float().sum())
 
     image620 = torch.nn.functional.interpolate(image, size=310, mode="bilinear")
     image620 = image620[0] / 255
