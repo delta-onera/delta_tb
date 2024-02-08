@@ -30,11 +30,15 @@ image = torch.stack([image[:, :, 0], image[:, :, 1], image[:, :, 2]], dim=0)
 image = image.unsqueeze(0)
 
 allfeatures = torch.zeros(128, 620, 620)
+allfeatures = torch.nn.functional.avg_pool2d(
+    allfeatures.unsqueeze(0), kernel_size=2, stride=2
+)
+allfeatures = allfeatures[0]
 for r in range(10):
     for c in range(10):
         x = image[:, :, 992 * r : 992 * (r + 1), 992 * c : 992 * (c + 1)]
         z = net(x)[0].cpu()
-        allfeatures[:, 62 * r : 62 * (r + 1), 62 * c : 62 * (c + 1)] = z
+        allfeatures[:, 31 * r : 31 * (r + 1), 31 * c : 31 * (c + 1)] = z
 
 print("extract stats")
 with torch.no_grad():
@@ -43,22 +47,22 @@ with torch.no_grad():
     allfeatures = allfeatures / (norm + 1)
 
     allfeatures = allfeatures.flatten(1)
-    assert allfeatures.shape == (128, 384400)
+    assert allfeatures.shape == (128, 310 * 310)
 
     GRAM = torch.matmul(torch.transpose(allfeatures, 0, 1), allfeatures)
     del allfeatures
     torch.fill_diagonal(GRAM, -1)
-    assert GRAM.shape == (384400, 384400)
+    assert GRAM.shape == (310 * 310, 310 * 310)
 
     maxGRAM, _ = GRAM.max(1)
-    assert GRAM.shape == (384400)
+    assert GRAM.shape == (310 * 310)
     del GRAM
 
-    maxGRAM = maxGRAM.view(620, 620)
+    maxGRAM = maxGRAM.view(310, 310)
 
-    image620 = torch.nn.functional.interpolate(image, size=620, mode="bilinear")
+    image620 = torch.nn.functional.interpolate(image, size=310, mode="bilinear")
     image620 = image620[0] / 255
-    torchvision.utils.save_image(image1250, "build/image.png")
+    torchvision.utils.save_image(image620, "build/image.png")
 
     image620 *= (maxGRAM < 0).float().unsqueeze(0)
     torchvision.utils.save_image(image620, "build/amer.png")
