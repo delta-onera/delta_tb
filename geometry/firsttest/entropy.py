@@ -44,11 +44,13 @@ with torch.no_grad():
 
     print("extract stats")
     allfeatures = allfeatures.cuda().half()
-    
-    GRAM = torch.nn.functional.softmax(torch.matmul(allfeatures.transpose(0, 1), allfeatures),1)
-    
+
+    GRAM = torch.nn.functional.softmax(
+        torch.matmul(allfeatures.transpose(0, 1), allfeatures), 1
+    )
     del allfeatures
-    torch.diagonal(GRAM).fill_(-10)
+
+    torch.diagonal(GRAM).fill_(0)
     assert GRAM.shape == (310 * 310, 310 * 310)
 
     maxGRAM, _ = GRAM.max(1)
