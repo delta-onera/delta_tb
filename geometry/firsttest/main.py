@@ -5,6 +5,10 @@ import torch
 import torchvision
 
 
+def extractKeyCell(x):
+    assert len(x.shape) == 3
+
+
 class FeatureExtractor(torch.nn.Module):
     def __init__(self):
         super(FeatureExtractor, self).__init__()
@@ -30,6 +34,7 @@ image = torch.Tensor(image).clone()
 image = torch.stack([image[:, :, 0], image[:, :, 1], image[:, :, 2]], dim=0)
 image = image.unsqueeze(0)
 
+print("exact feature with clean image")
 allfeatures = torch.zeros(64, 1250, 1250)
 for r in range(10):
     for c in range(10):
@@ -37,7 +42,7 @@ for r in range(10):
         z = net(x)[0].cpu()
         allfeatures[:, 125 * r : 125 * (r + 1), 125 * c : 125 * (c + 1)] = z
 
-print("extract stats")
+
 allfeatures.cuda()
 mu = allfeatures.flatten(1).mean(1)
 allfeatures -= mu.view(64, 1, 1)
