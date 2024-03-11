@@ -27,9 +27,12 @@ class FeatureExtractor(torch.nn.Module):
     def forward(self, x):
         x = x.cuda() / 255.0
         x = (x - 0.5) / 0.25
+        print(x.shape)
         x = torch.nn.functional.pad(x, [32] * 4, mode="reflect")
+        print(x.shape)
 
-        x1 = self.features(x)[:, :, 4:-3]
+        x1 = self.features(x)[:, :, 4:-4, 4:-4]
+        print(x1.shape)
         if self.naif:
             return x1
 
@@ -42,7 +45,7 @@ class FeatureExtractor(torch.nn.Module):
         tmp = torch.rot90(x, k=3, dims=[2, 3])
         x4 = torch.rot90(self.features(tmp), k=-3, dims=[2, 3])
 
-        x2, x3, x4 = x2[:, :, 4:-3], x3[:, :, 4:-3], x4[:, :, 4:-3]
+        x2, x3, x4 = x2[:, :, 4:-4, 4:-4], x3[:, :, 4:-4, 4:-4], x4[:, :, 4:-4, 4:-4]
 
         xM = torch.max(torch.max(x1, x2), torch.max(x3, x4))
         xm = 0.25 * (x1 + x2 + x3 + x4)
@@ -58,6 +61,10 @@ def extractSalientPoint(x, k):
         allfeatures = allfeatures / torch.sqrt(
             (allfeatures * allfeatures + 0.1).sum(0).unsqueeze(0)
         )
+        allfeatures[:, 0, :] = 0
+        allfeatures[:, -1, :] = 0
+        allfeatures[:, :, 0] = 0
+        allfeatures[:, :, -1] = 0
 
         GRAM = torch.matmul(allfeatures.transpose(0, 1), allfeatures)
         del allfeatures
