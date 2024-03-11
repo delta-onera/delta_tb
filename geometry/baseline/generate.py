@@ -30,7 +30,7 @@ class Generator:
         x = PIL.Image.open(self.paths[i])
         x = torch.Tensor(numpy.asarray(x)).clone().cuda()
         x = torch.stack([x[:, :, 0], x[:, :, 1], x[:, :, 2]], dim=0)
-        x = torch.nn.functional.avg_pool2d(x, kernel_size=2)
+        x = torch.nn.functional.avg_pool2d(x, kernel_size=4)
 
         r = int(tirage[1] * (x.shape[1] - 1030))
         c = int(tirage[2] * (x.shape[2] - 1030))
@@ -68,9 +68,3 @@ if __name__ == "__main__":
     print(proj)
     torchvision.utils.save_image(x, "build/source.png")
     torchvision.utils.save_image(x_, "build/target.png")
-
-    x = PIL.Image.open(gen.paths[0])
-    x = torch.Tensor(numpy.asarray(x)).clone().cuda()
-    x = torch.stack([x[:, :, 0], x[:, :, 1], x[:, :, 2]], dim=0)
-    x = torch.nn.functional.avg_pool2d(x, kernel_size=5)
-    torchvision.utils.save_image(x / 255, "build/debug.png")
