@@ -56,15 +56,15 @@ def extractSalientPoint(x, k):
     with torch.no_grad():
         allfeatures = net(x.unsqueeze(0).cuda())[0]
         _, h, w = allfeatures.shape
+        allfeatures[:, 0, :] = 0
+        allfeatures[:, -1, :] = 0
+        allfeatures[:, :, 0] = 0
+        allfeatures[:, :, -1] = 0
 
         allfeatures = allfeatures.flatten(1)
         allfeatures = allfeatures / torch.sqrt(
             (allfeatures * allfeatures + 0.1).sum(0).unsqueeze(0)
         )
-        allfeatures[:, 0, :] = 0
-        allfeatures[:, -1, :] = 0
-        allfeatures[:, :, 0] = 0
-        allfeatures[:, :, -1] = 0
 
         GRAM = torch.matmul(allfeatures.transpose(0, 1), allfeatures)
         del allfeatures
