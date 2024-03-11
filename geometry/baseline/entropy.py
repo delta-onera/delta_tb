@@ -1,60 +1,79 @@
-import numpy
-import PIL
-from PIL import Image
 import torch
 import torchvision
+import generate
 
 
 class FeatureExtractor(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, naif=False):
         super(FeatureExtractor, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
+        """
+        3,256,256 -> 1280, 8, 8
+        del tmp[7] -> 256, 8, 8
+        del tmp[6] -> 160,16,16
+        del tmp[5] -> 128,16,16
+        del tmp[4] ->  64,32,32
+        """
         del tmp[7]
+        del tmp[6]
+        del tmp[5]
+        del tmp[4]
         self.features = tmp.cuda()
+        self.naif = naif
 
     def forward(self, x):
         x = x.cuda() / 255.0
         x = (x - 0.5) / 0.25
-        x = self.features(x)
-        x = torch.nn.functional.max_pool2d(x, kernel_size=2, stride=2)
-        return x
+
+        x1 = self.features(x)
+        if self.naif:
+            return x1
+
+        tmp = torch.rot90(x, k=1, dims=[2, 3])
+        x2 = torch.rot90(self.features(tmp), k=-1, dims=[2, 3])
+
+        tmp = torch.rot90(x, k=2, dims=[2, 3])
+        x3 = torch.rot90(self.features(tmp), k=-2, dims=[2, 3])
+
+        tmp = torch.rot90(x, k=3, dims=[2, 3])
+        x4 = torch.rot90(self.features(tmp), k=-3, dims=[2, 3])
+
+        xM = torch.maximun(torch.maximum(x1, x2), torch.maximum(x3, x4))
+        xm = 0.25 * (x1 + x2 + x3 + x4)
+        return torch.cat([xM, xm], dim=1)
+
+
+def extractSalientPoint(x, k):
+    with torch.no_grad():
+        allfeatures = net(x.unsqueeze(0).cuda())[0]
+        _, h, w = allfeatures.shape
+
+        allfeatures = allfeatures.flatten(1)
+        allfeatures = allfeatures / torch.sqrt(
+            (allfeatures * allfeatures + 0.1).sum(0).unsqueeze(0)
+        )
+
+        GRAM = torch.matmul(allfeatures.transpose(0, 1), allfeatures)
+        del allfeatures
+        GRAM = torch.nn.functional.softmax(GRAM, 1)
+        GRAM = torch.diagonal(GRAM)
+
+        GRAM.sort()
+        _, pos = torch.topk(GRAM, k, dim=0)
+
+        posR = (pos / h).long()
+        posW = pos % w
+        posR, posW = 8 * posR + 4, 8 * posW + 4
+        return posR, posW
 
 
 with torch.no_grad():
-    net = FeatureExtractor()
+    net = FeatureExtractor().cuda()
+    data = generate.Generator()
 
-    image = PIL.Image.open("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56865.tif")
-    image = numpy.asarray(image.convert("RGB").copy())
-    image = torch.Tensor(image)[0:9600, 0:9600, :].clone()
-    image = torch.stack([image[:, :, 0], image[:, :, 1], image[:, :, 2]], dim=0)
-    image = image.unsqueeze(0)
-
-    print("extract data")
-    allfeatures = torch.zeros(256, 150, 150)
-    for r in range(10):
-        for c in range(10):
-            x = image[:, :, 960 * r : 960 * (r + 1), 960 * c : 960 * (c + 1)]
-            z = net(x)[0].cpu()
-            allfeatures[:, 15 * r : 15 * (r + 1), 15 * c : 15 * (c + 1)] = z
-
-    allfeatures = allfeatures / torch.sqrt(
-        (allfeatures * allfeatures + 0.1).sum(0).unsqueeze(0)
-    )
-
-    print("extract stats")
-    allfeatures = allfeatures.cuda().flatten(1)
-
-    GRAM = torch.matmul(allfeatures.transpose(0, 1), allfeatures)
-    del allfeatures
-    GRAM = torch.nn.functional.softmax(GRAM, 1)
-    GRAM = torch.diagonal(GRAM)
-    assert GRAM.shape[0] == (150 * 150)
-
-    seuil = list(GRAM.cpu().numpy())
-    seuil = float(sorted(seuil)[-300])
-    print(seuil)
-    GRAM = GRAM.view(150, 150).cpu()
-    print((GRAM >= seuil).float().sum())
+    for i in range(10):
+        x, xx, proj = data.get()
+        P = extractSalientPoint(xx, 4)
 
     imagetiny = torch.nn.functional.interpolate(image, size=150, mode="bilinear")
     imagetiny = imagetiny[0] / 255

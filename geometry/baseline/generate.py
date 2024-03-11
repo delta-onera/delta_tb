@@ -18,7 +18,7 @@ class Generator:
         dc_ = c / 256 * dby, c / 256 * dbx
         return (ay + dr_[0] + dc_[0]).long(), (ax + dr_[1] + dc_[1]).long()
 
-    def get(self):
+    def get_(self):
         tirage = torch.rand(6)
 
         i = int(tirage[0] * len(self.paths))
@@ -49,6 +49,10 @@ class Generator:
         x_[2][self.broad[0], self.broad[1]] = x[2][p[0], p[1]]
 
         return x, x_, coord
+
+    def get(self):
+        with torch.no_grad():
+            return self.get_()
 
 
 if __name__ == "__main__":
