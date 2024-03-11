@@ -27,8 +27,8 @@ class Generator:
         x = torch.stack([x[:, :, 0], x[:, :, 1], x[:, :, 2]], dim=0)
         x = torch.nn.functional.avg_pool2d(x, kernel_size=2)
 
-        r = int(tirage[1] * x.shape[1] - 1030)
-        c = int(tirage[2] * x.shape[2] - 1030)
+        r = int(tirage[1] * (x.shape[1] - 1030))
+        c = int(tirage[2] * (x.shape[2] - 1030))
         x = x[:, r : r + 1024, c : c + 1024] / 255
 
         a = float(tirage[3] * 400 + 300), float(tirage[4] * 400 + 300)
@@ -44,10 +44,17 @@ class Generator:
         p = self.oldCoordinate(self.broad[0], self.broad[1], coord)
         p = torch.clamp(p[0], 0, 1023), torch.clamp(p[1], 0, 1023)
         x_ = torch.zeros(3, 256, 256).cuda()
-        x_[0][self.broad[0], self.broad[1]] = x[0][p[0], p[1]]
-        x_[1][self.broad[0], self.broad[1]] = x[1][p[0], p[1]]
-        x_[2][self.broad[0], self.broad[1]] = x[2][p[0], p[1]]
-
+        try:
+            x_[0][self.broad[0], self.broad[1]] = x[0][p[0], p[1]]
+            x_[1][self.broad[0], self.broad[1]] = x[1][p[0], p[1]]
+            x_[2][self.broad[0], self.broad[1]] = x[2][p[0], p[1]]
+        except BaseException as e:
+            print("wtf")
+            print(x.shape,x_.shape)
+            print(p[0])
+            print(p[1])
+            quit()
+        
         return x, x_, coord
 
     def get(self):

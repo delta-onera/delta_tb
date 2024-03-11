@@ -1,7 +1,9 @@
 import torch
 import torchvision
 import generate
-
+import PIL
+from PIL import Image
+import numpy
 
 class FeatureExtractor(torch.nn.Module):
     def __init__(self, naif=False):
@@ -61,18 +63,18 @@ def extractSalientPoint(x, k):
         GRAM.sort()
         _, pos = torch.topk(GRAM, k, dim=0)
 
-        posR = (pos / h).long()
+        posH = (pos / h).long()
         posW = pos % w
-        posR, posW = 8 * posR + 4, 8 * posW + 4
-        return posR, posW
+        posH, posW = 8 * posH + 4, 8 * posW + 4
+        return posH, posW
 
 
-def drawRect(path, x, posR, posW, posR_=None, posW_=None):
+def drawRect(path, x, posH, posW, posH_=None, posW_=None):
     x = torch.stack([x[0], x[1], x[2]], dim=-1)
-    x = x.cpu().numpy()
+    x = numpy.uint8((x.cpu().numpy()*255.9))
     image = PIL.Image.fromarray(x)
 
-    draw = ImageDraw.Draw(image)
+    draw = PIL.ImageDraw.Draw(image)
     for i in range(posW.shape[0]):
         rect = [posW[i] - 8, posH[i] - 8, posW[i] + 8, posH[i] + 8]
         draw.rectangle(rect, outline="green", width=2)
@@ -94,9 +96,9 @@ with torch.no_grad():
     for i in range(10):
         x, xx, proj = data.get()
 
-        posR, posW = extractSalientPoint(xx, 4)
-        drawRect("build/" + str(i) + "_s.png", xx, posR, posW)
+        posH, posW = extractSalientPoint(xx, 4)
+        drawRect("build/" + str(i) + "_s.png", xx, posH, posW)
 
-        posR_, posW_ = generate.oldCoordinate(posR, posW, proj)
-        posR, posW = extractSalientPoint(xx, 64)
-        drawRect("build/" + str(i) + "_b.png", x, posR, posW, posR_, posW_)
+        posH_, posW_ = generate.oldCoordinate(posH, posW, proj)
+        posH, posW = extractSalientPoint(xx, 64)
+        drawRect("build/" + str(i) + "_b.png", x, posH, posW, posH_, posW_)
