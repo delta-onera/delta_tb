@@ -8,6 +8,11 @@ class Generator:
     def __init__(self):
         self.paths = []
         self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56865.tif")
+        # self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56870.tif") # too much water+container
+        # self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315135_56865.tif") # almost but...
+        # self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315135_56870.tif") # too much water
+        self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315140_56865.tif")
+        self.paths.append("/scratchf/DFC2015/BE_ORTHO_27032011_315130_56865.tif")
 
         tmp = torch.arange(65536).long()
         self.broad = ((tmp / 256).long().cuda(), (tmp % 256).long().cuda())
@@ -63,3 +68,9 @@ if __name__ == "__main__":
     print(proj)
     torchvision.utils.save_image(x, "build/source.png")
     torchvision.utils.save_image(x_, "build/target.png")
+
+    x = PIL.Image.open(gen.paths[0])
+    x = torch.Tensor(numpy.asarray(x)).clone().cuda()
+    x = torch.stack([x[:, :, 0], x[:, :, 1], x[:, :, 2]], dim=0)
+    x = torch.nn.functional.avg_pool2d(x, kernel_size=5)
+    torchvision.utils.save_image(x / 255, "build/debug.png")
