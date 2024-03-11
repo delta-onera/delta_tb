@@ -38,7 +38,7 @@ class FeatureExtractor(torch.nn.Module):
         tmp = torch.rot90(x, k=3, dims=[2, 3])
         x4 = torch.rot90(self.features(tmp), k=-3, dims=[2, 3])
 
-        xM = torch.maximun(torch.maximum(x1, x2), torch.maximum(x3, x4))
+        xM = torch.max(torch.max(x1, x2), torch.max(x3, x4))
         xm = 0.25 * (x1 + x2 + x3 + x4)
         return torch.cat([xM, xm], dim=1)
 
@@ -67,17 +67,36 @@ def extractSalientPoint(x, k):
         return posR, posW
 
 
+def drawRect(path, x, posR, posW, posR_=None, posW_=None):
+    x = torch.stack([x[0], x[1], x[2]], dim=-1)
+    x = x.cpu().numpy()
+    image = PIL.Image.fromarray(x)
+
+    draw = ImageDraw.Draw(image)
+    for i in range(posW.shape[0]):
+        rect = [posW[i] - 8, posH[i] - 8, posW[i] + 8, posH[i] + 8]
+        draw.rectangle(rect, outline="green", width=2)
+
+    if posR_ is None:
+        image.save(path)
+        return
+
+    for i in range(posW_.shape[0]):
+        rect = [posW_[i] - 8, posH_[i] - 8, posW_[i] + 8, posH_[i] + 8]
+        draw.rectangle(rect, outline="red", width=2)
+    image.save(path)
+
+
 with torch.no_grad():
     net = FeatureExtractor().cuda()
     data = generate.Generator()
 
     for i in range(10):
         x, xx, proj = data.get()
-        P = extractSalientPoint(xx, 4)
 
-    imagetiny = torch.nn.functional.interpolate(image, size=150, mode="bilinear")
-    imagetiny = imagetiny[0] / 255
-    torchvision.utils.save_image(imagetiny, "build/image.png")
+        posR, posW = extractSalientPoint(xx, 4)
+        drawRect("build/" + str(i) + "_s.png", xx, posR, posW)
 
-    imagetiny *= (GRAM >= seuil).float().unsqueeze(0)
-    torchvision.utils.save_image(imagetiny, "build/amer.png")
+        posR_, posW_ = generate.oldCoordinate(posR, posW, proj)
+        posR, posW = extractSalientPoint(xx, 64)
+        drawRect("build/" + str(i) + "_b.png", x, posR, posW, posR_, posW_)
