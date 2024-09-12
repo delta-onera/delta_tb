@@ -10,13 +10,6 @@ class FeatureExtractor(torch.nn.Module):
     def __init__(self, naif=False):
         super(FeatureExtractor, self).__init__()
         tmp = torchvision.models.efficientnet_v2_s(weights="DEFAULT").features
-        """
-        3,256,256 -> 1280, 8, 8
-        del tmp[7] -> 256, 8, 8
-        del tmp[6] -> 160,16,16
-        del tmp[5] -> 128,16,16
-        del tmp[4] ->  64,32,32
-        """
         del tmp[7]
         del tmp[6]
         del tmp[5]
